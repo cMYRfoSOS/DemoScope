@@ -1,7 +1,7 @@
 
 {
   "name": "demoscope",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "FACEIT player statistics and CS2 demo analytics",
   "main": "server.js",
   "scripts": {
@@ -10,10 +10,9 @@
   "dependencies": {
     "@laihoe/demoparser2": "^0.42.0",
     "express": "^4.21.2",
-    "fzstd": "^0.1.1",
     "multer": "^2.0.2"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=26.0.0"
   }
 }
