@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "express": "^4.21.2",
-    "demoparser2": "^0.1.45",
+    "@laihoe/demoparser2": "^0.42.0",
     "multer": "^2.0.2"
   },
   "engines": {
