@@ -1,4 +1,4 @@
-
+```html
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -348,7 +348,7 @@ th{color:#999}
  </div>
 
  <p class="demo-description">
-  Загрузи демо матча CS2 в формате .dem.
+  Загрузи демо матча CS2 в формате .dem или .dem.zst.
   DemoScope обработает файл и покажет статистику игроков.
  </p>
 
@@ -357,7 +357,7 @@ th{color:#999}
    <input
     type="file"
     id="demoFile"
-    accept=".dem"
+    accept=".dem,.dem.zst"
    >
   </label>
 
@@ -763,8 +763,15 @@ async function uploadDemo(){
   return;
  }
 
- if(!file.name.toLowerCase().endsWith(".dem")){
-  $("demoStatus").textContent = "Нужен файл с расширением .dem.";
+ const fileName = file.name.toLowerCase();
+
+ const isDemo =
+  fileName.endsWith(".dem") ||
+  fileName.endsWith(".dem.zst");
+
+ if(!isDemo){
+  $("demoStatus").textContent =
+   "Нужен файл с расширением .dem или .dem.zst.";
   return;
  }
 
@@ -783,7 +790,7 @@ async function uploadDemo(){
  button.textContent = "Обрабатываем...";
 
  $("demoStatus").textContent =
-  "Загружаем демо. Анализ может занять некоторое время...";
+  "Загружаем демо. Распаковка и анализ могут занять некоторое время...";
 
  try{
   const response = await fetch("/api/demo/upload",{
@@ -1090,3 +1097,4 @@ window.addEventListener("resize",()=>{
 
 </body>
 </html>
+```
