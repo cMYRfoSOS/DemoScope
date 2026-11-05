@@ -1,6 +1,16 @@
+
 const express = require("express");
 const path = require("path");
 const crypto = require("crypto");
+const os = require("os");
+const fs = require("fs");
+const multer = require("multer");
+
+const {
+    parseHeader,
+    parsePlayerInfo,
+    parseEvent
+} = require("@laihoe/demoparser2");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -14,7 +24,32 @@ const SYNC_SECRET = process.env.SYNC_SECRET;
 const TRACKING_ENABLED = Boolean(SUPABASE_URL && SUPABASE_SECRET_KEY);
 const SYNC_BATCH_SIZE = 20;
 
+const MAX_DEMO_SIZE = 200 * 1024 * 1024;
+const DEMO_TEMP_DIR = path.join(os.tmpdir(), "demoscope-uploads");
+
+fs.mkdirSync(DEMO_TEMP_DIR, { recursive: true });
+
 app.use(express.static(path.join(__dirname)));
+
+const demoUpload = multer({
+    dest: DEMO_TEMP_DIR,
+    limits: {
+        fileSize: MAX_DEMO_SIZE,
+        files: 1
+    },
+    fileFilter: (req, file, callback) => {
+        if (!file.originalname ||
+            !file.originalname.toLowerCase().endsWith(".dem")) {
+            return callback(new Error("Разрешены только файлы .dem"));
+        }
+
+        callback(null, true);
+    }
+});
+
+// ================================
+// FACEIT API
+// ================================
 
 async function faceit(endpoint) {
     if (!API_KEY) {
@@ -31,11 +66,17 @@ async function faceit(endpoint) {
     const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-        throw new Error(data.message || `Ошибка FACEIT API: ${response.status}`);
+        throw new Error(
+            data.message || `Ошибка FACEIT API: ${response.status}`
+        );
     }
 
     return data;
 }
+
+// ================================
+// SUPABASE
+// ================================
 
 async function supabaseRequest(resource, options = {}) {
     if (!TRACKING_ENABLED) {
@@ -55,13 +96,16 @@ async function supabaseRequest(resource, options = {}) {
         headers.Prefer = options.prefer;
     }
 
-    const response = await fetch(`${SUPABASE_URL}/rest/v1/${resource}`, {
-        method: options.method || "GET",
-        headers,
-        body: options.body === undefined
-            ? undefined
-            : JSON.stringify(options.body)
-    });
+    const response = await fetch(
+        `${SUPABASE_URL}/rest/v1/${resource}`,
+        {
+            method: options.method || "GET",
+            headers,
+            body: options.body === undefined
+                ? undefined
+                : JSON.stringify(options.body)
+        }
+    );
 
     const raw = await response.text();
     let data = null;
@@ -77,7 +121,9 @@ async function supabaseRequest(resource, options = {}) {
             ? (data.message || data.details || data.hint || data.error)
             : data;
 
-        throw new Error(message || `Ошибка Supabase: ${response.status}`);
+        throw new Error(
+            message || `Ошибка Supabase: ${response.status}`
+        );
     }
 
     return data;
@@ -86,7 +132,9 @@ async function supabaseRequest(resource, options = {}) {
 async function saveEloSnapshot(playerId, nickname, elo) {
     const numericElo = Number(elo);
 
-    if (!playerId || !Number.isFinite(numericElo) || numericElo < 0) {
+    if (!playerId ||
+        !Number.isFinite(numericElo) ||
+        numericElo < 0) {
         return false;
     }
 
@@ -110,7 +158,9 @@ async function getEloSnapshots(playerId) {
         limit: "300"
     });
 
-    const rows = await supabaseRequest(`elo_snapshots?${params.toString()}`);
+    const rows = await supabaseRequest(
+        `elo_snapshots?${params.toString()}`
+    );
 
     return (Array.isArray(rows) ? rows : [])
         .map(row => ({
@@ -123,6 +173,10 @@ async function getEloSnapshots(playerId) {
         )
         .reverse();
 }
+
+// ================================
+// ОБЩИЕ ФУНКЦИИ
+// ================================
 
 function cleanNickname(value) {
     let nickname = String(value || "").trim();
@@ -142,12 +196,17 @@ function numberStat(stats, keys) {
     for (const key of keys) {
         const value = stats?.[key];
 
-        if (value !== undefined && value !== null && value !== "") {
+        if (value !== undefined &&
+            value !== null &&
+            value !== "") {
+
             const number = Number(
                 String(value).replace("%", "").replace(",", ".")
             );
 
-            if (Number.isFinite(number)) return number;
+            if (Number.isFinite(number)) {
+                return number;
+            }
         }
     }
 
@@ -165,7 +224,9 @@ function normalizeMatch(item) {
 
     let date = rawDate ? Number(rawDate) : null;
 
-    if (date && date < 1e12) date *= 1000;
+    if (date && date < 1e12) {
+        date *= 1000;
+    }
 
     return {
         matchId: stats["Match Id"] || item.match_id || null,
@@ -216,14 +277,292 @@ function safeSecretEquals(provided, expected) {
         crypto.timingSafeEqual(a, b);
 }
 
+// ================================
+// CS2 DEMO ANALYZER
+// ================================
+
+function asRows(value) {
+    if (Array.isArray(value)) {
+        return value;
+    }
+
+    if (typeof value === "string") {
+        try {
+            const parsed = JSON.parse(value);
+            return Array.isArray(parsed) ? parsed : [];
+        } catch {
+            return [];
+        }
+    }
+
+    return [];
+}
+
+function eventNumber(value) {
+    const number = Number(value);
+    return Number.isFinite(number) ? number : 0;
+}
+
+function analyzeDemoFile(filePath) {
+    const header = parseHeader(filePath) || {};
+
+    const rawPlayers = asRows(
+        parsePlayerInfo(filePath)
+    );
+
+    const deaths = asRows(
+        parseEvent(
+            filePath,
+            "player_death",
+            [],
+            ["total_rounds_played"]
+        )
+    );
+
+    const hurts = asRows(
+        parseEvent(
+            filePath,
+            "player_hurt",
+            [],
+            ["total_rounds_played"]
+        )
+    );
+
+    const playersByName = new Map();
+
+    for (const player of rawPlayers) {
+        const name = String(
+            player.name || player.player_name || ""
+        ).trim();
+
+        if (!name) continue;
+
+        playersByName.set(name, {
+            name,
+            steamid: player.steamid
+                ? String(player.steamid)
+                : null,
+            teamNumber: player.team_number ??
+                player.team_num ??
+                null,
+            kills: 0,
+            deaths: 0,
+            assists: 0,
+            damage: 0,
+            headshotKills: 0
+        });
+    }
+
+    function getOrAdd(nameValue) {
+        const name = String(nameValue || "").trim();
+
+        if (!name || name === "world") {
+            return null;
+        }
+
+        if (!playersByName.has(name)) {
+            playersByName.set(name, {
+                name,
+                steamid: null,
+                teamNumber: null,
+                kills: 0,
+                deaths: 0,
+                assists: 0,
+                damage: 0,
+                headshotKills: 0
+            });
+        }
+
+        return playersByName.get(name);
+    }
+
+    // Убийства, смерти и ассисты
+    for (const event of deaths) {
+        const victim = getOrAdd(
+            event.user_name || event.user
+        );
+
+        const attacker = getOrAdd(
+            event.attacker_name || event.attacker
+        );
+
+        const assister = getOrAdd(
+            event.assister_name || event.assister
+        );
+
+        if (victim) {
+            victim.deaths++;
+        }
+
+        if (attacker && victim &&
+            attacker.name !== victim.name) {
+
+            attacker.kills++;
+
+            if (
+                event.headshot === true ||
+                event.headshot === 1 ||
+                event.headshot === "true"
+            ) {
+                attacker.headshotKills++;
+            }
+        }
+
+        if (
+            assister &&
+            victim &&
+            assister.name !== victim.name &&
+            assister.name !== attacker?.name
+        ) {
+            assister.assists++;
+        }
+    }
+
+    // Нанесённый урон
+    for (const event of hurts) {
+        const attacker = getOrAdd(
+            event.attacker_name || event.attacker
+        );
+
+        if (!attacker) continue;
+
+        attacker.damage += eventNumber(
+            event.dmg_health ??
+            event.damage ??
+            event.health_damage
+        );
+    }
+
+    const players = Array.from(playersByName.values())
+        .map(player => {
+            const kd = player.deaths > 0
+                ? Number(
+                    (player.kills / player.deaths).toFixed(2)
+                )
+                : player.kills;
+
+            const hsPercent = player.kills > 0
+                ? Number(
+                    (
+                        player.headshotKills /
+                        player.kills *
+                        100
+                    ).toFixed(1)
+                )
+                : 0;
+
+            return {
+                ...player,
+                kd,
+                hsPercent,
+                damage: Math.round(player.damage)
+            };
+        })
+        .sort((a, b) =>
+            b.kills - a.kills ||
+            b.damage - a.damage
+        );
+
+    const roundValues = [
+        ...deaths.map(event => event.total_rounds_played),
+        ...hurts.map(event => event.total_rounds_played)
+    ]
+        .map(Number)
+        .filter(Number.isFinite);
+
+    return {
+        map: header.map_name || header.map || "Неизвестно",
+        serverName: header.server_name || null,
+        demoVersion: header.demo_version_name || null,
+        roundsObserved: roundValues.length
+            ? Math.max(...roundValues)
+            : null,
+
+        players,
+
+        events: {
+            kills: deaths.length,
+            damageEvents: hurts.length
+        },
+
+        note: "Статистика рассчитана по событиям player_death и player_hurt. Некоторые значения могут отсутствовать в отдельных демках."
+    };
+}
+
+// ================================
+// HEALTH
+// ================================
+
 app.get("/api/health", (req, res) => {
     res.json({
         ok: true,
         keyConfigured: Boolean(API_KEY),
         supabaseConfigured: TRACKING_ENABLED,
-        scheduledSyncConfigured: Boolean(SYNC_SECRET)
+        scheduledSyncConfigured: Boolean(SYNC_SECRET),
+        demoParserConfigured: true
     });
 });
+
+// ================================
+// DEMO UPLOAD
+// ================================
+
+app.post("/api/demo/upload", (req, res) => {
+    demoUpload.single("demo")(req, res, error => {
+        if (error) {
+            const status = error instanceof multer.MulterError
+                ? (
+                    error.code === "LIMIT_FILE_SIZE"
+                        ? 413
+                        : 400
+                )
+                : 400;
+
+            return res.status(status).json({
+                error: error.message ||
+                    "Не удалось загрузить демо."
+            });
+        }
+
+        if (!req.file) {
+            return res.status(400).json({
+                error: "Выбери файл демки с расширением .dem."
+            });
+        }
+
+        const tempPath = req.file.path;
+
+        try {
+            const result = analyzeDemoFile(tempPath);
+
+            return res.json({
+                ok: true,
+                fileName: path.basename(req.file.originalname),
+                ...result
+            });
+
+        } catch (parseError) {
+            console.error(
+                "Ошибка разбора демо:",
+                parseError
+            );
+
+            return res.status(422).json({
+                error: "Не удалось разобрать демку. Проверь, что это корректный файл CS2 .dem.",
+                details: process.env.NODE_ENV === "development"
+                    ? parseError.message
+                    : undefined
+            });
+
+        } finally {
+            fs.promises.unlink(tempPath).catch(() => {});
+        }
+    });
+});
+
+// ================================
+// FACEIT PLAYER
+// ================================
 
 app.get("/api/player/:nickname", async (req, res) => {
     try {
@@ -244,7 +583,9 @@ app.get("/api/player/:nickname", async (req, res) => {
             } catch {}
         }
 
-        const game = player.games?.cs2 || player.games?.csgo || {};
+        const game = player.games?.cs2 ||
+            player.games?.csgo ||
+            {};
 
         if (TRACKING_ENABLED) {
             try {
@@ -254,7 +595,10 @@ app.get("/api/player/:nickname", async (req, res) => {
                     game.faceit_elo
                 );
             } catch (error) {
-                console.error("Не удалось сохранить Elo:", error.message);
+                console.error(
+                    "Не удалось сохранить Elo:",
+                    error.message
+                );
             }
         }
 
@@ -271,9 +615,15 @@ app.get("/api/player/:nickname", async (req, res) => {
         });
 
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        res.status(500).json({
+            error: error.message
+        });
     }
 });
+
+// ================================
+// FACEIT ANALYTICS
+// ================================
 
 app.get("/api/player/:nickname/analytics", async (req, res) => {
     try {
@@ -305,7 +655,10 @@ app.get("/api/player/:nickname/analytics", async (req, res) => {
         const statsMap = new Map(
             stats
                 .filter(item => item.matchId)
-                .map(item => [String(item.matchId), item])
+                .map(item => [
+                    String(item.matchId),
+                    item
+                ])
         );
 
         const matches = history.map(match => {
@@ -316,9 +669,11 @@ app.get("/api/player/:nickname/analytics", async (req, res) => {
             let myTeam = null;
 
             for (const [name, team] of Object.entries(teams)) {
-                if ((team.players || []).some(
-                    person => person.player_id === id
-                )) {
+                if (
+                    (team.players || []).some(
+                        person => person.player_id === id
+                    )
+                ) {
                     myTeam = name;
                 }
             }
@@ -327,27 +682,36 @@ app.get("/api/player/:nickname/analytics", async (req, res) => {
             let result = "unknown";
 
             if (winner && myTeam) {
-                result = winner === myTeam ? "win" : "loss";
+                result = winner === myTeam
+                    ? "win"
+                    : "loss";
             }
 
             const players = Object.values(teams).flatMap(
                 team => team.players || []
             );
 
-            const me = players.find(person => person.player_id === id);
-
-            let date = Number(
-                match.finished_at || match.started_at || 0
+            const me = players.find(
+                person => person.player_id === id
             );
 
-            if (date && date < 1e12) date *= 1000;
+            let date = Number(
+                match.finished_at ||
+                match.started_at ||
+                0
+            );
+
+            if (date && date < 1e12) {
+                date *= 1000;
+            }
 
             return {
                 id: matchId,
                 date,
                 result,
                 map: personal?.map ||
-                    match.voting?.map?.pick?.[0] || "—",
+                    match.voting?.map?.pick?.[0] ||
+                    "—",
                 elo: me?.faceit_elo ?? null,
                 score: match.results?.score || {},
                 stats: personal || null
@@ -373,43 +737,75 @@ app.get("/api/player/:nickname/analytics", async (req, res) => {
 
             item.matches++;
 
-            if (match.result === "1") item.wins++;
-            if (match.kd !== null) item.kd.push(match.kd);
-            if (match.adr !== null) item.adr.push(match.adr);
+            if (match.result === "1") {
+                item.wins++;
+            }
+
+            if (match.kd !== null) {
+                item.kd.push(match.kd);
+            }
+
+            if (match.adr !== null) {
+                item.adr.push(match.adr);
+            }
         }
 
         const maps = Object.values(mapStats).map(item => ({
             map: item.map,
             matches: item.matches,
+
             winRate: item.matches
-                ? Math.round(item.wins / item.matches * 100)
+                ? Math.round(
+                    item.wins / item.matches * 100
+                )
                 : 0,
+
             kd: item.kd.length
-                ? item.kd.reduce((a, b) => a + b, 0) / item.kd.length
+                ? item.kd.reduce((a, b) => a + b, 0) /
+                    item.kd.length
                 : null,
+
             adr: item.adr.length
-                ? item.adr.reduce((a, b) => a + b, 0) / item.adr.length
+                ? item.adr.reduce((a, b) => a + b, 0) /
+                    item.adr.length
                 : null
         }));
 
-        const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+        const weekAgo = Date.now() -
+            7 * 24 * 60 * 60 * 1000;
 
         const bestMatch = stats
-            .filter(match => match.date && match.date >= weekAgo)
-            .sort((a, b) => (b.kd || 0) - (a.kd || 0))[0] || null;
+            .filter(match =>
+                match.date &&
+                match.date >= weekAgo
+            )
+            .sort((a, b) =>
+                (b.kd || 0) - (a.kd || 0)
+            )[0] || null;
 
-        const game = player.games?.cs2 || player.games?.csgo || {};
+        const game = player.games?.cs2 ||
+            player.games?.csgo ||
+            {};
 
         let eloPoints = [];
+
         let eloTracking = {
             enabled: TRACKING_ENABLED,
             saved: false,
             points: 0
         };
 
-        if (TRACKING_ENABLED && Number.isFinite(Number(game.faceit_elo))) {
+        if (
+            TRACKING_ENABLED &&
+            Number.isFinite(Number(game.faceit_elo))
+        ) {
             try {
-                await saveEloSnapshot(id, player.nickname, game.faceit_elo);
+                await saveEloSnapshot(
+                    id,
+                    player.nickname,
+                    game.faceit_elo
+                );
+
                 eloPoints = await getEloSnapshots(id);
 
                 eloTracking = {
@@ -417,8 +813,12 @@ app.get("/api/player/:nickname/analytics", async (req, res) => {
                     saved: true,
                     points: eloPoints.length
                 };
+
             } catch (error) {
-                console.error("Ошибка истории Elo:", error.message);
+                console.error(
+                    "Ошибка истории Elo:",
+                    error.message
+                );
 
                 eloTracking = {
                     enabled: true,
@@ -438,12 +838,14 @@ app.get("/api/player/:nickname/analytics", async (req, res) => {
                 elo: game.faceit_elo,
                 level: game.skill_level
             },
+
             matches,
             matchStats: stats,
             maps,
             bestMatch,
             eloPoints,
             eloTracking,
+
             diagnostics: {
                 historyCount: history.length,
                 statsCount: stats.length
@@ -452,12 +854,16 @@ app.get("/api/player/:nickname/analytics", async (req, res) => {
 
     } catch (error) {
         res.status(500).json({
-            error: error.message || "Ошибка загрузки аналитики."
+            error: error.message ||
+                "Ошибка загрузки аналитики."
         });
     }
 });
 
-// Эту функцию будет вызывать планировщик автоматически.
+// ================================
+// AUTOMATIC ELO SYNC
+// ================================
+
 app.post("/api/cron/sync", async (req, res) => {
     if (!SYNC_SECRET) {
         return res.status(503).json({
@@ -465,7 +871,12 @@ app.post("/api/cron/sync", async (req, res) => {
         });
     }
 
-    if (!safeSecretEquals(req.get("x-sync-secret"), SYNC_SECRET)) {
+    if (
+        !safeSecretEquals(
+            req.get("x-sync-secret"),
+            SYNC_SECRET
+        )
+    ) {
         return res.status(401).json({
             error: "Недействительный секрет синхронизации."
         });
@@ -486,13 +897,20 @@ app.post("/api/cron/sync", async (req, res) => {
         let checked = 0;
         let failed = 0;
 
-        for (const tracked of Array.isArray(players) ? players : []) {
+        for (
+            const tracked of Array.isArray(players)
+                ? players
+                : []
+        ) {
             try {
                 const player = await faceit(
                     `/players/${encodeURIComponent(tracked.player_id)}`
                 );
 
-                const game = player.games?.cs2 || player.games?.csgo || {};
+                const game = player.games?.cs2 ||
+                    player.games?.csgo ||
+                    {};
+
                 const elo = Number(game.faceit_elo);
 
                 if (Number.isFinite(elo) && elo >= 0) {
@@ -507,6 +925,7 @@ app.post("/api/cron/sync", async (req, res) => {
 
             } catch (error) {
                 failed++;
+
                 console.error(
                     `Ошибка синхронизации ${tracked.nickname}:`,
                     error.message
@@ -516,28 +935,51 @@ app.post("/api/cron/sync", async (req, res) => {
 
         res.json({
             ok: true,
-            selected: Array.isArray(players) ? players.length : 0,
+            selected: Array.isArray(players)
+                ? players.length
+                : 0,
             checked,
             failed,
             note: "Сохранены только новые значения Elo."
         });
 
     } catch (error) {
-        console.error("Ошибка пакетной синхронизации:", error.message);
+        console.error(
+            "Ошибка пакетной синхронизации:",
+            error.message
+        );
 
         res.status(500).json({
-            error: error.message || "Ошибка синхронизации."
+            error: error.message ||
+                "Ошибка синхронизации."
         });
     }
 });
 
+// ================================
+// MAIN PAGE
+// ================================
+
 app.get("*", (req, res) => {
-    res.sendFile(path.join(__dirname, "index.html"));
+    res.sendFile(
+        path.join(__dirname, "index.html")
+    );
 });
 
+// ================================
+// START SERVER
+// ================================
+
 app.listen(PORT, () => {
-    console.log(`DemoScope запущен на порту ${PORT}`);
+    console.log(
+        `DemoScope запущен на порту ${PORT}`
+    );
+
     console.log(
         `Supabase: ${TRACKING_ENABLED ? "подключен" : "не настроен"}`
+    );
+
+    console.log(
+        "Анализ демок CS2: подключен"
     );
 });
