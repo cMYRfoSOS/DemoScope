@@ -1,49 +1,213 @@
+```html
 <!DOCTYPE html>
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DemoScope — FACEIT Analytics</title>
+
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#101114;color:#f2f2f2;font-family:Arial,sans-serif}
-header{padding:22px 7%;border-bottom:1px solid #292a30;display:flex;justify-content:space-between;align-items:center}
-.logo{font-size:25px;font-weight:bold;color:#ff7138}
+
+body{
+ margin:0;
+ background:#101114;
+ color:#f2f2f2;
+ font-family:Arial,sans-serif;
+}
+
+header{
+ padding:22px 7%;
+ border-bottom:1px solid #292a30;
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+}
+
+.logo{
+ font-size:25px;
+ font-weight:bold;
+ color:#ff7138;
+}
+
 .logo span{color:white}
-.container{max-width:1150px;margin:35px auto;padding:0 20px}
-.hero{text-align:center;margin:45px 0}
-h1{font-size:38px;margin-bottom:10px}
+
+.container{
+ max-width:1150px;
+ margin:35px auto;
+ padding:0 20px;
+}
+
+.hero{
+ text-align:center;
+ margin:45px 0;
+}
+
+h1{
+ font-size:38px;
+ margin-bottom:10px;
+}
+
 .muted{color:#92939b}
-.search{display:flex;max-width:650px;margin:25px auto;gap:10px}
-input{flex:1;min-width:0;background:#202127;border:1px solid #383941;color:white;padding:16px;border-radius:9px;font-size:15px}
-button{background:#ff7138;border:0;color:#111;font-weight:bold;padding:15px 23px;border-radius:9px;cursor:pointer}
+
+.search{
+ display:flex;
+ max-width:650px;
+ margin:25px auto;
+ gap:10px;
+}
+
+input{
+ flex:1;
+ min-width:0;
+ background:#202127;
+ border:1px solid #383941;
+ color:white;
+ padding:16px;
+ border-radius:9px;
+ font-size:15px;
+}
+
+button{
+ background:#ff7138;
+ border:0;
+ color:#111;
+ font-weight:bold;
+ padding:15px 23px;
+ border-radius:9px;
+ cursor:pointer;
+}
+
 button:hover{background:#ff8a5c}
 button:disabled{opacity:.5;cursor:wait}
-.panel{background:#191a20;border:1px solid #292a32;border-radius:13px;padding:22px;margin:20px 0}
+
+.panel{
+ background:#191a20;
+ border:1px solid #292a32;
+ border-radius:13px;
+ padding:22px;
+ margin:20px 0;
+}
+
 .hidden{display:none}
-.profile{display:flex;align-items:center;gap:18px}
-.avatar{width:76px;height:76px;border-radius:50%;background:#30313a;object-fit:cover}
+
+.profile{
+ display:flex;
+ align-items:center;
+ gap:18px;
+}
+
+.avatar{
+ width:76px;
+ height:76px;
+ border-radius:50%;
+ background:#30313a;
+ object-fit:cover;
+}
+
 .profile h2{margin:0 0 8px}
-.level{color:#ff7138;font-weight:bold}
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:18px 0}
-.metric{background:#191a20;border:1px solid #292a32;border-radius:12px;padding:19px}
+
+.level{
+ color:#ff7138;
+ font-weight:bold;
+}
+
+.grid{
+ display:grid;
+ grid-template-columns:repeat(4,1fr);
+ gap:14px;
+ margin:18px 0;
+}
+
+.metric{
+ background:#191a20;
+ border:1px solid #292a32;
+ border-radius:12px;
+ padding:19px;
+}
+
 .metric small{color:#92939b}
-.metric strong{display:block;font-size:27px;margin-top:10px}
+
+.metric strong{
+ display:block;
+ font-size:27px;
+ margin-top:10px;
+}
+
 h3{margin-top:0}
-.section-title{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
-select{background:#25262d;color:white;border:1px solid #41424b;padding:9px;border-radius:7px}
-.chart-wrap{height:260px;position:relative}
-canvas{width:100%;height:100%}
-table{width:100%;border-collapse:collapse;font-size:14px}
-th,td{padding:13px 9px;text-align:left;border-bottom:1px solid #303139}
+
+.section-title{
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ gap:12px;
+ flex-wrap:wrap;
+}
+
+select{
+ background:#25262d;
+ color:white;
+ border:1px solid #41424b;
+ padding:9px;
+ border-radius:7px;
+}
+
+.chart-wrap{
+ height:260px;
+ position:relative;
+ width:100%;
+}
+
+canvas{
+ display:block;
+ width:100%;
+ height:100%;
+}
+
+table{
+ width:100%;
+ border-collapse:collapse;
+ font-size:14px;
+}
+
+th,td{
+ padding:13px 9px;
+ text-align:left;
+ border-bottom:1px solid #303139;
+}
+
 th{color:#999}
 .win{color:#5bd69a}
 .loss{color:#ff6868}
-.map-list{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-.map-item{background:#24252c;padding:15px;border-radius:9px}
-.map-item strong{display:block;margin-bottom:8px}
-.status{margin:15px auto;color:#ffb18e}
-.empty{text-align:center;color:#999;padding:25px}
+
+.map-list{
+ display:grid;
+ grid-template-columns:repeat(3,1fr);
+ gap:12px;
+}
+
+.map-item{
+ background:#24252c;
+ padding:15px;
+ border-radius:9px;
+}
+
+.map-item strong{
+ display:block;
+ margin-bottom:8px;
+}
+
+.status{
+ margin:15px auto;
+ color:#ffb18e;
+}
+
+.empty{
+ text-align:center;
+ color:#999;
+ padding:25px;
+}
+
 @media(max-width:700px){
  .grid{grid-template-columns:repeat(2,1fr)}
  .map-list{grid-template-columns:repeat(2,1fr)}
@@ -55,6 +219,7 @@ th{color:#999}
 }
 </style>
 </head>
+
 <body>
 
 <header>
@@ -63,72 +228,118 @@ th{color:#999}
 </header>
 
 <main class="container">
- <section class="hero">
-  <h1>Анализируй свою игру</h1>
-  <p class="muted">Статистика FACEIT, Elo, матчи и карты в одном месте</p>
-  <div class="search">
-   <input id="nickname" placeholder="Введи ник или ссылку на FACEIT">
-   <button id="searchBtn" onclick="searchPlayer()">Найти профиль</button>
-  </div>
-  <div id="status" class="status"></div>
- </section>
 
- <div id="results" class="hidden">
-  <section class="panel profile">
-   <img id="avatar" class="avatar" src="" alt="">
-   <div>
-    <h2 id="playerName">Игрок</h2>
-    <div class="muted" id="country"></div>
-    <div class="level" id="level"></div>
-   </div>
-  </section>
+<section class="hero">
+ <h1>Анализируй свою игру</h1>
+ <p class="muted">
+  Статистика FACEIT, Elo, матчи и карты в одном месте
+ </p>
 
-  <section class="grid">
-   <div class="metric"><small>Текущий Elo</small><strong id="elo">—</strong></div>
-   <div class="metric"><small>Уровень FACEIT</small><strong id="skill">—</strong></div>
-   <div class="metric"><small>Матчи в истории</small><strong id="matches">—</strong></div>
-   <div class="metric"><small>Победы</small><strong id="winrate">—</strong></div>
-  </section>
-
-  <section class="panel">
-   <div class="section-title">
-    <h3>График Elo</h3>
-    <select id="eloRange" onchange="drawElo()">
-     <option value="30">Последние 30 матчей</option>
-     <option value="100">Последние 100 матчей</option>
-     <option value="300">Последние 300 матчей</option>
-    </select>
-   </div>
-   <div class="chart-wrap"><canvas id="eloChart"></canvas></div>
-   <p class="muted" id="eloNote">График строится по данным FACEIT, если история Elo доступна.</p>
-  </section>
-
-  <section class="panel">
-   <h3>Лучшая игра за неделю</h3>
-   <div id="bestMatch" class="empty">Нет доступных данных за неделю</div>
-  </section>
-
-  <section class="panel">
-   <h3>Статистика по картам</h3>
-   <div id="maps" class="map-list">
-    <div class="empty">Нет данных по картам</div>
-   </div>
-  </section>
-
-  <section class="panel">
-   <h3>История матчей</h3>
-   <div style="overflow-x:auto">
-    <table>
-     <thead>
-      <tr><th>Дата</th><th>Результат</th><th>Карта</th><th>K/D</th><th>ADR</th><th>Elo</th></tr>
-     </thead>
-     <tbody id="history">
-      <tr><td colspan="6" class="empty">Матчи не найдены</td></tr>
-     </tbody>
-    </table>
-   </div>
-  </section>
+ <div class="search">
+  <input id="nickname" placeholder="Введи ник или ссылку на FACEIT">
+  <button id="searchBtn" onclick="searchPlayer()">
+   Найти профиль
+  </button>
  </div>
+
+ <div id="status" class="status"></div>
+</section>
+
+<div id="results" class="hidden">
+
+<section class="panel profile">
+ <img id="avatar" class="avatar" src="" alt="">
+ <div>
+  <h2 id="playerName">Игрок</h2>
+  <div class="muted" id="country"></div>
+  <div class="level" id="level"></div>
+ </div>
+</section>
+
+<section class="grid">
+ <div class="metric">
+  <small>Текущий Elo</small>
+  <strong id="elo">—</strong>
+ </div>
+
+ <div class="metric">
+  <small>Уровень FACEIT</small>
+  <strong id="skill">—</strong>
+ </div>
+
+ <div class="metric">
+  <small>Матчи в истории</small>
+  <strong id="matches">—</strong>
+ </div>
+
+ <div class="metric">
+  <small>Победы</small>
+  <strong id="winrate">—</strong>
+ </div>
+</section>
+
+<section class="panel">
+ <div class="section-title">
+  <h3>График Elo</h3>
+
+  <select id="eloRange" onchange="drawElo()">
+   <option value="30">Последние 30 матчей</option>
+   <option value="100">Последние 100 матчей</option>
+   <option value="300">Последние 300 матчей</option>
+  </select>
+ </div>
+
+ <div class="chart-wrap">
+  <canvas id="eloChart"></canvas>
+ </div>
+
+ <p class="muted" id="eloNote">
+  Загружаем историю Elo...
+ </p>
+</section>
+
+<section class="panel">
+ <h3>Лучшая игра за неделю</h3>
+ <div id="bestMatch" class="empty">
+  Нет доступных данных за неделю
+ </div>
+</section>
+
+<section class="panel">
+ <h3>Статистика по картам</h3>
+ <div id="maps" class="map-list">
+  <div class="empty">Нет данных по картам</div>
+ </div>
+</section>
+
+<section class="panel">
+ <h3>История матчей</h3>
+
+ <div style="overflow-x:auto">
+  <table>
+   <thead>
+    <tr>
+     <th>Дата</th>
+     <th>Результат</th>
+     <th>Карта</th>
+     <th>K/D</th>
+     <th>ADR</th>
+     <th>Elo</th>
+    </tr>
+   </thead>
+
+   <tbody id="history">
+    <tr>
+     <td colspan="6" class="empty">
+      Матчи не найдены
+     </td>
+    </tr>
+   </tbody>
+  </table>
+ </div>
+</section>
+
+</div>
 </main>
 
 <script>
@@ -142,30 +353,42 @@ function showStatus(message){
 
 function formatDate(value){
  if(!value) return "—";
+
  const date = new Date(value);
- return date.toLocaleDateString("ru-RU");
+
+ return Number.isNaN(date.getTime())
+  ? "—"
+  : date.toLocaleDateString("ru-RU");
 }
 
-function number(value, digits=2){
- if(value === null || value === undefined || value === "") return "—";
+function number(value,digits=2){
+ if(value === null || value === undefined || value === ""){
+  return "—";
+ }
+
  const n = Number(value);
+
  return Number.isFinite(n) ? n.toFixed(digits) : "—";
 }
 
 function cleanNickname(value){
  value = value.trim();
+
  try{
   if(value.startsWith("http")){
    const url = new URL(value);
    const parts = url.pathname.split("/").filter(Boolean);
+
    return parts[parts.length-1] || "";
   }
  }catch{}
+
  return value.replace(/^@/,"");
 }
 
 async function searchPlayer(){
  const nickname = cleanNickname($("nickname").value);
+
  if(!nickname){
   showStatus("Введи ник FACEIT или ссылку на профиль.");
   return;
@@ -173,23 +396,39 @@ async function searchPlayer(){
 
  $("searchBtn").disabled = true;
  $("results").classList.add("hidden");
+
  showStatus("Загружаем статистику FACEIT...");
 
  try{
   const response = await fetch(
    `/api/player/${encodeURIComponent(nickname)}/analytics`
   );
+
   const data = await response.json();
 
-  if(!response.ok) throw new Error(data.error || "Не удалось загрузить профиль.");
+  if(!response.ok){
+   throw new Error(
+    data.error || "Не удалось загрузить профиль."
+   );
+  }
 
   currentData = data;
-  render(data);
+
+  // Сначала показываем результаты, затем рисуем график.
   $("results").classList.remove("hidden");
+
+  render(data);
+
+  requestAnimationFrame(()=>{
+   drawElo();
+  });
+
   showStatus("");
 
  }catch(error){
+  currentData = null;
   showStatus("Ошибка: " + error.message);
+
  }finally{
   $("searchBtn").disabled = false;
  }
@@ -197,9 +436,17 @@ async function searchPlayer(){
 
 function render(data){
  const p = data.player || {};
+
  $("playerName").textContent = p.nickname || "Игрок";
- $("country").textContent = p.country ? "Страна: " + p.country.toUpperCase() : "";
- $("level").textContent = p.level ? "FACEIT Level " + p.level : "Уровень неизвестен";
+
+ $("country").textContent = p.country
+  ? "Страна: " + p.country.toUpperCase()
+  : "";
+
+ $("level").textContent = p.level
+  ? "FACEIT Level " + p.level
+  : "Уровень неизвестен";
+
  $("elo").textContent = p.elo ?? "—";
  $("skill").textContent = p.level ?? "—";
 
@@ -210,15 +457,25 @@ function render(data){
  }
 
  const matches = data.matches || [];
- const wins = matches.filter(m=>m.result==="win").length;
- const known = matches.filter(m=>m.result==="win" || m.result==="loss").length;
+
+ const wins = matches.filter(
+  m=>m.result === "win"
+ ).length;
+
+ const known = matches.filter(
+  m=>m.result === "win" || m.result === "loss"
+ ).length;
 
  $("matches").textContent = matches.length;
- $("winrate").textContent = known ? Math.round(wins/known*100)+"%" : "—";
+
+ $("winrate").textContent = known
+  ? Math.round(wins/known*100) + "%"
+  : "—";
 
  renderBest(data.bestMatch);
  renderMaps(data.maps || []);
  renderHistory(matches,data.matchStats || []);
+
  drawElo();
 }
 
@@ -232,10 +489,25 @@ function renderBest(best){
 
  box.innerHTML = `
   <div class="grid">
-   <div class="metric"><small>Карта</small><strong>${escapeHTML(best.map || "—")}</strong></div>
-   <div class="metric"><small>K/D</small><strong>${number(best.kd)}</strong></div>
-   <div class="metric"><small>Убийства</small><strong>${best.kills ?? "—"}</strong></div>
-   <div class="metric"><small>ADR</small><strong>${number(best.adr,1)}</strong></div>
+   <div class="metric">
+    <small>Карта</small>
+    <strong>${escapeHTML(best.map || "—")}</strong>
+   </div>
+
+   <div class="metric">
+    <small>K/D</small>
+    <strong>${number(best.kd)}</strong>
+   </div>
+
+   <div class="metric">
+    <small>Убийства</small>
+    <strong>${best.kills ?? "—"}</strong>
+   </div>
+
+   <div class="metric">
+    <small>ADR</small>
+    <strong>${number(best.adr,1)}</strong>
+   </div>
   </div>`;
 }
 
@@ -243,7 +515,8 @@ function renderMaps(maps){
  const box = $("maps");
 
  if(!maps.length){
-  box.innerHTML = '<div class="empty">Статистика по картам пока недоступна.</div>';
+  box.innerHTML =
+   '<div class="empty">Статистика по картам пока недоступна.</div>';
   return;
  }
 
@@ -262,30 +535,44 @@ function renderHistory(matches,stats){
  const body = $("history");
 
  if(!matches.length){
-  body.innerHTML = '<tr><td colspan="6" class="empty">История матчей недоступна.</td></tr>';
+  body.innerHTML =
+   '<tr><td colspan="6" class="empty">История матчей недоступна.</td></tr>';
   return;
  }
 
  const statMap = new Map(
-  stats.filter(s=>s.matchId).map(s=>[String(s.matchId),s])
+  stats
+   .filter(s=>s.matchId)
+   .map(s=>[String(s.matchId),s])
  );
 
- body.innerHTML = [...matches].reverse().slice(0,100).map(m=>{
-  const s = statMap.get(String(m.id)) || m.stats || {};
-  const result = m.result === "win" ? "Победа" :
-   m.result === "loss" ? "Поражение" : "—";
-  const resultClass = m.result === "win" ? "win" :
-   m.result === "loss" ? "loss" : "";
+ body.innerHTML = [...matches]
+  .reverse()
+  .slice(0,100)
+  .map(m=>{
+   const s = statMap.get(String(m.id)) || m.stats || {};
 
-  return `<tr>
-   <td>${formatDate(m.date)}</td>
-   <td class="${resultClass}">${result}</td>
-   <td>${escapeHTML(m.map || "—")}</td>
-   <td>${number(s.kd)}</td>
-   <td>${number(s.adr,1)}</td>
-   <td>${m.elo ?? "—"}</td>
-  </tr>`;
- }).join("");
+   const result = m.result === "win"
+    ? "Победа"
+    : m.result === "loss"
+     ? "Поражение"
+     : "—";
+
+   const resultClass = m.result === "win"
+    ? "win"
+    : m.result === "loss"
+     ? "loss"
+     : "";
+
+   return `<tr>
+    <td>${formatDate(m.date)}</td>
+    <td class="${resultClass}">${result}</td>
+    <td>${escapeHTML(m.map || "—")}</td>
+    <td>${number(s.kd)}</td>
+    <td>${number(s.adr,1)}</td>
+    <td>${m.elo ?? "—"}</td>
+   </tr>`;
+  }).join("");
 }
 
 function drawElo(){
@@ -293,74 +580,172 @@ function drawElo(){
 
  const canvas = $("eloChart");
  const rect = canvas.getBoundingClientRect();
+
+ if(rect.width <= 0 || rect.height <= 0) return;
+
  const dpr = window.devicePixelRatio || 1;
 
- canvas.width = rect.width*dpr;
- canvas.height = rect.height*dpr;
+ canvas.width = Math.round(rect.width*dpr);
+ canvas.height = Math.round(rect.height*dpr);
 
  const ctx = canvas.getContext("2d");
- ctx.scale(dpr,dpr);
+
+ ctx.setTransform(dpr,0,0,dpr,0,0);
 
  const width = rect.width;
  const height = rect.height;
- const points = (currentData.eloPoints || []).slice(-Number($("eloRange").value));
 
  ctx.clearRect(0,0,width,height);
 
- if(points.length < 2){
-  ctx.fillStyle = "#999";
-  ctx.font = "14px Arial";
-  ctx.textAlign = "center";
-  ctx.fillText("Недостаточно данных для графика Elo",width/2,height/2);
-  return;
- }
+ const limit = Number($("eloRange").value);
 
- const values = points.map(p=>Number(p.elo)).filter(Number.isFinite);
+ // Получаем Elo из истории FACEIT.
+ const matchPoints = (currentData.matches || [])
+  .filter(m=>
+   m.elo !== null &&
+   m.elo !== undefined &&
+   Number.isFinite(Number(m.elo))
+  )
+  .map(m=>({
+   date: Number(m.date) || 0,
+   elo: Number(m.elo)
+  }))
+  .sort((a,b)=>a.date-b.date);
 
- if(values.length < 2) return;
+ // Получаем сохранённую историю Supabase.
+ const savedPoints = (currentData.eloPoints || [])
+  .filter(p=>
+   p.elo !== null &&
+   p.elo !== undefined &&
+   Number.isFinite(Number(p.elo))
+  )
+  .map(p=>({
+   date: Number(p.date),
+   elo: Number(p.elo)
+  }))
+  .sort((a,b)=>a.date-b.date);
 
- const min = Math.min(...values)-20;
- const max = Math.max(...values)+20;
- const left = 42, right = 12, top = 15, bottom = 30;
+ // Выбираем источник данных.
+ const usingMatches = matchPoints.length >= 2;
+
+ const points = usingMatches
+  ? matchPoints.slice(-limit)
+  : savedPoints.slice(-limit);
+
+ const left = 48;
+ const right = 15;
+ const top = 20;
+ const bottom = 30;
+
  const chartW = width-left-right;
  const chartH = height-top-bottom;
 
+ if(points.length === 0){
+  ctx.fillStyle = "#999";
+  ctx.font = "14px Arial";
+  ctx.textAlign = "center";
+
+  ctx.fillText(
+   "Пока нет данных Elo",
+   width/2,
+   height/2
+  );
+
+  $("eloNote").textContent =
+   "История Elo пока не содержит точек.";
+
+  return;
+ }
+
+ const values = points.map(p=>p.elo);
+
+ let min = Math.min(...values);
+ let max = Math.max(...values);
+
+ if(min === max){
+  min -= 20;
+  max += 20;
+ }else{
+  min -= 20;
+  max += 20;
+ }
+
+ const getX = i => points.length === 1
+  ? left+chartW/2
+  : left+chartW*i/(points.length-1);
+
+ const getY = value =>
+  top+chartH*(max-value)/(max-min);
+
+ // Сетка и значения Elo.
  ctx.strokeStyle = "#30313a";
  ctx.lineWidth = 1;
  ctx.fillStyle = "#999";
  ctx.font = "11px Arial";
+ ctx.textAlign = "right";
 
  for(let i=0;i<5;i++){
-  const y = top + chartH*i/4;
+  const y = top+chartH*i/4;
+  const value = Math.round(max-(max-min)*i/4);
+
   ctx.beginPath();
   ctx.moveTo(left,y);
   ctx.lineTo(width-right,y);
   ctx.stroke();
 
-  const value = Math.round(max-(max-min)*i/4);
   ctx.fillText(value,left-8,y+4);
  }
 
+ // Линия.
  ctx.beginPath();
- values.forEach((value,i)=>{
-  const x = left + chartW*i/(values.length-1);
-  const y = top + chartH*(max-value)/(max-min);
-  if(i===0) ctx.moveTo(x,y);
-  else ctx.lineTo(x,y);
+
+ points.forEach((point,i)=>{
+  const x = getX(i);
+  const y = getY(point.elo);
+
+  if(i===0){
+   ctx.moveTo(x,y);
+  }else{
+   ctx.lineTo(x,y);
+  }
  });
 
  ctx.strokeStyle = "#ff7138";
  ctx.lineWidth = 2.5;
  ctx.stroke();
 
- ctx.fillStyle = "#ff7138";
- values.forEach((value,i)=>{
-  const x = left + chartW*i/(values.length-1);
-  const y = top + chartH*(max-value)/(max-min);
+ // Точки.
+ points.forEach((point,i)=>{
+  const x = getX(i);
+  const y = getY(point.elo);
+
   ctx.beginPath();
-  ctx.arc(x,y,3,0,Math.PI*2);
+  ctx.arc(x,y,4,0,Math.PI*2);
+
+  ctx.fillStyle = "#ff7138";
   ctx.fill();
  });
+
+ ctx.textAlign = "center";
+ ctx.fillStyle = "#999";
+ ctx.font = "11px Arial";
+
+ ctx.fillText(
+  points.length + " точек Elo",
+  width/2,
+  height-5
+ );
+
+ if(usingMatches){
+  $("eloNote").textContent =
+   "График построен по значениям Elo из истории матчей FACEIT.";
+ }else if(points.length === 1){
+  $("eloNote").textContent =
+   "Пока сохранена только одна точка Elo. Новые значения появятся после изменения рейтинга.";
+ }else{
+  $("eloNote").textContent =
+   "График построен по сохранённым значениям Elo.";
+ }
 }
 
 function escapeHTML(value){
@@ -374,12 +759,18 @@ function escapeHTML(value){
 }
 
 $("nickname").addEventListener("keydown",event=>{
- if(event.key==="Enter") searchPlayer();
+ if(event.key==="Enter"){
+  searchPlayer();
+ }
 });
 
 window.addEventListener("resize",()=>{
- if(currentData) drawElo();
+ if(currentData){
+  drawElo();
+ }
 });
 </script>
+
 </body>
 </html>
+```
