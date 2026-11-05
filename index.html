@@ -1,4 +1,4 @@
-```html
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -89,7 +89,7 @@ button:disabled{opacity:.5;cursor:wait}
  margin:20px 0;
 }
 
-.hidden{display:none}
+.hidden{display:none!important}
 
 .profile{
  display:flex;
@@ -174,6 +174,7 @@ th,td{
  padding:13px 9px;
  text-align:left;
  border-bottom:1px solid #303139;
+ white-space:nowrap;
 }
 
 th{color:#999}
@@ -200,6 +201,7 @@ th{color:#999}
 .status{
  margin:15px auto;
  color:#ffb18e;
+ min-height:20px;
 }
 
 .empty{
@@ -208,14 +210,140 @@ th{color:#999}
  padding:25px;
 }
 
+.tabs{
+ display:flex;
+ gap:10px;
+ flex-wrap:wrap;
+ margin:25px 0;
+}
+
+.tab-button{
+ background:#202127;
+ color:#ccc;
+ border:1px solid #383941;
+}
+
+.tab-button.active{
+ background:#ff7138;
+ color:#111;
+ border-color:#ff7138;
+}
+
+.upload-area{
+ border:2px dashed #454650;
+ background:#202127;
+ border-radius:12px;
+ padding:35px 20px;
+ text-align:center;
+ cursor:pointer;
+ transition:.2s;
+}
+
+.upload-area:hover{
+ border-color:#ff7138;
+ background:#252127;
+}
+
+.upload-area strong{
+ display:block;
+ margin-bottom:10px;
+ font-size:18px;
+}
+
+.upload-icon{
+ font-size:38px;
+ margin-bottom:12px;
+}
+
+.file-name{
+ color:#ff9b72;
+ margin-top:12px;
+ overflow-wrap:anywhere;
+}
+
+.demo-button{
+ margin-top:18px;
+ width:100%;
+ max-width:300px;
+}
+
+.progress{
+ height:7px;
+ background:#303139;
+ border-radius:10px;
+ overflow:hidden;
+ margin-top:15px;
+}
+
+.progress-bar{
+ height:100%;
+ width:0;
+ background:#ff7138;
+ transition:width .3s;
+}
+
+.demo-stats{
+ display:grid;
+ grid-template-columns:repeat(3,1fr);
+ gap:12px;
+ margin:20px 0;
+}
+
+.demo-stat{
+ background:#24252c;
+ padding:17px;
+ border-radius:10px;
+}
+
+.demo-stat small{
+ display:block;
+ color:#999;
+ margin-bottom:8px;
+}
+
+.demo-stat strong{
+ font-size:22px;
+}
+
+.demo-table-wrap{
+ overflow-x:auto;
+}
+
+.demo-table tr:hover{
+ background:#24252c;
+}
+
+.demo-notice{
+ background:#24252c;
+ border-left:3px solid #ff7138;
+ padding:13px;
+ border-radius:5px;
+ color:#bbb;
+ font-size:13px;
+ line-height:1.5;
+ margin-top:18px;
+}
+
+.error-text{
+ color:#ff6868;
+ margin-top:15px;
+}
+
+.success-text{
+ color:#5bd69a;
+ margin-top:15px;
+}
+
 @media(max-width:700px){
  .grid{grid-template-columns:repeat(2,1fr)}
  .map-list{grid-template-columns:repeat(2,1fr)}
+ .demo-stats{grid-template-columns:repeat(2,1fr)}
  h1{font-size:29px}
  .search{flex-direction:column}
  .profile{align-items:flex-start}
  table{font-size:12px}
  th,td{padding:9px 5px}
+ header{padding:18px 5%}
 }
 </style>
 </head>
@@ -232,11 +360,31 @@ th{color:#999}
 <section class="hero">
  <h1>Анализируй свою игру</h1>
  <p class="muted">
-  Статистика FACEIT, Elo, матчи и карты в одном месте
+  Статистика FACEIT, Elo, матчи и анализ демок CS2
  </p>
+</section>
 
- <div class="search">
-  <input id="nickname" placeholder="Введи ник или ссылку на FACEIT">
+<nav class="tabs">
+ <button class="tab-button active" id="faceitTab"
+ onclick="showTab('faceit')">
+  FACEIT статистика
+ </button>
+
+ <button class="tab-button" id="demoTab"
+ onclick="showTab('demo')">
+  Анализ демо
+ </button>
+</nav>
+
+<!-- FACEIT -->
+
+<div id="faceitSection">
+
+<section class="panel">
+ <div class="search" style="margin:0">
+  <input id="nickname"
+   placeholder="Введи ник или ссылку на FACEIT">
+
   <button id="searchBtn" onclick="searchPlayer()">
    Найти профиль
   </button>
@@ -249,6 +397,7 @@ th{color:#999}
 
 <section class="panel profile">
  <img id="avatar" class="avatar" src="" alt="">
+
  <div>
   <h2 id="playerName">Игрок</h2>
   <div class="muted" id="country"></div>
@@ -307,6 +456,7 @@ th{color:#999}
 
 <section class="panel">
  <h3>Статистика по картам</h3>
+
  <div id="maps" class="map-list">
   <div class="empty">Нет данных по картам</div>
  </div>
@@ -340,12 +490,189 @@ th{color:#999}
 </section>
 
 </div>
+</div>
+
+<!-- DEMO ANALYZER -->
+
+<div id="demoSection" class="hidden">
+
+<section class="hero" style="margin:20px 0">
+ <h1>Анализ демо CS2</h1>
+ <p class="muted">
+  Загрузи запись матча и получи статистику участников
+ </p>
+</section>
+
+<section class="panel">
+
+ <h3>Загрузка демки</h3>
+
+ <label class="upload-area" for="demoFile"
+  style="display:block">
+
+  <div class="upload-icon">📁</div>
+
+  <strong>Выбери демку CS2</strong>
+
+  <span class="muted">
+   Нажми здесь, чтобы выбрать файл .dem
+  </span>
+
+  <div class="file-name" id="fileName">
+   Файл не выбран
+  </div>
+ </label>
+
+ <input
+  id="demoFile"
+  type="file"
+  accept=".dem"
+  style="display:none"
+  onchange="selectDemo()"
+ >
+
+ <button
+  class="demo-button"
+  id="analyzeButton"
+  onclick="analyzeDemo()"
+  disabled
+ >
+  Анализировать демо
+ </button>
+
+ <div id="demoProgress" class="hidden">
+  <div class="progress">
+   <div class="progress-bar" id="progressBar"></div>
+  </div>
+ </div>
+
+ <div id="demoStatus"></div>
+
+ <div class="demo-notice">
+  Поддерживаются файлы CS2 с расширением .dem.
+  Максимальный размер — 200 МБ.
+  После обработки временный файл удаляется с сервера.
+ </div>
+
+</section>
+
+<div id="demoResults" class="hidden">
+
+ <section class="panel">
+  <div class="section-title">
+   <h3>Результаты матча</h3>
+   <span class="level" id="demoMap">Карта: —</span>
+  </div>
+
+  <div class="demo-stats">
+   <div class="demo-stat">
+    <small>Участников</small>
+    <strong id="demoPlayers">—</strong>
+   </div>
+
+   <div class="demo-stat">
+    <small>Раундов (макс. событие)</small>
+    <strong id="demoRounds">—</strong>
+   </div>
+
+   <div class="demo-stat">
+    <small>События убийств</small>
+    <strong id="demoKills">—</strong>
+   </div>
+
+   <div class="demo-stat">
+    <small>События урона</small>
+    <strong id="demoDamageEvents">—</strong>
+   </div>
+
+   <div class="demo-stat">
+    <small>Имя файла</small>
+    <strong id="demoFileResult"
+     style="font-size:13px;overflow-wrap:anywhere">—</strong>
+   </div>
+
+   <div class="demo-stat">
+    <small>Версия демки</small>
+    <strong id="demoVersion"
+     style="font-size:13px;overflow-wrap:anywhere">—</strong>
+   </div>
+  </div>
+ </section>
+
+ <section class="panel">
+  <div class="section-title">
+   <h3>Статистика игроков</h3>
+   <span class="muted">Сортировка по убийствам</span>
+  </div>
+
+  <div class="demo-table-wrap">
+   <table class="demo-table">
+    <thead>
+     <tr>
+      <th>#</th>
+      <th>Игрок</th>
+      <th>Убийства</th>
+      <th>Смерти</th>
+      <th>Ассисты</th>
+      <th>K/D</th>
+      <th>Урон</th>
+      <th>HS%</th>
+     </tr>
+    </thead>
+
+    <tbody id="demoPlayerTable">
+     <tr>
+      <td colspan="8" class="empty">
+       Здесь появится статистика игроков
+      </td>
+     </tr>
+    </tbody>
+   </table>
+  </div>
+
+  <div class="demo-notice">
+   K/D рассчитывается по убийствам и смертям.
+   HS% — доля убийств в голову среди убийств игрока.
+   Урон берётся из событий нанесения урона.
+   Отсутствующие в демке данные могут отображаться как нулевые.
+  </div>
+ </section>
+
+</div>
+
+</div>
+
 </main>
 
 <script>
 let currentData = null;
+let selectedDemo = null;
 
 const $ = id => document.getElementById(id);
+
+function escapeHTML(value){
+ return String(value ?? "").replace(/[&<>"']/g,char=>({
+  "&":"&amp;",
+  "<":"&lt;",
+  ">":"&gt;",
+  '"':"&quot;",
+  "'":"&#39;"
+ }[char]));
+}
+
+function showTab(tab){
+ const faceit = tab === "faceit";
+
+ $("faceitSection").classList.toggle("hidden",!faceit);
+ $("demoSection").classList.toggle("hidden",faceit);
+
+ $("faceitTab").classList.toggle("active",faceit);
+ $("demoTab").classList.toggle("active",!faceit);
+
+ if(faceit && currentData){
+  requestAnimationFrame(drawElo);
+ }
+}
 
 function showStatus(message){
  $("status").textContent = message;
@@ -386,6 +713,10 @@ function cleanNickname(value){
  return value.replace(/^@/,"");
 }
 
+// ================================
+// FACEIT SEARCH
+// ================================
+
 async function searchPlayer(){
  const nickname = cleanNickname($("nickname").value);
 
@@ -414,14 +745,11 @@ async function searchPlayer(){
 
   currentData = data;
 
-  // Сначала показываем результаты, затем рисуем график.
   $("results").classList.remove("hidden");
 
   render(data);
 
-  requestAnimationFrame(()=>{
-   drawElo();
-  });
+  requestAnimationFrame(drawElo);
 
   showStatus("");
 
@@ -575,6 +903,10 @@ function renderHistory(matches,stats){
   }).join("");
 }
 
+// ================================
+// ELO CHART
+// ================================
+
 function drawElo(){
  if(!currentData) return;
 
@@ -599,7 +931,6 @@ function drawElo(){
 
  const limit = Number($("eloRange").value);
 
- // Получаем Elo из истории FACEIT.
  const matchPoints = (currentData.matches || [])
   .filter(m=>
    m.elo !== null &&
@@ -612,7 +943,6 @@ function drawElo(){
   }))
   .sort((a,b)=>a.date-b.date);
 
- // Получаем сохранённую историю Supabase.
  const savedPoints = (currentData.eloPoints || [])
   .filter(p=>
    p.elo !== null &&
@@ -625,7 +955,6 @@ function drawElo(){
   }))
   .sort((a,b)=>a.date-b.date);
 
- // Выбираем источник данных.
  const usingMatches = matchPoints.length >= 2;
 
  const points = usingMatches
@@ -677,7 +1006,6 @@ function drawElo(){
  const getY = value =>
   top+chartH*(max-value)/(max-min);
 
- // Сетка и значения Elo.
  ctx.strokeStyle = "#30313a";
  ctx.lineWidth = 1;
  ctx.fillStyle = "#999";
@@ -696,7 +1024,6 @@ function drawElo(){
   ctx.fillText(value,left-8,y+4);
  }
 
- // Линия.
  ctx.beginPath();
 
  points.forEach((point,i)=>{
@@ -714,7 +1041,6 @@ function drawElo(){
  ctx.lineWidth = 2.5;
  ctx.stroke();
 
- // Точки.
  points.forEach((point,i)=>{
   const x = getX(i);
   const y = getY(point.elo);
@@ -748,15 +1074,176 @@ function drawElo(){
  }
 }
 
-function escapeHTML(value){
- return String(value).replace(/[&<>"']/g,char=>({
-  "&":"&amp;",
-  "<":"&lt;",
-  ">":"&gt;",
-  '"':"&quot;",
-  "'":"&#39;"
- }[char]));
+// ================================
+// DEMO UPLOAD
+// ================================
+
+function selectDemo(){
+ const file = $("demoFile").files[0];
+
+ selectedDemo = file || null;
+
+ $("demoResults").classList.add("hidden");
+ $("demoStatus").textContent = "";
+
+ if(!file){
+  $("fileName").textContent = "Файл не выбран";
+  $("analyzeButton").disabled = true;
+  return;
+ }
+
+ $("fileName").textContent = file.name;
+
+ if(!file.name.toLowerCase().endsWith(".dem")){
+  $("demoStatus").innerHTML =
+   '<div class="error-text">Выбери файл с расширением .dem.</div>';
+
+  $("analyzeButton").disabled = true;
+  return;
+ }
+
+ if(file.size > 200*1024*1024){
+  $("demoStatus").innerHTML =
+   '<div class="error-text">Файл больше 200 МБ. Выбери меньшую демку.</div>';
+
+  $("analyzeButton").disabled = true;
+  return;
+ }
+
+ if(file.size === 0){
+  $("demoStatus").innerHTML =
+   '<div class="error-text">Файл пустой.</div>';
+
+  $("analyzeButton").disabled = true;
+  return;
+ }
+
+ $("demoStatus").innerHTML =
+  '<div class="success-text">Файл готов к обработке.</div>';
+
+ $("analyzeButton").disabled = false;
 }
+
+async function analyzeDemo(){
+ if(!selectedDemo) return;
+
+ const button = $("analyzeButton");
+
+ button.disabled = true;
+
+ $("demoResults").classList.add("hidden");
+ $("demoProgress").classList.remove("hidden");
+
+ $("progressBar").style.width = "30%";
+
+ $("demoStatus").innerHTML =
+  '<div class="muted">Загружаем демку на сервер...</div>';
+
+ try{
+  const formData = new FormData();
+
+  formData.append("demo",selectedDemo);
+
+  $("progressBar").style.width = "60%";
+
+  const response = await fetch(
+   "/api/demo/upload",
+   {
+    method:"POST",
+    body:formData
+   }
+  );
+
+  $("progressBar").style.width = "90%";
+
+  const data = await response.json();
+
+  if(!response.ok){
+   throw new Error(
+    data.error || "Не удалось обработать демку."
+   );
+  }
+
+  if(!data.ok){
+   throw new Error("Сервер не подтвердил обработку демки.");
+  }
+
+  renderDemo(data);
+
+  $("progressBar").style.width = "100%";
+
+  $("demoStatus").innerHTML =
+   '<div class="success-text">Демка успешно обработана!</div>';
+
+ }catch(error){
+  $("demoStatus").innerHTML =
+   '<div class="error-text">Ошибка: ' +
+   escapeHTML(error.message) +
+   '</div>';
+
+  $("progressBar").style.width = "0%";
+
+ }finally{
+  button.disabled = false;
+
+  setTimeout(()=>{
+   $("demoProgress").classList.add("hidden");
+  },700);
+ }
+}
+
+function renderDemo(data){
+ const players = Array.isArray(data.players)
+  ? data.players
+  : [];
+
+ $("demoMap").textContent =
+  "Карта: " + (data.map || "Неизвестно");
+
+ $("demoPlayers").textContent = players.length;
+
+ $("demoRounds").textContent =
+  data.roundsObserved ?? "—";
+
+ $("demoKills").textContent =
+  data.events?.kills ?? "—";
+
+ $("demoDamageEvents").textContent =
+  data.events?.damageEvents ?? "—";
+
+ $("demoFileResult").textContent =
+  data.fileName || "—";
+
+ $("demoVersion").textContent =
+  data.demoVersion || "—";
+
+ const body = $("demoPlayerTable");
+
+ if(!players.length){
+  body.innerHTML =
+   '<tr><td colspan="8" class="empty">Игроки в демке не обнаружены.</td></tr>';
+
+ }else{
+  body.innerHTML = players.map((p,index)=>`
+   <tr>
+    <td>${index+1}</td>
+    <td><strong>${escapeHTML(p.name || "Неизвестно")}</strong></td>
+    <td class="win">${p.kills ?? 0}</td>
+    <td class="loss">${p.deaths ?? 0}</td>
+    <td>${p.assists ?? 0}</td>
+    <td>${number(p.kd)}</td>
+    <td>${p.damage ?? 0}</td>
+    <td>${number(p.hsPercent,1)}%</td>
+   </tr>
+  `).join("");
+ }
+
+ $("demoResults").classList.remove("hidden");
+}
+
+// ================================
+// EVENTS
+// ================================
 
 $("nickname").addEventListener("keydown",event=>{
  if(event.key==="Enter"){
@@ -765,7 +1252,8 @@ $("nickname").addEventListener("keydown",event=>{
 });
 
 window.addEventListener("resize",()=>{
- if(currentData){
+ if(currentData &&
+    !$("faceitSection").classList.contains("hidden")){
   drawElo();
  }
 });
@@ -773,4 +1261,3 @@ window.addEventListener("resize",()=>{
 
 </body>
 </html>
-```
