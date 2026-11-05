@@ -1,110 +1,384 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>DemoScope — CS2 & FACEIT Analytics</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DemoScope — FACEIT Analytics</title>
 <style>
-:root{--bg:#0b0e13;--panel:#121821;--panel2:#18212c;--line:#263241;--muted:#8e9baa;--text:#edf3fa;--accent:#ff9b45;--green:#55d6a0}
-*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 80% 0%,#1b2632 0,transparent 35%),var(--bg);color:var(--text);font:15px Inter,Segoe UI,Arial,sans-serif}
-.wrap{max-width:1180px;margin:auto;padding:28px 22px}.top{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:34px}
-.brand{font-weight:900;letter-spacing:1.8px;font-size:22px}.brand span{color:var(--accent)}.tag{color:var(--muted);font-size:12px;letter-spacing:1.5px;margin-top:5px}
-.pill{border:1px solid #395044;color:var(--green);padding:8px 12px;border-radius:30px;font-size:12px}
-.hero{display:grid;grid-template-columns:1.2fr .8fr;gap:24px;align-items:stretch;margin-bottom:24px}
-h1{font-size:clamp(34px,5vw,58px);line-height:1.03;margin:0 0 16px;letter-spacing:-1.8px}.accent{color:var(--accent)}
-.lead{color:var(--muted);max-width:620px;line-height:1.65}.panel{background:linear-gradient(145deg,#151e29,#10161e);border:1px solid var(--line);border-radius:18px;padding:24px;box-shadow:0 18px 50px #0003}
-.form{display:flex;gap:10px;margin-top:24px}.form input{flex:1;min-width:0;background:#0b1118;border:1px solid #334153;color:var(--text);padding:15px;border-radius:10px;outline:none}.form input:focus{border-color:var(--accent)}
-button{background:var(--accent);border:0;border-radius:10px;padding:0 20px;font-weight:800;color:#20140a;cursor:pointer}button:hover{filter:brightness(1.08)}button:disabled{opacity:.6;cursor:wait}
-.small{font-size:12px;color:var(--muted);line-height:1.5;margin-top:12px}.side h3{margin:0 0 16px}.statgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.stat{background:#0c121a;border:1px solid var(--line);padding:16px;border-radius:12px}.stat b{font-size:24px;display:block;margin-top:7px}.stat span{color:var(--muted);font-size:12px}
-.section{margin-top:22px}.sectionhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}.sectionhead h2{font-size:18px;margin:0}.muted{color:var(--muted)}
-.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.feature{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px}.feature .ico{font-size:22px}.feature h3{margin:12px 0 7px;font-size:15px}.feature p{margin:0;color:var(--muted);font-size:13px;line-height:1.5}
-.notice{margin-top:20px;border-left:3px solid var(--accent);background:#191b1d;padding:13px 15px;color:#c3cbd5;font-size:12px;line-height:1.6;border-radius:0 8px 8px 0}
-footer{margin-top:34px;border-top:1px solid var(--line);padding-top:18px;color:var(--muted);font-size:12px}
-#msg{margin-top:12px;color:var(--green);font-size:13px;min-height:18px}.playerhead{display:flex;align-items:center;gap:12px;margin-bottom:16px}.avatar{width:52px;height:52px;border-radius:50%;object-fit:cover;background:#263241}.playerhead h3{margin:0 0 5px}.playerhead .small{margin:0}
-@media(max-width:760px){.hero{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.form{flex-direction:column}.form button{padding:14px}.top{align-items:flex-start;flex-direction:column}}
+*{box-sizing:border-box}
+body{margin:0;background:#101114;color:#f2f2f2;font-family:Arial,sans-serif}
+header{padding:22px 7%;border-bottom:1px solid #292a30;display:flex;justify-content:space-between;align-items:center}
+.logo{font-size:25px;font-weight:bold;color:#ff7138}
+.logo span{color:white}
+.container{max-width:1150px;margin:35px auto;padding:0 20px}
+.hero{text-align:center;margin:45px 0}
+h1{font-size:38px;margin-bottom:10px}
+.muted{color:#92939b}
+.search{display:flex;max-width:650px;margin:25px auto;gap:10px}
+input{flex:1;min-width:0;background:#202127;border:1px solid #383941;color:white;padding:16px;border-radius:9px;font-size:15px}
+button{background:#ff7138;border:0;color:#111;font-weight:bold;padding:15px 23px;border-radius:9px;cursor:pointer}
+button:hover{background:#ff8a5c}
+button:disabled{opacity:.5;cursor:wait}
+.panel{background:#191a20;border:1px solid #292a32;border-radius:13px;padding:22px;margin:20px 0}
+.hidden{display:none}
+.profile{display:flex;align-items:center;gap:18px}
+.avatar{width:76px;height:76px;border-radius:50%;background:#30313a;object-fit:cover}
+.profile h2{margin:0 0 8px}
+.level{color:#ff7138;font-weight:bold}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:18px 0}
+.metric{background:#191a20;border:1px solid #292a32;border-radius:12px;padding:19px}
+.metric small{color:#92939b}
+.metric strong{display:block;font-size:27px;margin-top:10px}
+h3{margin-top:0}
+.section-title{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+select{background:#25262d;color:white;border:1px solid #41424b;padding:9px;border-radius:7px}
+.chart-wrap{height:260px;position:relative}
+canvas{width:100%;height:100%}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:13px 9px;text-align:left;border-bottom:1px solid #303139}
+th{color:#999}
+.win{color:#5bd69a}
+.loss{color:#ff6868}
+.map-list{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.map-item{background:#24252c;padding:15px;border-radius:9px}
+.map-item strong{display:block;margin-bottom:8px}
+.status{margin:15px auto;color:#ffb18e}
+.empty{text-align:center;color:#999;padding:25px}
+@media(max-width:700px){
+ .grid{grid-template-columns:repeat(2,1fr)}
+ .map-list{grid-template-columns:repeat(2,1fr)}
+ h1{font-size:29px}
+ .search{flex-direction:column}
+ .profile{align-items:flex-start}
+ table{font-size:12px}
+ th,td{padding:9px 5px}
+}
 </style>
 </head>
 <body>
-<div class="wrap">
-<header class="top">
-  <div><div class="brand">DEMO<span>SCOPE</span></div><div class="tag">CS2 DEMO & FACEIT ANALYTICS</div></div>
-  <div class="pill" id="status">● API NOT CONNECTED</div>
+
+<header>
+ <div class="logo">DEMO<span>SCOPE</span></div>
+ <div class="muted">FACEIT Analytics</div>
 </header>
-<main>
-<section class="hero">
-  <div class="panel">
-    <div class="tag">PLAYER ANALYTICS PLATFORM</div>
-    <h1>See beyond<br>the <span class="accent">scoreboard.</span></h1>
-    <p class="lead">Изучай свои матчи CS2, отслеживай статистику FACEIT и разбирай игровые решения. Введи ник или ссылку на профиль, чтобы начать.</p>
-    <form class="form" id="profileForm">
-      <input id="profile" autocomplete="off" placeholder="FACEIT-ник или ссылка на профиль" aria-label="FACEIT-ник или ссылка">
-      <button id="submitBtn" type="submit">Проверить профиль</button>
-    </form>
-    <div id="msg" role="status"></div>
-    <p class="small">Например: cMYRfoSOS или https://www.faceit.com/ru/players/cMYRfoSOS</p>
+
+<main class="container">
+ <section class="hero">
+  <h1>Анализируй свою игру</h1>
+  <p class="muted">Статистика FACEIT, Elo, матчи и карты в одном месте</p>
+  <div class="search">
+   <input id="nickname" placeholder="Введи ник или ссылку на FACEIT">
+   <button id="searchBtn" onclick="searchPlayer()">Найти профиль</button>
   </div>
-  <aside class="panel side">
-    <h3>Обзор игрока</h3>
-    <div class="playerhead" id="playerHead" hidden>
-      <img class="avatar" id="avatar" alt="">
-      <div><h3 id="playerName"></h3><p class="small" id="playerLevel"></p></div>
-    </div>
-    <div class="statgrid">
-      <div class="stat"><span>FACEIT ELO</span><b id="elo">—</b></div>
-      <div class="stat"><span>Уровень</span><b id="level">—</b></div>
-      <div class="stat"><span>Матчи (всего)</span><b id="matches">—</b></div>
-      <div class="stat"><span>Win rate</span><b id="winrate">—</b></div>
-    </div>
-    <p class="small">Данные загружаются через защищённый сервер DemoScope.</p>
-  </aside>
-</section>
-<section class="section">
-  <div class="sectionhead"><h2>Инструменты DemoScope</h2><span class="muted">Развитие проекта</span></div>
-  <div class="cards">
-    <article class="feature"><div class="ico">📊</div><h3>Статистика FACEIT</h3><p>ELO, K/D, победы, поражения, форма и история матчей по игровому нику.</p></article>
-    <article class="feature"><div class="ico">🎯</div><h3>Разбор демок</h3><p>Загрузка CS2 demo-файла и анализ раундов, событий и игровых решений.</p></article>
-    <article class="feature"><div class="ico">🗺️</div><h3>Позиции и зоны</h3><p>Карта активности, убийства и смерти по зонам, лучшие и слабые позиции.</p></article>
-  </div>
-</section>
-<div class="notice"><b>Важно:</b> DemoScope — независимый проект сообщества, не связанный с FACEIT или Valve. Никогда не вводи на этой странице пароль FACEIT или API-ключ.</div>
+  <div id="status" class="status"></div>
+ </section>
+
+ <div id="results" class="hidden">
+  <section class="panel profile">
+   <img id="avatar" class="avatar" src="" alt="">
+   <div>
+    <h2 id="playerName">Игрок</h2>
+    <div class="muted" id="country"></div>
+    <div class="level" id="level"></div>
+   </div>
+  </section>
+
+  <section class="grid">
+   <div class="metric"><small>Текущий Elo</small><strong id="elo">—</strong></div>
+   <div class="metric"><small>Уровень FACEIT</small><strong id="skill">—</strong></div>
+   <div class="metric"><small>Матчи в истории</small><strong id="matches">—</strong></div>
+   <div class="metric"><small>Победы</small><strong id="winrate">—</strong></div>
+  </section>
+
+  <section class="panel">
+   <div class="section-title">
+    <h3>График Elo</h3>
+    <select id="eloRange" onchange="drawElo()">
+     <option value="30">Последние 30 матчей</option>
+     <option value="100">Последние 100 матчей</option>
+     <option value="300">Последние 300 матчей</option>
+    </select>
+   </div>
+   <div class="chart-wrap"><canvas id="eloChart"></canvas></div>
+   <p class="muted" id="eloNote">График строится по данным FACEIT, если история Elo доступна.</p>
+  </section>
+
+  <section class="panel">
+   <h3>Лучшая игра за неделю</h3>
+   <div id="bestMatch" class="empty">Нет доступных данных за неделю</div>
+  </section>
+
+  <section class="panel">
+   <h3>Статистика по картам</h3>
+   <div id="maps" class="map-list">
+    <div class="empty">Нет данных по картам</div>
+   </div>
+  </section>
+
+  <section class="panel">
+   <h3>История матчей</h3>
+   <div style="overflow-x:auto">
+    <table>
+     <thead>
+      <tr><th>Дата</th><th>Результат</th><th>Карта</th><th>K/D</th><th>ADR</th><th>Elo</th></tr>
+     </thead>
+     <tbody id="history">
+      <tr><td colspan="6" class="empty">Матчи не найдены</td></tr>
+     </tbody>
+    </table>
+   </div>
+  </section>
+ </div>
 </main>
-<footer>© 2026 DemoScope · Независимый проект сообщества. Не связан с FACEIT или Valve.</footer>
-</div>
+
 <script>
-const form=document.getElementById('profileForm');
-const input=document.getElementById('profile');
-const msg=document.getElementById('msg');
-const btn=document.getElementById('submitBtn');
-const statusPill=document.getElementById('status');
-fetch('/api/health').then(r=>r.json()).then(d=>{
-  if(d.ok){statusPill.textContent='● API CONNECTED';}
-}).catch(()=>{});
-form.addEventListener('submit',async e=>{
-  e.preventDefault();
-  const raw=input.value.trim();
-  if(!raw){msg.textContent='Введи FACEIT-ник или ссылку на профиль.';return;}
-  let nick=raw;
-  try{if(raw.includes('faceit.com')){const u=new URL(raw);const parts=u.pathname.split('/').filter(Boolean);nick=parts[parts.length-1]||raw;}}catch{}
-  nick=nick.replace(/^@/,'').trim();
-  if(!/^[a-zA-Z0-9_-]{2,40}$/.test(nick)){msg.textContent='Не удалось распознать ник. Проверь введённые данные.';return;}
-  btn.disabled=true;msg.textContent='Загружаем данные FACEIT…';
-  try{
-    const response=await fetch('/api/player/'+encodeURIComponent(nick));
-    const data=await response.json();
-    if(!response.ok) throw new Error(data.error||'Не удалось получить данные.');
-    const p=data.player||{}, game=(p.games&& (p.games.cs2||p.games.csgo))||{};
-    document.getElementById('elo').textContent=game.faceit_elo??'—';
-    document.getElementById('level').textContent=game.skill_level??'—';
-    document.getElementById('matches').textContent=data.stats?.Matches??'—';
-    document.getElementById('winrate').textContent=data.stats?.['Win Rate %']!=null?data.stats['Win Rate %']+'%':'—';
-    document.getElementById('playerName').textContent=p.nickname||nick;
-    document.getElementById('playerLevel').textContent=(game.region||'FACEIT')+' · '+(game.skill_level?'Уровень '+game.skill_level:'уровень неизвестен');
-    const avatar=document.getElementById('avatar');
-    if(p.avatar){avatar.src=p.avatar;avatar.hidden=false;}else{avatar.hidden=true;}
-    document.getElementById('playerHead').hidden=false;
-    msg.textContent='Профиль '+(p.nickname||nick)+' успешно загружен.';
-  }catch(err){msg.textContent=err.message;}
-  finally{btn.disabled=false;}
+let currentData = null;
+
+const $ = id => document.getElementById(id);
+
+function showStatus(message){
+ $("status").textContent = message;
+}
+
+function formatDate(value){
+ if(!value) return "—";
+ const date = new Date(value);
+ return date.toLocaleDateString("ru-RU");
+}
+
+function number(value, digits=2){
+ if(value === null || value === undefined || value === "") return "—";
+ const n = Number(value);
+ return Number.isFinite(n) ? n.toFixed(digits) : "—";
+}
+
+function cleanNickname(value){
+ value = value.trim();
+ try{
+  if(value.startsWith("http")){
+   const url = new URL(value);
+   const parts = url.pathname.split("/").filter(Boolean);
+   return parts[parts.length-1] || "";
+  }
+ }catch{}
+ return value.replace(/^@/,"");
+}
+
+async function searchPlayer(){
+ const nickname = cleanNickname($("nickname").value);
+ if(!nickname){
+  showStatus("Введи ник FACEIT или ссылку на профиль.");
+  return;
+ }
+
+ $("searchBtn").disabled = true;
+ $("results").classList.add("hidden");
+ showStatus("Загружаем статистику FACEIT...");
+
+ try{
+  const response = await fetch(
+   `/api/player/${encodeURIComponent(nickname)}/analytics`
+  );
+  const data = await response.json();
+
+  if(!response.ok) throw new Error(data.error || "Не удалось загрузить профиль.");
+
+  currentData = data;
+  render(data);
+  $("results").classList.remove("hidden");
+  showStatus("");
+
+ }catch(error){
+  showStatus("Ошибка: " + error.message);
+ }finally{
+  $("searchBtn").disabled = false;
+ }
+}
+
+function render(data){
+ const p = data.player || {};
+ $("playerName").textContent = p.nickname || "Игрок";
+ $("country").textContent = p.country ? "Страна: " + p.country.toUpperCase() : "";
+ $("level").textContent = p.level ? "FACEIT Level " + p.level : "Уровень неизвестен";
+ $("elo").textContent = p.elo ?? "—";
+ $("skill").textContent = p.level ?? "—";
+
+ if(p.avatar){
+  $("avatar").src = p.avatar;
+ }else{
+  $("avatar").removeAttribute("src");
+ }
+
+ const matches = data.matches || [];
+ const wins = matches.filter(m=>m.result==="win").length;
+ const known = matches.filter(m=>m.result==="win" || m.result==="loss").length;
+
+ $("matches").textContent = matches.length;
+ $("winrate").textContent = known ? Math.round(wins/known*100)+"%" : "—";
+
+ renderBest(data.bestMatch);
+ renderMaps(data.maps || []);
+ renderHistory(matches,data.matchStats || []);
+ drawElo();
+}
+
+function renderBest(best){
+ const box = $("bestMatch");
+
+ if(!best){
+  box.textContent = "Нет доступных данных за неделю.";
+  return;
+ }
+
+ box.innerHTML = `
+  <div class="grid">
+   <div class="metric"><small>Карта</small><strong>${escapeHTML(best.map || "—")}</strong></div>
+   <div class="metric"><small>K/D</small><strong>${number(best.kd)}</strong></div>
+   <div class="metric"><small>Убийства</small><strong>${best.kills ?? "—"}</strong></div>
+   <div class="metric"><small>ADR</small><strong>${number(best.adr,1)}</strong></div>
+  </div>`;
+}
+
+function renderMaps(maps){
+ const box = $("maps");
+
+ if(!maps.length){
+  box.innerHTML = '<div class="empty">Статистика по картам пока недоступна.</div>';
+  return;
+ }
+
+ box.innerHTML = maps.map(m=>`
+  <div class="map-item">
+   <strong>${escapeHTML(m.map)}</strong>
+   <div>Матчи: ${m.matches}</div>
+   <div>Победы: ${m.winRate}%</div>
+   <div>K/D: ${number(m.kd)}</div>
+   <div>ADR: ${number(m.adr,1)}</div>
+  </div>
+ `).join("");
+}
+
+function renderHistory(matches,stats){
+ const body = $("history");
+
+ if(!matches.length){
+  body.innerHTML = '<tr><td colspan="6" class="empty">История матчей недоступна.</td></tr>';
+  return;
+ }
+
+ const statMap = new Map(
+  stats.filter(s=>s.matchId).map(s=>[String(s.matchId),s])
+ );
+
+ body.innerHTML = [...matches].reverse().slice(0,100).map(m=>{
+  const s = statMap.get(String(m.id)) || m.stats || {};
+  const result = m.result === "win" ? "Победа" :
+   m.result === "loss" ? "Поражение" : "—";
+  const resultClass = m.result === "win" ? "win" :
+   m.result === "loss" ? "loss" : "";
+
+  return `<tr>
+   <td>${formatDate(m.date)}</td>
+   <td class="${resultClass}">${result}</td>
+   <td>${escapeHTML(m.map || "—")}</td>
+   <td>${number(s.kd)}</td>
+   <td>${number(s.adr,1)}</td>
+   <td>${m.elo ?? "—"}</td>
+  </tr>`;
+ }).join("");
+}
+
+function drawElo(){
+ if(!currentData) return;
+
+ const canvas = $("eloChart");
+ const rect = canvas.getBoundingClientRect();
+ const dpr = window.devicePixelRatio || 1;
+
+ canvas.width = rect.width*dpr;
+ canvas.height = rect.height*dpr;
+
+ const ctx = canvas.getContext("2d");
+ ctx.scale(dpr,dpr);
+
+ const width = rect.width;
+ const height = rect.height;
+ const points = (currentData.eloPoints || []).slice(-Number($("eloRange").value));
+
+ ctx.clearRect(0,0,width,height);
+
+ if(points.length < 2){
+  ctx.fillStyle = "#999";
+  ctx.font = "14px Arial";
+  ctx.textAlign = "center";
+  ctx.fillText("Недостаточно данных для графика Elo",width/2,height/2);
+  return;
+ }
+
+ const values = points.map(p=>Number(p.elo)).filter(Number.isFinite);
+
+ if(values.length < 2) return;
+
+ const min = Math.min(...values)-20;
+ const max = Math.max(...values)+20;
+ const left = 42, right = 12, top = 15, bottom = 30;
+ const chartW = width-left-right;
+ const chartH = height-top-bottom;
+
+ ctx.strokeStyle = "#30313a";
+ ctx.lineWidth = 1;
+ ctx.fillStyle = "#999";
+ ctx.font = "11px Arial";
+
+ for(let i=0;i<5;i++){
+  const y = top + chartH*i/4;
+  ctx.beginPath();
+  ctx.moveTo(left,y);
+  ctx.lineTo(width-right,y);
+  ctx.stroke();
+
+  const value = Math.round(max-(max-min)*i/4);
+  ctx.fillText(value,left-8,y+4);
+ }
+
+ ctx.beginPath();
+ values.forEach((value,i)=>{
+  const x = left + chartW*i/(values.length-1);
+  const y = top + chartH*(max-value)/(max-min);
+  if(i===0) ctx.moveTo(x,y);
+  else ctx.lineTo(x,y);
+ });
+
+ ctx.strokeStyle = "#ff7138";
+ ctx.lineWidth = 2.5;
+ ctx.stroke();
+
+ ctx.fillStyle = "#ff7138";
+ values.forEach((value,i)=>{
+  const x = left + chartW*i/(values.length-1);
+  const y = top + chartH*(max-value)/(max-min);
+  ctx.beginPath();
+  ctx.arc(x,y,3,0,Math.PI*2);
+  ctx.fill();
+ });
+}
+
+function escapeHTML(value){
+ return String(value).replace(/[&<>"']/g,char=>({
+  "&":"&amp;",
+  "<":"&lt;",
+  ">":"&gt;",
+  '"':"&quot;",
+  "'":"&#39;"
+ }[char]));
+}
+
+$("nickname").addEventListener("keydown",event=>{
+ if(event.key==="Enter") searchPlayer();
+});
+
+window.addEventListener("resize",()=>{
+ if(currentData) drawElo();
 });
 </script>
 </body>
