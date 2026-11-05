@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DemoScope — CS2 & FACEIT Analytics</title>
+<style>
+:root{--bg:#0b0e13;--panel:#121821;--panel2:#18212c;--line:#263241;--muted:#8e9baa;--text:#edf3fa;--accent:#ff9b45;--green:#55d6a0}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 80% 0%,#1b2632 0,transparent 35%),var(--bg);color:var(--text);font:15px Inter,Segoe UI,Arial,sans-serif}
+.wrap{max-width:1180px;margin:auto;padding:28px 22px}.top{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:34px}
+.brand{font-weight:900;letter-spacing:1.8px;font-size:22px}.brand span{color:var(--accent)}.tag{color:var(--muted);font-size:12px;letter-spacing:1.5px;margin-top:5px}
+.pill{border:1px solid #395044;color:var(--green);padding:8px 12px;border-radius:30px;font-size:12px}
+.hero{display:grid;grid-template-columns:1.2fr .8fr;gap:24px;align-items:stretch;margin-bottom:24px}
+h1{font-size:clamp(34px,5vw,58px);line-height:1.03;margin:0 0 16px;letter-spacing:-1.8px}.accent{color:var(--accent)}
+.lead{color:var(--muted);max-width:620px;line-height:1.65}.panel{background:linear-gradient(145deg,#151e29,#10161e);border:1px solid var(--line);border-radius:18px;padding:24px;box-shadow:0 18px 50px #0003}
+.form{display:flex;gap:10px;margin-top:24px}.form input{flex:1;min-width:0;background:#0b1118;border:1px solid #334153;color:var(--text);padding:15px;border-radius:10px;outline:none}.form input:focus{border-color:var(--accent)}
+button{background:var(--accent);border:0;border-radius:10px;padding:0 20px;font-weight:800;color:#20140a;cursor:pointer}button:hover{filter:brightness(1.08)}button:disabled{opacity:.6;cursor:wait}
+.small{font-size:12px;color:var(--muted);line-height:1.5;margin-top:12px}.side h3{margin:0 0 16px}.statgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.stat{background:#0c121a;border:1px solid var(--line);padding:16px;border-radius:12px}.stat b{font-size:24px;display:block;margin-top:7px}.stat span{color:var(--muted);font-size:12px}
+.section{margin-top:22px}.sectionhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}.sectionhead h2{font-size:18px;margin:0}.muted{color:var(--muted)}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.feature{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px}.feature .ico{font-size:22px}.feature h3{margin:12px 0 7px;font-size:15px}.feature p{margin:0;color:var(--muted);font-size:13px;line-height:1.5}
+.notice{margin-top:20px;border-left:3px solid var(--accent);background:#191b1d;padding:13px 15px;color:#c3cbd5;font-size:12px;line-height:1.6;border-radius:0 8px 8px 0}
+footer{margin-top:34px;border-top:1px solid var(--line);padding-top:18px;color:var(--muted);font-size:12px}
+#msg{margin-top:12px;color:var(--green);font-size:13px;min-height:18px}.playerhead{display:flex;align-items:center;gap:12px;margin-bottom:16px}.avatar{width:52px;height:52px;border-radius:50%;object-fit:cover;background:#263241}.playerhead h3{margin:0 0 5px}.playerhead .small{margin:0}
+@media(max-width:760px){.hero{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.form{flex-direction:column}.form button{padding:14px}.top{align-items:flex-start;flex-direction:column}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div><div class="brand">DEMO<span>SCOPE</span></div><div class="tag">CS2 DEMO & FACEIT ANALYTICS</div></div>
+  <div class="pill" id="status">● API NOT CONNECTED</div>
+</header>
+<main>
+<section class="hero">
+  <div class="panel">
+    <div class="tag">PLAYER ANALYTICS PLATFORM</div>
+    <h1>See beyond<br>the <span class="accent">scoreboard.</span></h1>
+    <p class="lead">Изучай свои матчи CS2, отслеживай статистику FACEIT и разбирай игровые решения. Введи ник или ссылку на профиль, чтобы начать.</p>
+    <form class="form" id="profileForm">
+      <input id="profile" autocomplete="off" placeholder="FACEIT-ник или ссылка на профиль" aria-label="FACEIT-ник или ссылка">
+      <button id="submitBtn" type="submit">Проверить профиль</button>
+    </form>
+    <div id="msg" role="status"></div>
+    <p class="small">Например: cMYRfoSOS или https://www.faceit.com/ru/players/cMYRfoSOS</p>
+  </div>
+  <aside class="panel side">
+    <h3>Обзор игрока</h3>
+    <div class="playerhead" id="playerHead" hidden>
+      <img class="avatar" id="avatar" alt="">
+      <div><h3 id="playerName"></h3><p class="small" id="playerLevel"></p></div>
+    </div>
+    <div class="statgrid">
+      <div class="stat"><span>FACEIT ELO</span><b id="elo">—</b></div>
+      <div class="stat"><span>Уровень</span><b id="level">—</b></div>
+      <div class="stat"><span>Матчи (всего)</span><b id="matches">—</b></div>
+      <div class="stat"><span>Win rate</span><b id="winrate">—</b></div>
+    </div>
+    <p class="small">Данные загружаются через защищённый сервер DemoScope.</p>
+  </aside>
+</section>
+<section class="section">
+  <div class="sectionhead"><h2>Инструменты DemoScope</h2><span class="muted">Развитие проекта</span></div>
+  <div class="cards">
+    <article class="feature"><div class="ico">📊</div><h3>Статистика FACEIT</h3><p>ELO, K/D, победы, поражения, форма и история матчей по игровому нику.</p></article>
+    <article class="feature"><div class="ico">🎯</div><h3>Разбор демок</h3><p>Загрузка CS2 demo-файла и анализ раундов, событий и игровых решений.</p></article>
+    <article class="feature"><div class="ico">🗺️</div><h3>Позиции и зоны</h3><p>Карта активности, убийства и смерти по зонам, лучшие и слабые позиции.</p></article>
+  </div>
+</section>
+<div class="notice"><b>Важно:</b> DemoScope — независимый проект сообщества, не связанный с FACEIT или Valve. Никогда не вводи на этой странице пароль FACEIT или API-ключ.</div>
+</main>
+<footer>© 2026 DemoScope · Независимый проект сообщества. Не связан с FACEIT или Valve.</footer>
+</div>
+<script>
+const form=document.getElementById('profileForm');
+const input=document.getElementById('profile');
+const msg=document.getElementById('msg');
+const btn=document.getElementById('submitBtn');
+const statusPill=document.getElementById('status');
+fetch('/api/health').then(r=>r.json()).then(d=>{
+  if(d.ok){statusPill.textContent='● API CONNECTED';}
+}).catch(()=>{});
+form.addEventListener('submit',async e=>{
+  e.preventDefault();
+  const raw=input.value.trim();
+  if(!raw){msg.textContent='Введи FACEIT-ник или ссылку на профиль.';return;}
+  let nick=raw;
+  try{if(raw.includes('faceit.com')){const u=new URL(raw);const parts=u.pathname.split('/').filter(Boolean);nick=parts[parts.length-1]||raw;}}catch{}
+  nick=nick.replace(/^@/,'').trim();
+  if(!/^[a-zA-Z0-9_-]{2,40}$/.test(nick)){msg.textContent='Не удалось распознать ник. Проверь введённые данные.';return;}
+  btn.disabled=true;msg.textContent='Загружаем данные FACEIT…';
+  try{
+    const response=await fetch('/api/player/'+encodeURIComponent(nick));
+    const data=await response.json();
+    if(!response.ok) throw new Error(data.error||'Не удалось получить данные.');
+    const p=data.player||{}, game=(p.games&& (p.games.cs2||p.games.csgo))||{};
+    document.getElementById('elo').textContent=game.faceit_elo??'—';
+    document.getElementById('level').textContent=game.skill_level??'—';
+    document.getElementById('matches').textContent=data.stats?.Matches??'—';
+    document.getElementById('winrate').textContent=data.stats?.['Win Rate %']!=null?data.stats['Win Rate %']+'%':'—';
+    document.getElementById('playerName').textContent=p.nickname||nick;
+    document.getElementById('playerLevel').textContent=(game.region||'FACEIT')+' · '+(game.skill_level?'Уровень '+game.skill_level:'уровень неизвестен');
+    const avatar=document.getElementById('avatar');
+    if(p.avatar){avatar.src=p.avatar;avatar.hidden=false;}else{avatar.hidden=true;}
+    document.getElementById('playerHead').hidden=false;
+    msg.textContent='Профиль '+(p.nickname||nick)+' успешно загружен.';
+  }catch(err){msg.textContent=err.message;}
+  finally{btn.disabled=false;}
+});
+</script>
+</body>
+</html>
