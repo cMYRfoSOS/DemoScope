@@ -5,6 +5,7 @@ const crypto = require("crypto");
 const os = require("os");
 const fs = require("fs");
 const multer = require("multer");
+const { Decompress } = require("fzstd");
 
 const {
     parseHeader,
@@ -25,6 +26,8 @@ const TRACKING_ENABLED = Boolean(SUPABASE_URL && SUPABASE_SECRET_KEY);
 const SYNC_BATCH_SIZE = 20;
 
 const MAX_DEMO_SIZE = 200 * 1024 * 1024;
+const MAX_UNCOMPRESSED_SIZE = 500 * 1024 * 1024;
+
 const DEMO_TEMP_DIR = path.join(os.tmpdir(), "demoscope-uploads");
 
 fs.mkdirSync(DEMO_TEMP_DIR, { recursive: true });
@@ -38,9 +41,12 @@ const demoUpload = multer({
         files: 1
     },
     fileFilter: (req, file, callback) => {
-        if (!file.originalname ||
-            !file.originalname.toLowerCase().endsWith(".dem")) {
-            return callback(new Error("Разрешены только файлы .dem"));
+        const name = String(file.originalname || "").toLowerCase();
+
+        if (!name.endsWith(".dem") && !name.endsWith(".dem.zst")) {
+            return callback(
+                new Error("Разрешены только файлы .dem и .dem.zst")
+            );
         }
 
         callback(null, true);
@@ -278,6 +284,71 @@ function safeSecretEquals(provided, expected) {
 }
 
 // ================================
+// ZSTD DECOMPRESSION
+// ================================
+
+function decompressZstdFile(inputPath, outputPath) {
+    const inputFd = fs.openSync(inputPath, "r");
+    const outputFd = fs.openSync(outputPath, "w");
+
+    let totalOutput = 0;
+
+    try {
+        const decoder = new Decompress((chunk) => {
+            if (!chunk || chunk.length === 0) {
+                return;
+            }
+
+            totalOutput += chunk.length;
+
+            if (totalOutput > MAX_UNCOMPRESSED_SIZE) {
+                throw new Error(
+                    "Распакованное демо превышает лимит 500 МБ."
+                );
+            }
+
+            fs.writeSync(outputFd, Buffer.from(chunk));
+        });
+
+        const inputBuffer = Buffer.allocUnsafe(1024 * 1024);
+
+        while (true) {
+            const bytesRead = fs.readSync(
+                inputFd,
+                inputBuffer,
+                0,
+                inputBuffer.length,
+                null
+            );
+
+            if (bytesRead === 0) {
+                break;
+            }
+
+            const chunk = new Uint8Array(
+                inputBuffer.buffer,
+                inputBuffer.byteOffset,
+                bytesRead
+            );
+
+            decoder.push(chunk);
+        }
+
+        decoder.push(new Uint8Array(0), true);
+
+        if (totalOutput === 0) {
+            throw new Error("После распаковки файл оказался пустым.");
+        }
+
+    } finally {
+        fs.closeSync(inputFd);
+        fs.closeSync(outputFd);
+    }
+
+    return outputPath;
+}
+
+// ================================
 // CS2 DEMO ANALYZER
 // ================================
 
@@ -376,7 +447,6 @@ function analyzeDemoFile(filePath) {
         return playersByName.get(name);
     }
 
-    // Убийства, смерти и ассисты
     for (const event of deaths) {
         const victim = getOrAdd(
             event.user_name || event.user
@@ -418,7 +488,6 @@ function analyzeDemoFile(filePath) {
         }
     }
 
-    // Нанесённый урон
     for (const event of hurts) {
         const attacker = getOrAdd(
             event.attacker_name || event.attacker
@@ -474,6 +543,7 @@ function analyzeDemoFile(filePath) {
         map: header.map_name || header.map || "Неизвестно",
         serverName: header.server_name || null,
         demoVersion: header.demo_version_name || null,
+
         roundsObserved: roundValues.length
             ? Math.max(...roundValues)
             : null,
@@ -499,7 +569,8 @@ app.get("/api/health", (req, res) => {
         keyConfigured: Boolean(API_KEY),
         supabaseConfigured: TRACKING_ENABLED,
         scheduledSyncConfigured: Boolean(SYNC_SECRET),
-        demoParserConfigured: true
+        demoParserConfigured: true,
+        zstdConfigured: true
     });
 });
 
@@ -526,36 +597,58 @@ app.post("/api/demo/upload", (req, res) => {
 
         if (!req.file) {
             return res.status(400).json({
-                error: "Выбери файл демки с расширением .dem."
+                error: "Выбери файл .dem или .dem.zst."
             });
         }
 
-        const tempPath = req.file.path;
+        const uploadedPath = req.file.path;
+        const originalName = path.basename(req.file.originalname);
+
+        let demoPath = uploadedPath;
+        let decompressedPath = null;
 
         try {
-            const result = analyzeDemoFile(tempPath);
+            if (originalName.toLowerCase().endsWith(".dem.zst")) {
+                decompressedPath = path.join(
+                    DEMO_TEMP_DIR,
+                    `${crypto.randomUUID()}.dem`
+                );
+
+                decompressZstdFile(
+                    uploadedPath,
+                    decompressedPath
+                );
+
+                demoPath = decompressedPath;
+            }
+
+            const result = analyzeDemoFile(demoPath);
 
             return res.json({
                 ok: true,
-                fileName: path.basename(req.file.originalname),
+                fileName: originalName,
                 ...result
             });
 
         } catch (parseError) {
             console.error(
-                "Ошибка разбора демо:",
+                "Ошибка обработки демо:",
                 parseError
             );
 
             return res.status(422).json({
-                error: "Не удалось разобрать демку. Проверь, что это корректный файл CS2 .dem.",
+                error: "Не удалось обработать демо. Проверь, что файл корректный и поддерживается анализатором.",
                 details: process.env.NODE_ENV === "development"
                     ? parseError.message
                     : undefined
             });
 
         } finally {
-            fs.promises.unlink(tempPath).catch(() => {});
+            fs.promises.unlink(uploadedPath).catch(() => {});
+
+            if (decompressedPath) {
+                fs.promises.unlink(decompressedPath).catch(() => {});
+            }
         }
     });
 });
@@ -981,5 +1074,9 @@ app.listen(PORT, () => {
 
     console.log(
         "Анализ демок CS2: подключен"
+    );
+
+    console.log(
+        "Распаковка Zstandard: подключена"
     );
 });
