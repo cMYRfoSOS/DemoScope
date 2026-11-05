@@ -1,0 +1,35 @@
+name: DemoScope Elo Sync
+
+on:
+  schedule:
+    - cron: '7,17,27,37,47,57 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Sync FACEIT Elo
+        env:
+          SYNC_SECRET: ${{ secrets.SYNC_SECRET }}
+        run: |
+          set -eu
+
+          if [ -z "${SYNC_SECRET:-}" ]; then
+            echo "SYNC_SECRET is missing"
+            exit 1
+          fi
+
+          curl --fail --silent --show-error \
+            --connect-timeout 60 \
+            --max-time 240 \
+            --request POST \
+            --header "x-sync-secret: ${SYNC_SECRET}" \
+            "https://demoscope.onrender.com/api/cron/sync"
+
+          echo
