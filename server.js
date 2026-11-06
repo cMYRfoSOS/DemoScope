@@ -31,7 +31,49 @@ const MAX_UNCOMPRESSED_SIZE = 500 * 1024 * 1024;
 
 const DEMO_TEMP_DIR = path.join(os.tmpdir(), "demoscope-uploads");
 
+// Временное хранилище демок для последующего просмотра в браузере.
+const replaySessions = new Map();
+const REPLAY_SESSION_TTL_MS = 10 * 60 * 1000;
+const MAX_REPLAY_SESSIONS = 2;
+const MAX_REPLAY_STORAGE_SIZE = MAX_UNCOMPRESSED_SIZE;
+
 fs.mkdirSync(DEMO_TEMP_DIR, { recursive: true });
+
+function getReplayStorageSize() {
+    let total = 0;
+
+    for (const session of replaySessions.values()) {
+        total += session.size || 0;
+    }
+
+    return total;
+}
+
+function deleteReplaySession(sessionId) {
+    const session = replaySessions.get(sessionId);
+
+    if (!session) return;
+
+    replaySessions.delete(sessionId);
+    fs.promises.unlink(session.path).catch(() => {});
+}
+
+function cleanupExpiredReplaySessions() {
+    const now = Date.now();
+
+    for (const [sessionId, session] of replaySessions.entries()) {
+        if (session.expiresAt <= now) {
+            deleteReplaySession(sessionId);
+        }
+    }
+}
+
+const replayCleanupTimer = setInterval(
+    cleanupExpiredReplaySessions,
+    60 * 1000
+);
+
+replayCleanupTimer.unref?.();
 
 app.use(express.static(path.join(__dirname)));
 
@@ -546,7 +588,7 @@ app.get("/api/health", (req, res) => {
 });
 
 // ================================
-// DEMO UPLOAD
+// DEMO UPLOAD + REPLAY FILE
 // ================================
 
 app.post("/api/demo/upload", (req, res) => {
@@ -574,30 +616,68 @@ app.post("/api/demo/upload", (req, res) => {
 
         const uploadedPath = req.file.path;
         const originalName = path.basename(req.file.originalname);
+        const replayId = crypto.randomUUID();
+        const replayPath = path.join(
+            DEMO_TEMP_DIR,
+            `${replayId}.dem`
+        );
 
-        let demoPath = uploadedPath;
-        let decompressedPath = null;
+        let replaySaved = false;
 
         try {
+            // Подготавливаем обычный .dem для анализатора и браузера.
             if (originalName.toLowerCase().endsWith(".dem.zst")) {
-                decompressedPath = path.join(
-                    DEMO_TEMP_DIR,
-                    `${crypto.randomUUID()}.dem`
-                );
-
                 await decompressZstdFile(
                     uploadedPath,
-                    decompressedPath
+                    replayPath
                 );
-
-                demoPath = decompressedPath;
+            } else {
+                await fs.promises.copyFile(
+                    uploadedPath,
+                    replayPath
+                );
             }
 
-            const result = analyzeDemoFile(demoPath);
+            // Сохраняем прежний анализ статистики.
+            const result = analyzeDemoFile(replayPath);
+            const replayStat = await fs.promises.stat(replayPath);
+
+            if (replayStat.size > MAX_REPLAY_STORAGE_SIZE) {
+                throw new Error(
+                    "Распакованная демка слишком большая для временного просмотра."
+                );
+            }
+
+            cleanupExpiredReplaySessions();
+
+            // Ограничиваем количество временных демок и их общий размер.
+            while (
+                replaySessions.size >= MAX_REPLAY_SESSIONS ||
+                getReplayStorageSize() + replayStat.size > MAX_REPLAY_STORAGE_SIZE
+            ) {
+                const oldestSessionId = replaySessions.keys().next().value;
+
+                if (!oldestSessionId) break;
+
+                deleteReplaySession(oldestSessionId);
+            }
+
+            replaySessions.set(replayId, {
+                path: replayPath,
+                size: replayStat.size,
+                expiresAt: Date.now() + REPLAY_SESSION_TTL_MS
+            });
+
+            replaySaved = true;
 
             return res.json({
                 ok: true,
                 fileName: originalName,
+                replayId,
+                replayUrl: `/api/demo/replay/${replayId}`,
+                replayExpiresInSeconds: Math.floor(
+                    REPLAY_SESSION_TTL_MS / 1000
+                ),
                 ...result
             });
 
@@ -617,8 +697,55 @@ app.post("/api/demo/upload", (req, res) => {
         } finally {
             fs.promises.unlink(uploadedPath).catch(() => {});
 
-            if (decompressedPath) {
-                fs.promises.unlink(decompressedPath).catch(() => {});
+            if (!replaySaved) {
+                fs.promises.unlink(replayPath).catch(() => {});
+            }
+        }
+    });
+});
+
+// Получение распакованной демки браузерным проигрывателем.
+app.get("/api/demo/replay/:id", (req, res) => {
+    cleanupExpiredReplaySessions();
+
+    const sessionId = String(req.params.id || "");
+
+    if (!/^[0-9a-f-]{36}$/i.test(sessionId)) {
+        return res.status(400).json({
+            error: "Неверный идентификатор демо."
+        });
+    }
+
+    const session = replaySessions.get(sessionId);
+
+    if (!session) {
+        return res.status(404).json({
+            error: "Файл демо больше недоступен. Загрузи демо ещё раз."
+        });
+    }
+
+    res.setHeader("Content-Type", "application/octet-stream");
+    res.setHeader(
+        "Content-Disposition",
+        'inline; filename="demoscope.dem"'
+    );
+    res.setHeader("Cache-Control", "no-store");
+    res.setHeader("X-Content-Type-Options", "nosniff");
+
+    res.sendFile(session.path, sendError => {
+        // После передачи файла удаляем временную копию.
+        deleteReplaySession(sessionId);
+
+        if (sendError) {
+            console.error(
+                "Ошибка передачи демо в браузер:",
+                sendError.message
+            );
+
+            if (!res.headersSent) {
+                res.status(500).json({
+                    error: "Не удалось передать файл демо в браузер."
+                });
             }
         }
     });
@@ -1049,5 +1176,9 @@ app.listen(PORT, () => {
 
     console.log(
         "Распаковка Zstandard: подключена"
+    );
+
+    console.log(
+        "Временное хранение демок: подключено"
     );
 });
