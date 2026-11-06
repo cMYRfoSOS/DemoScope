@@ -1397,33 +1397,29 @@ function renderDemo(data) {
 async function startReplayFromUrl(replayUrl, mapName) {
     if (!window.deadem || !window.deadem.cs2) {
         throw new Error(
-            "Не загрузилась библиотека CS2 Replay. Проверь подключение к CDN."
+            "Не загрузилась библиотека CS2 Replay. Проверь CDN."
         );
     }
 
     const { Player } = window.deadem.cs2;
 
     if (!Player) {
-        throw new Error(
-            "В библиотеке не найдена функция Player."
-        );
+        throw new Error("Функция Player не найдена.");
     }
 
     $("demoStatus").textContent =
-        "Получаем распакованную демку с сервера...";
+        "Получаем демку с сервера...";
 
     const response = await fetch(replayUrl);
 
     if (!response.ok) {
-        throw new Error(
-            "Сервер не смог передать файл демки в браузер."
-        );
+        throw new Error("Не удалось получить файл демки.");
     }
 
     const replayBlob = await response.blob();
 
     $("demoStatus").textContent =
-        "Индексируем демку в браузере. Это может занять некоторое время...";
+        "Загружаем демку в проигрыватель...";
 
     const player = new Player();
 
@@ -1440,9 +1436,7 @@ async function startReplayFromUrl(replayUrl, mapName) {
             !Number.isFinite(replayLastTick) ||
             replayLastTick <= replayFirstTick
         ) {
-            throw new Error(
-                "Не удалось определить начало и конец демки."
-            );
+            throw new Error("Не удалось определить начало и конец демки.");
         }
 
         await player.seekToTick(replayFirstTick);
@@ -1450,10 +1444,23 @@ async function startReplayFromUrl(replayUrl, mapName) {
         $("replayMap").textContent = mapName || "CS2";
         $("replayTimeline").value = 0;
 
-        init3DScene();
-
+        // Сначала показываем окно
         $("replayPanel").classList.remove("hidden");
 
+        // Даём браузеру рассчитать размеры окна
+        await new Promise(resolve => {
+            requestAnimationFrame(() => {
+                requestAnimationFrame(resolve);
+            });
+        });
+
+        // Только теперь создаём 3D-сцену
+        init3DScene();
+
+        // Обновляем размеры
+        resize3D();
+
+        // Получаем состояние игроков
         updateReplayState();
 
         $("demoStatus").textContent =
@@ -1474,7 +1481,6 @@ async function startReplayFromUrl(replayUrl, mapName) {
         throw error;
     }
 }
-
 // ================================
 // REPLAY CONTROLS
 // ================================
