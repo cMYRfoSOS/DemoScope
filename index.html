@@ -4,16 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DemoScope — FACEIT Analytics</title>
-
 <script src="https://cdn.jsdelivr.net/npm/@deademx/cs2@5.0.0/dist/deadem-cs2.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
-
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#101114;color:#f2f2f2;font-family:Arial,sans-serif}
 header{padding:22px 7%;border-bottom:1px solid #292a30;display:flex;justify-content:space-between;align-items:center}
-.logo{font-size:25px;font-weight:bold;color:#ff7138}
-.logo span{color:white}
+.logo{font-size:25px;font-weight:bold;color:#ff7138}.logo span{color:white}
 .container{max-width:1200px;margin:35px auto;padding:0 20px}
 .hero{text-align:center;margin:45px 0}
 h1{font-size:38px;margin-bottom:10px}
@@ -21,11 +18,9 @@ h3{margin-top:0}
 .muted{color:#92939b}
 .search{display:flex;max-width:650px;margin:25px auto;gap:10px}
 input,select{background:#202127;border:1px solid #383941;color:white;padding:14px;border-radius:9px}
-input{min-width:0}
-.search input{flex:1}
+input{min-width:0}.search input{flex:1}
 button{background:#ff7138;border:0;color:#111;font-weight:bold;padding:14px 22px;border-radius:9px;cursor:pointer}
-button:hover{background:#ff8a5c}
-button:disabled{opacity:.5;cursor:wait}
+button:hover{background:#ff8a5c}button:disabled{opacity:.5;cursor:wait}
 .panel{background:#191a20;border:1px solid #292a32;border-radius:13px;padding:22px;margin:20px 0}
 .hidden{display:none!important}
 .profile{display:flex;align-items:center;gap:18px}
@@ -33,20 +28,16 @@ button:disabled{opacity:.5;cursor:wait}
 .level{color:#ff7138;font-weight:bold}
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:18px 0}
 .metric{background:#191a20;border:1px solid #292a32;border-radius:12px;padding:19px}
-.metric small{color:#92939b}
-.metric strong{display:block;font-size:27px;margin-top:10px}
+.metric small{color:#92939b}.metric strong{display:block;font-size:27px;margin-top:10px}
 .section-title{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 .chart-wrap{height:260px;position:relative;width:100%}
-canvas{display:block}
 #eloChart{width:100%;height:100%}
 .map-list{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 .map-item{background:#24252c;padding:15px;border-radius:9px}
 .map-item strong{display:block;margin-bottom:8px}
 table{width:100%;border-collapse:collapse;font-size:14px}
 th,td{padding:13px 9px;text-align:left;border-bottom:1px solid #303139}
-th{color:#999}
-.win{color:#5bd69a}
-.loss{color:#ff6868}
+th{color:#999}.win{color:#5bd69a}.loss{color:#ff6868}
 .empty{text-align:center;color:#999;padding:25px}
 .status{margin:15px auto;color:#ffb18e}
 .demo-panel{border-color:#493126}
@@ -57,52 +48,38 @@ th{color:#999}
 .demo-status{margin-top:17px;color:#ffb18e;line-height:1.5}
 .demo-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:20px 0}
 .demo-stat{background:#24252c;padding:15px;border-radius:9px}
-.demo-stat small{color:#999}
-.demo-stat strong{display:block;font-size:20px;margin-top:8px}
-.demo-table-wrap{overflow-x:auto}
-.demo-table{min-width:650px}
+.demo-stat small{color:#999}.demo-stat strong{display:block;font-size:20px;margin-top:8px}
+.demo-table-wrap{overflow-x:auto}.demo-table{min-width:650px}
 .demo-player{color:#ff9a70;font-weight:bold}
 .demo-note{color:#92939b;font-size:13px;line-height:1.5;margin-top:15px}
 .replay-panel{border-color:#68402e}
 .replay-header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 .replay-badge{color:#ff7138;font-weight:bold;font-size:12px}
-.replay-stage{width:100%;height:500px;overflow:hidden;position:relative;background:#090b10;border:1px solid #353640;border-radius:12px;margin-top:18px}
-#replay3d{width:100%;height:100%}
-#replay3d canvas{width:100%;height:100%}
-.replay-overlay{position:absolute;left:15px;top:14px;background:rgba(0,0,0,.7);border:1px solid #444;border-radius:8px;padding:10px 14px;font-size:13px;pointer-events:none;z-index:2}
+.replay-stage{width:100%;height:600px;overflow:hidden;position:relative;background:#090b10;border:1px solid #353640;border-radius:12px;margin-top:18px}
+#replay3d{width:100%;height:100%}#replay3d canvas{width:100%;height:100%}
+.replay-overlay{position:absolute;left:15px;top:14px;background:rgba(0,0,0,.75);border:1px solid #444;border-radius:8px;padding:10px 14px;font-size:13px;pointer-events:none;z-index:2}
 .replay-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:17px}
-.replay-controls button{padding:12px 18px}
-.replay-controls select{padding:11px}
+.replay-controls button{padding:12px 18px}.replay-controls select{padding:11px}
 .replay-camera-controls{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px;padding:15px;background:#22232a;border:1px solid #34353e;border-radius:10px}
 .replay-camera-controls label{display:flex;align-items:center;gap:9px;color:#bbb;font-size:13px}
 .replay-camera-controls select{min-width:160px;padding:10px}
 .replay-timeline{width:100%;margin-top:15px;accent-color:#ff7138;cursor:pointer;touch-action:pan-y}
 .replay-info{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;color:#999;font-size:13px}
 .replay-note{color:#999;font-size:13px;line-height:1.6;margin-top:16px}
-.player-table{min-width:550px}
-.team-t{color:#ff9a70}
-.team-ct{color:#70aaff}
-.player-row{cursor:pointer}
-.player-row:hover{background:#292a32}
-.player-row.selected{background:#3a2923}
+.player-table{min-width:550px}.team-t{color:#ff9a70}.team-ct{color:#70aaff}
+.player-row{cursor:pointer}.player-row:hover{background:#292a32}.player-row.selected{background:#3a2923}
 @media(max-width:700px){
-.grid{grid-template-columns:repeat(2,1fr)}
-.map-list{grid-template-columns:repeat(2,1fr)}
-h1{font-size:29px}
-.search{flex-direction:column}
-.profile{align-items:flex-start}
-table{font-size:12px}
-th,td{padding:9px 5px}
-.demo-summary{grid-template-columns:1fr}
-.demo-upload{flex-direction:column;align-items:stretch}
-.demo-file{min-width:0}
-.replay-stage{height:350px}
+.grid{grid-template-columns:repeat(2,1fr)}.map-list{grid-template-columns:repeat(2,1fr)}
+h1{font-size:29px}.search{flex-direction:column}
+.profile{align-items:flex-start}table{font-size:12px}
+th,td{padding:9px 5px}.demo-summary{grid-template-columns:1fr}
+.demo-upload{flex-direction:column;align-items:stretch}.demo-file{min-width:0}
+.replay-stage{height:430px}
 .replay-camera-controls{flex-direction:column;align-items:stretch}
 .replay-camera-controls label{justify-content:space-between}
 }
 </style>
 </head>
-
 <body>
 <header>
     <div class="logo">DEMO<span>SCOPE</span></div>
@@ -110,7 +87,6 @@ th,td{padding:9px 5px}
 </header>
 
 <main class="container">
-
 <section class="hero">
     <h1>Анализируй свою игру</h1>
     <p class="muted">FACEIT, Elo, матчи и анализ демок CS2</p>
@@ -126,18 +102,12 @@ th,td{padding:9px 5px}
         <h3>Анализ демо CS2</h3>
         <span class="level">DEMOSCOPE ANALYZER</span>
     </div>
-    <p class="demo-description">
-        Загрузи демо CS2 в формате .dem или .dem.zst.
-        Получи статистику и открой интерактивный просмотр повтора.
-    </p>
+    <p class="demo-description">Загрузи демо CS2 в формате .dem или .dem.zst. Получи статистику и открой интерактивный просмотр повтора.</p>
     <div class="demo-upload">
-        <label class="demo-file">
-            <input type="file" id="demoFile" accept=".dem,.dem.zst">
-        </label>
+        <label class="demo-file"><input type="file" id="demoFile" accept=".dem,.dem.zst"></label>
         <button id="demoUploadBtn" onclick="uploadDemo()">Анализировать демо</button>
     </div>
     <div id="demoStatus" class="demo-status"></div>
-
     <div id="demoResults" class="hidden">
         <div class="demo-summary">
             <div class="demo-stat"><small>Карта</small><strong id="demoMap">—</strong></div>
@@ -147,12 +117,8 @@ th,td{padding:9px 5px}
         <h3>Статистика игроков</h3>
         <div class="demo-table-wrap">
             <table class="demo-table">
-                <thead>
-                    <tr><th>#</th><th>Игрок</th><th>Убийства</th><th>Смерти</th><th>Ассисты</th><th>K/D</th><th>Урон</th><th>HS%</th></tr>
-                </thead>
-                <tbody id="demoPlayers">
-                    <tr><td colspan="8" class="empty">Здесь появится статистика</td></tr>
-                </tbody>
+                <thead><tr><th>#</th><th>Игрок</th><th>Убийства</th><th>Смерти</th><th>Ассисты</th><th>K/D</th><th>Урон</th><th>HS%</th></tr></thead>
+                <tbody id="demoPlayers"><tr><td colspan="8" class="empty">Здесь появится статистика</td></tr></tbody>
             </table>
         </div>
         <p class="demo-note" id="demoNote"></p>
@@ -170,6 +136,7 @@ th,td{padding:9px 5px}
             <div id="replayTick">Тик: —</div>
             <div id="replayTime">Время: 0:00</div>
             <div id="cameraStatus">Камера: общий вид</div>
+            <div id="mapStatus">Карта: загружается</div>
         </div>
     </div>
     <div class="replay-camera-controls">
@@ -186,23 +153,17 @@ th,td{padding:9px 5px}
         </label>
     </div>
     <div class="replay-controls">
-        <button onclick="stepReplay(-1)" title="Назад на один тик">◀</button>
+        <button onclick="stepReplay(-1)">◀</button>
         <button id="playButton" onclick="playReplay()">▶ Воспроизвести</button>
         <button onclick="pauseReplay()">⏸ Пауза</button>
-        <button onclick="stepReplay(1)" title="Вперёд на один тик">▶</button>
-        <select id="replaySpeed" title="Скорость воспроизведения">
-            <option value="0.25">0.25x</option>
-            <option value="0.5">0.5x</option>
-            <option value="1" selected>1x</option>
-            <option value="2">2x</option>
-            <option value="4">4x</option>
+        <button onclick="stepReplay(1)">▶</button>
+        <select id="replaySpeed">
+            <option value="0.25">0.25x</option><option value="0.5">0.5x</option>
+            <option value="1" selected>1x</option><option value="2">2x</option><option value="4">4x</option>
         </select>
     </div>
     <input type="range" id="replayTimeline" class="replay-timeline" min="0" max="1000" value="0" oninput="previewReplayPosition()" onchange="seekReplay()">
-    <div class="replay-info">
-        <span id="replayCurrent">0:00</span>
-        <span id="replayDuration">0:00</span>
-    </div>
+    <div class="replay-info"><span id="replayCurrent">0:00</span><span id="replayDuration">0:00</span></div>
     <h3 style="margin-top:25px">Игроки в текущем моменте</h3>
     <div class="demo-table-wrap">
         <table class="player-table">
@@ -211,10 +172,10 @@ th,td{padding:9px 5px}
         </table>
     </div>
     <p class="replay-note">
-        Обновлённая схема Mirage с отдельными зонами A, B и Mid.
-        Оранжевые маркеры — T, синие — CT. Геометрия является
-        приближённой схемой, а не точной копией оригинальной карты.
-        В общем виде вращай камеру мышью, масштаб меняй колёсиком.
+        Используется радар Mirage с реальными параметрами координат карты.
+        Оранжевые маркеры — T, синие — CT. Позиции игроков рассчитываются
+        по координатам из демки. Для полноценной объёмной геометрии потребуется
+        отдельная 3D-модель карты.
     </p>
 </section>
 
@@ -230,8 +191,7 @@ th,td{padding:9px 5px}
         <div class="metric"><small>Победы</small><strong id="winrate">—</strong></div>
     </section>
     <section class="panel">
-        <div class="section-title">
-            <h3>График Elo</h3>
+        <div class="section-title"><h3>График Elo</h3>
             <select id="eloRange" onchange="drawElo()">
                 <option value="30">Последние 30 матчей</option>
                 <option value="100">Последние 100 матчей</option>
@@ -243,71 +203,51 @@ th,td{padding:9px 5px}
     </section>
     <section class="panel"><h3>Лучшая игра за неделю</h3><div id="bestMatch" class="empty">Нет доступных данных за неделю</div></section>
     <section class="panel"><h3>Статистика по картам</h3><div id="maps" class="map-list"><div class="empty">Нет данных по картам</div></div></section>
-    <section class="panel">
-        <h3>История матчей</h3>
-        <div style="overflow-x:auto">
-            <table>
-                <thead><tr><th>Дата</th><th>Результат</th><th>Карта</th><th>K/D</th><th>ADR</th><th>Elo</th></tr></thead>
-                <tbody id="history"><tr><td colspan="6" class="empty">Матчи не найдены</td></tr></tbody>
-            </table>
-        </div>
-    </section>
+    <section class="panel"><h3>История матчей</h3><div style="overflow-x:auto">
+        <table><thead><tr><th>Дата</th><th>Результат</th><th>Карта</th><th>K/D</th><th>ADR</th><th>Elo</th></tr></thead>
+        <tbody id="history"><tr><td colspan="6" class="empty">Матчи не найдены</td></tr></tbody></table>
+    </div></section>
 </div>
 </main>
 
 <script>
-let currentData=null;
-let replayPlayer=null;
-let replayPlaying=false;
-let replayFirstTick=0;
-let replayLastTick=0;
-let replayUpdateTimer=null;
-let timelineDragging=false;
-
-let threeScene=null;
-let threeCamera=null;
-let threeRenderer=null;
-let playerMeshes=new Map();
-let replayMapTransform=null;
-let replayMapGroup=null;
-let replayCameraMode="orbit";
-let selectedReplayPlayer="";
-let latestReplayPlayers=[];
-
-let cameraTheta=Math.PI/4;
-let cameraPhi=0.95;
-let cameraRadius=105;
-let dragActive=false;
-let lastMouseX=0;
-let lastMouseY=0;
+let currentData=null,replayPlayer=null,replayPlaying=false;
+let replayFirstTick=0,replayLastTick=0,replayUpdateTimer=null,timelineDragging=false;
+let threeScene=null,threeCamera=null,threeRenderer=null;
+let playerMeshes=new Map(),replayMapGroup=null;
+let replayCameraMode="orbit",selectedReplayPlayer="",latestReplayPlayers=[];
+let cameraTheta=0,cameraPhi=0.32,cameraRadius=145;
+let dragActive=false,lastMouseX=0,lastMouseY=0;
+let radarLoaded=false;
 
 const $=id=>document.getElementById(id);
+const MIRAGE_RADAR_URL="https://raw.githubusercontent.com/MurkyYT/cs2-map-icons/main/images/radars/de_mirage_radar_psd.png";
+
+// Параметры de_mirage из radar overview CS2
+const MIRAGE_POS_X=-3230;
+const MIRAGE_POS_Y=1713;
+const MIRAGE_SCALE=5;
+const RADAR_SIZE=1024;
+const SCENE_UNITS_PER_PIXEL=0.15;
 
 function escapeHTML(value){
-    return String(value).replace(/[&<>"']/g,char=>({
-        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-    }[char]));
+    return String(value).replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
 }
-
 function showStatus(message){$("status").textContent=message}
-
 function formatDate(value){
     if(!value)return "—";
     const date=new Date(value);
     return Number.isNaN(date.getTime())?"—":date.toLocaleDateString("ru-RU");
 }
-
 function number(value,digits=2){
     if(value===null||value===undefined||value==="")return "—";
     const n=Number(value);
     return Number.isFinite(n)?n.toFixed(digits):"—";
 }
-
 function formatTime(seconds){
     seconds=Math.max(0,Math.floor(seconds||0));
     return `${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,"0")}`;
 }
-
 function cleanNickname(value){
     value=value.trim();
     try{
@@ -321,7 +261,6 @@ function cleanNickname(value){
 }
 
 // FACEIT
-
 async function searchPlayer(){
     const nickname=cleanNickname($("nickname").value);
     if(!nickname){showStatus("Введи ник FACEIT или ссылку на профиль.");return}
@@ -338,57 +277,40 @@ async function searchPlayer(){
         requestAnimationFrame(drawElo);
         showStatus("");
     }catch(error){
-        currentData=null;
-        showStatus("Ошибка: "+error.message);
+        currentData=null;showStatus("Ошибка: "+error.message);
     }finally{$("searchBtn").disabled=false}
 }
-
 function render(data){
     const p=data.player||{};
     $("playerName").textContent=p.nickname||"Игрок";
     $("country").textContent=p.country?"Страна: "+p.country.toUpperCase():"";
     $("level").textContent=p.level?"FACEIT Level "+p.level:"Уровень неизвестен";
-    $("elo").textContent=p.elo??"—";
-    $("skill").textContent=p.level??"—";
-    if(p.avatar)$("avatar").src=p.avatar;
-    else $("avatar").removeAttribute("src");
-
+    $("elo").textContent=p.elo??"—";$("skill").textContent=p.level??"—";
+    if(p.avatar)$("avatar").src=p.avatar;else $("avatar").removeAttribute("src");
     const matches=data.matches||[];
     const wins=matches.filter(m=>m.result==="win").length;
     const known=matches.filter(m=>m.result==="win"||m.result==="loss").length;
     $("matches").textContent=matches.length;
     $("winrate").textContent=known?Math.round(wins/known*100)+"%":"—";
-    renderBest(data.bestMatch);
-    renderMaps(data.maps||[]);
-    renderHistory(matches,data.matchStats||[]);
-    drawElo();
+    renderBest(data.bestMatch);renderMaps(data.maps||[]);
+    renderHistory(matches,data.matchStats||[]);drawElo();
 }
-
 function renderBest(best){
     const box=$("bestMatch");
     if(!best){box.textContent="Нет доступных данных за неделю.";return}
-    box.innerHTML=`
-        <div class="grid">
-            <div class="metric"><small>Карта</small><strong>${escapeHTML(best.map||"—")}</strong></div>
-            <div class="metric"><small>K/D</small><strong>${number(best.kd)}</strong></div>
-            <div class="metric"><small>Убийства</small><strong>${best.kills??"—"}</strong></div>
-            <div class="metric"><small>ADR</small><strong>${number(best.adr,1)}</strong></div>
-        </div>`;
+    box.innerHTML=`<div class="grid">
+    <div class="metric"><small>Карта</small><strong>${escapeHTML(best.map||"—")}</strong></div>
+    <div class="metric"><small>K/D</small><strong>${number(best.kd)}</strong></div>
+    <div class="metric"><small>Убийства</small><strong>${best.kills??"—"}</strong></div>
+    <div class="metric"><small>ADR</small><strong>${number(best.adr,1)}</strong></div></div>`;
 }
-
 function renderMaps(maps){
     const box=$("maps");
     if(!maps.length){box.innerHTML='<div class="empty">Статистика по картам пока недоступна.</div>';return}
-    box.innerHTML=maps.map(m=>`
-        <div class="map-item">
-            <strong>${escapeHTML(m.map)}</strong>
-            <div>Матчи: ${m.matches}</div>
-            <div>Победы: ${m.winRate}%</div>
-            <div>K/D: ${number(m.kd)}</div>
-            <div>ADR: ${number(m.adr,1)}</div>
-        </div>`).join("");
+    box.innerHTML=maps.map(m=>`<div class="map-item"><strong>${escapeHTML(m.map)}</strong>
+    <div>Матчи: ${m.matches}</div><div>Победы: ${m.winRate}%</div>
+    <div>K/D: ${number(m.kd)}</div><div>ADR: ${number(m.adr,1)}</div></div>`).join("");
 }
-
 function renderHistory(matches,stats){
     const body=$("history");
     if(!matches.length){body.innerHTML='<tr><td colspan="6" class="empty">История матчей недоступна.</td></tr>';return}
@@ -396,41 +318,30 @@ function renderHistory(matches,stats){
     body.innerHTML=[...matches].reverse().slice(0,100).map(m=>{
         const s=statMap.get(String(m.id))||m.stats||{};
         const result=m.result==="win"?"Победа":m.result==="loss"?"Поражение":"—";
-        const resultClass=m.result==="win"?"win":m.result==="loss"?"loss":"";
-        return `<tr>
-            <td>${formatDate(m.date)}</td>
-            <td class="${resultClass}">${result}</td>
-            <td>${escapeHTML(m.map||"—")}</td>
-            <td>${number(s.kd)}</td>
-            <td>${number(s.adr,1)}</td>
-            <td>${m.elo??"—"}</td>
-        </tr>`;
+        const cls=m.result==="win"?"win":m.result==="loss"?"loss":"";
+        return `<tr><td>${formatDate(m.date)}</td><td class="${cls}">${result}</td>
+        <td>${escapeHTML(m.map||"—")}</td><td>${number(s.kd)}</td>
+        <td>${number(s.adr,1)}</td><td>${m.elo??"—"}</td></tr>`;
     }).join("");
 }
 
-// ELO GRAPH
-
+// ELO
 function drawElo(){
     if(!currentData)return;
-    const canvas=$("eloChart");
-    const rect=canvas.getBoundingClientRect();
+    const canvas=$("eloChart"),rect=canvas.getBoundingClientRect();
     if(rect.width<=0||rect.height<=0)return;
     const dpr=window.devicePixelRatio||1;
-    canvas.width=Math.round(rect.width*dpr);
-    canvas.height=Math.round(rect.height*dpr);
-    const ctx=canvas.getContext("2d");
-    ctx.setTransform(dpr,0,0,dpr,0,0);
+    canvas.width=Math.round(rect.width*dpr);canvas.height=Math.round(rect.height*dpr);
+    const ctx=canvas.getContext("2d");ctx.setTransform(dpr,0,0,dpr,0,0);
     const width=rect.width,height=rect.height;
     ctx.clearRect(0,0,width,height);
     const limit=Number($("eloRange").value);
     const matchPoints=(currentData.matches||[])
         .filter(m=>m.elo!==null&&m.elo!==undefined&&Number.isFinite(Number(m.elo)))
-        .map(m=>({date:Number(m.date)||0,elo:Number(m.elo)}))
-        .sort((a,b)=>a.date-b.date);
+        .map(m=>({date:Number(m.date)||0,elo:Number(m.elo)})).sort((a,b)=>a.date-b.date);
     const savedPoints=(currentData.eloPoints||[])
         .filter(p=>p.elo!==null&&p.elo!==undefined&&Number.isFinite(Number(p.elo)))
-        .map(p=>({date:Number(p.date),elo:Number(p.elo)}))
-        .sort((a,b)=>a.date-b.date);
+        .map(p=>({date:Number(p.date),elo:Number(p.elo)})).sort((a,b)=>a.date-b.date);
     const usingMatches=matchPoints.length>=2;
     const points=(usingMatches?matchPoints:savedPoints).slice(-limit);
     const left=48,right=15,top=20,bottom=30;
@@ -438,116 +349,71 @@ function drawElo(){
     if(!points.length){
         ctx.fillStyle="#999";ctx.font="14px Arial";ctx.textAlign="center";
         ctx.fillText("Пока нет данных Elo",width/2,height/2);
-        $("eloNote").textContent="История Elo пока не содержит точек.";
-        return;
+        $("eloNote").textContent="История Elo пока не содержит точек.";return;
     }
     const values=points.map(p=>p.elo);
     let min=Math.min(...values)-20,max=Math.max(...values)+20;
     if(min===max){min-=20;max+=20}
     const getX=i=>points.length===1?left+chartW/2:left+chartW*i/(points.length-1);
-    const getY=value=>top+chartH*(max-value)/(max-min);
-    ctx.strokeStyle="#30313a";
-    ctx.lineWidth=1;
-    ctx.fillStyle="#999";
-    ctx.font="11px Arial";
-    ctx.textAlign="right";
+    const getY=v=>top+chartH*(max-v)/(max-min);
+    ctx.strokeStyle="#30313a";ctx.lineWidth=1;ctx.fillStyle="#999";
+    ctx.font="11px Arial";ctx.textAlign="right";
     for(let i=0;i<5;i++){
-        const y=top+chartH*i/4;
-        const value=Math.round(max-(max-min)*i/4);
+        const y=top+chartH*i/4,value=Math.round(max-(max-min)*i/4);
         ctx.beginPath();ctx.moveTo(left,y);ctx.lineTo(width-right,y);ctx.stroke();
         ctx.fillText(value,left-8,y+4);
     }
     ctx.beginPath();
-    points.forEach((point,i)=>{
-        const x=getX(i),y=getY(point.elo);
-        if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
-    });
+    points.forEach((p,i)=>{const x=getX(i),y=getY(p.elo);if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y)});
     ctx.strokeStyle="#ff7138";ctx.lineWidth=2.5;ctx.stroke();
-    points.forEach((point,i)=>{
-        ctx.beginPath();ctx.arc(getX(i),getY(point.elo),4,0,Math.PI*2);
-        ctx.fillStyle="#ff7138";ctx.fill();
-    });
+    points.forEach((p,i)=>{ctx.beginPath();ctx.arc(getX(i),getY(p.elo),4,0,Math.PI*2);ctx.fillStyle="#ff7138";ctx.fill()});
     ctx.textAlign="center";ctx.fillStyle="#999";ctx.font="11px Arial";
     ctx.fillText(points.length+" точек Elo",width/2,height-5);
-    $("eloNote").textContent=usingMatches
-        ?"График построен по значениям Elo из истории матчей FACEIT."
-        :"График построен по сохранённым значениям Elo.";
+    $("eloNote").textContent=usingMatches?"График построен по значениям Elo из истории матчей FACEIT.":"График построен по сохранённым значениям Elo.";
 }
 
-// DEMO UPLOAD
-
+// DEMO
 async function uploadDemo(){
-    const fileInput=$("demoFile");
-    const button=$("demoUploadBtn");
-    const file=fileInput.files[0];
-    $("demoResults").classList.add("hidden");
-    $("replayPanel").classList.add("hidden");
+    const file=$("demoFile").files[0],button=$("demoUploadBtn");
+    $("demoResults").classList.add("hidden");$("replayPanel").classList.add("hidden");
     if(!file){$("demoStatus").textContent="Сначала выбери файл демо.";return}
     const fileName=file.name.toLowerCase();
     if(!fileName.endsWith(".dem")&&!fileName.endsWith(".dem.zst")){
         $("demoStatus").textContent="Нужен файл .dem или .dem.zst.";return;
     }
-    if(file.size>200*1024*1024){
-        $("demoStatus").textContent="Файл слишком большой. Максимальный размер — 200 МБ.";
-        return;
-    }
+    if(file.size>200*1024*1024){$("demoStatus").textContent="Файл слишком большой. Максимальный размер — 200 МБ.";return}
     pauseReplay();
-    if(replayPlayer){
-        try{await replayPlayer.dispose()}catch{}
-        replayPlayer=null;
-    }
-    const formData=new FormData();
-    formData.append("demo",file);
-    button.disabled=true;
-    button.textContent="Обрабатываем...";
+    if(replayPlayer){try{await replayPlayer.dispose()}catch{}replayPlayer=null}
+    const formData=new FormData();formData.append("demo",file);
+    button.disabled=true;button.textContent="Обрабатываем...";
     $("demoStatus").textContent="Загружаем демо и анализируем матч...";
     try{
         const response=await fetch("/api/demo/upload",{method:"POST",body:formData});
         const data=await response.json();
         if(!response.ok||!data.ok)throw new Error(data.error||"Не удалось обработать демо.");
-        renderDemo(data);
-        $("demoResults").classList.remove("hidden");
+        renderDemo(data);$("demoResults").classList.remove("hidden");
         $("demoStatus").textContent="Статистика готова. Загружаем интерактивный повтор...";
         if(data.replayUrl)await startReplayFromUrl(data.replayUrl,data.map);
         else $("demoStatus").textContent="Статистика готова, но сервер не вернул адрес демки.";
-    }catch(error){
-        $("demoStatus").textContent="Ошибка анализа: "+error.message;
-    }finally{
-        button.disabled=false;
-        button.textContent="Анализировать демо";
-    }
+    }catch(error){$("demoStatus").textContent="Ошибка анализа: "+error.message}
+    finally{button.disabled=false;button.textContent="Анализировать демо"}
 }
-
 function renderDemo(data){
     const players=Array.isArray(data.players)?[...data.players]:[];
     players.sort((a,b)=>Number(b.kills||0)-Number(a.kills||0));
     $("demoMap").textContent=data.map||"Не определена";
     $("demoPlayerCount").textContent=players.length;
     const events=data.events||{};
-    $("demoEventCount").textContent=Object.values(events).reduce((sum,value)=>sum+(Number(value)||0),0);
+    $("demoEventCount").textContent=Object.values(events).reduce((s,v)=>s+(Number(v)||0),0);
     const body=$("demoPlayers");
-    if(!players.length){
-        body.innerHTML='<tr><td colspan="8" class="empty">Сервер не вернул статистику игроков.</td></tr>';
-        return;
-    }
-    body.innerHTML=players.map((player,index)=>{
-        const name=player.name||"Неизвестный игрок";
-        return `<tr>
-            <td>${index+1}</td>
-            <td class="demo-player">${escapeHTML(name)}</td>
-            <td>${Number(player.kills||0)}</td>
-            <td>${Number(player.deaths||0)}</td>
-            <td>${Number(player.assists||0)}</td>
-            <td>${number(player.kd)}</td>
-            <td>${Number(player.damage||0)}</td>
-            <td>${number(player.hsPercent,1)}%</td>
-        </tr>`;
-    }).join("");
+    if(!players.length){body.innerHTML='<tr><td colspan="8" class="empty">Сервер не вернул статистику игроков.</td></tr>';return}
+    body.innerHTML=players.map((p,i)=>`<tr><td>${i+1}</td><td class="demo-player">${escapeHTML(p.name||"Неизвестный игрок")}</td>
+    <td>${Number(p.kills||0)}</td><td>${Number(p.deaths||0)}</td><td>${Number(p.assists||0)}</td>
+    <td>${number(p.kd)}</td><td>${Number(p.damage||0)}</td><td>${number(p.hsPercent,1)}%</td></tr>`).join("");
     $("demoNote").textContent=data.note||"";
 }
 
-// REPLAY ENGINE
-
+// REPLAY
 async function startReplayFromUrl(replayUrl,mapName){
     if(!window.deadem||!window.deadem.cs2)throw new Error("Не загрузилась библиотека CS2 Replay. Проверь подключение к CDN.");
     const {Player}=window.deadem.cs2;
@@ -559,86 +425,55 @@ async function startReplayFromUrl(replayUrl,mapName){
     $("demoStatus").textContent="Индексируем демку в браузере. Это может занять некоторое время...";
     const player=new Player();
     try{
-        await player.load(replayBlob.stream());
-        replayPlayer=player;
-        replayFirstTick=player.getFirstTick();
-        replayLastTick=player.getLastTick();
-        if(!Number.isFinite(replayFirstTick)||!Number.isFinite(replayLastTick)||replayLastTick<=replayFirstTick){
+        await player.load(replayBlob.stream());replayPlayer=player;
+        replayFirstTick=player.getFirstTick();replayLastTick=player.getLastTick();
+        if(!Number.isFinite(replayFirstTick)||!Number.isFinite(replayLastTick)||replayLastTick<=replayFirstTick)
             throw new Error("Не удалось определить начало и конец демки.");
-        }
         await player.seekToTick(replayFirstTick);
         $("replayMap").textContent=mapName||"CS2";
-        $("replayTimeline").value=0;
-        timelineDragging=false;
-        replayMapTransform=null;
-        latestReplayPlayers=[];
-        selectedReplayPlayer="";
-        replayCameraMode="orbit";
-        $("cameraMode").value="orbit";
+        $("replayTimeline").value=0;timelineDragging=false;
+        latestReplayPlayers=[];selectedReplayPlayer="";
+        replayCameraMode="orbit";$("cameraMode").value="orbit";
         $("replayPlayerSelect").innerHTML='<option value="">Загрузка игроков...</option>';
         $("replayPanel").classList.remove("hidden");
         await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
-        init3DScene();
-        resize3D();
-        updateReplayState();
+        init3DScene();resize3D();updateReplayState();
         $("demoStatus").textContent="Демо загружено. Можно запускать воспроизведение.";
         $("replayPanel").scrollIntoView({behavior:"smooth",block:"start"});
-    }catch(error){
-        try{await player.dispose()}catch{}
-        replayPlayer=null;
-        throw error;
-    }
+    }catch(error){try{await player.dispose()}catch{}replayPlayer=null;throw error}
 }
-
-// REPLAY CONTROLS
-
 function playReplay(){
     if(!replayPlayer||replayPlaying)return;
     const speed=Number($("replaySpeed").value)||1;
-    replayPlaying=true;
-    $("playButton").textContent="▶ Идёт воспроизведение";
+    replayPlaying=true;$("playButton").textContent="▶ Идёт воспроизведение";
     if(replayUpdateTimer)clearInterval(replayUpdateTimer);
-    replayUpdateTimer=setInterval(()=>updateReplayState(),100);
-    replayPlayer.play(speed).catch(error=>{
-        if(error.reason!=="paused")console.error("Ошибка воспроизведения:",error);
-    }).finally(()=>{
+    replayUpdateTimer=setInterval(updateReplayState,100);
+    replayPlayer.play(speed).catch(error=>{if(error.reason!=="paused")console.error(error)}).finally(()=>{
         replayPlaying=false;
         if(replayUpdateTimer){clearInterval(replayUpdateTimer);replayUpdateTimer=null}
-        $("playButton").textContent="▶ Воспроизвести";
-        updateReplayState();
+        $("playButton").textContent="▶ Воспроизвести";updateReplayState();
     });
 }
-
 function pauseReplay(){
     if(!replayPlayer)return;
-    replayPlayer.pause();
-    replayPlaying=false;
+    replayPlayer.pause();replayPlaying=false;
     if(replayUpdateTimer){clearInterval(replayUpdateTimer);replayUpdateTimer=null}
-    $("playButton").textContent="▶ Воспроизвести";
-    updateReplayState();
+    $("playButton").textContent="▶ Воспроизвести";updateReplayState();
 }
-
 async function seekReplay(){
     if(!replayPlayer)return;
     const progress=Number($("replayTimeline").value)/1000;
     const tick=Math.round(replayFirstTick+(replayLastTick-replayFirstTick)*progress);
-    timelineDragging=false;
-    pauseReplay();
-    try{
-        await replayPlayer.seekToTick(tick);
-        updateReplayState();
-    }catch(error){
-        $("demoStatus").textContent="Ошибка перемотки: "+error.message;
-    }
+    timelineDragging=false;pauseReplay();
+    try{await replayPlayer.seekToTick(tick);updateReplayState()}
+    catch(error){$("demoStatus").textContent="Ошибка перемотки: "+error.message}
 }
-
 function previewReplayPosition(){
     if(!replayPlayer)return;
     const progress=Number($("replayTimeline").value)/1000;
-    const targetTick=Math.round(replayFirstTick+(replayLastTick-replayFirstTick)*progress);
-    $("replayCurrent").textContent=formatTime((targetTick-replayFirstTick)/64);
+    const tick=Math.round(replayFirstTick+(replayLastTick-replayFirstTick)*progress);
+    $("replayCurrent").textContent=formatTime((tick-replayFirstTick)/64);
 }
-
 async function stepReplay(direction){
     if(!replayPlayer)return;
     pauseReplay();
@@ -650,26 +485,8 @@ async function stepReplay(direction){
     }catch(error){console.error("Ошибка шага:",error)}
 }
 
-// REPLAY DATA
-
-function safeGet(entity,field){
-    try{return entity?.getField(field)}catch{return undefined}
-}
-
-function vectorValue(value){
-    if(!value)return null;
-    let x,y,z;
-    if(Array.isArray(value)||ArrayBuffer.isView(value)){[x,y,z]=value}
-    else if(typeof value==="object"){
-        x=value.x??value.X??value[0];
-        y=value.y??value.Y??value[1];
-        z=value.z??value.Z??value[2];
-    }
-    x=Number(x);y=Number(y);z=Number(z);
-    if(!Number.isFinite(x)||!Number.isFinite(y)||!Number.isFinite(z))return null;
-    return {x,y,z};
-}
-
+// PLAYER DATA
+function safeGet(entity,field){try{return entity?.getField(field)}catch{return undefined}}
 function getPawnPosition(pawn){
     if(!pawn)return null;
     const prefix="CBodyComponent.m_skeletonInstance.m_vecOrigin";
@@ -677,741 +494,344 @@ function getPawnPosition(pawn){
     function readField(name){
         const value=safeGet(pawn,`${prefix}.${name}`);
         if(value===undefined||value===null||value==="")return null;
-        const parsed=Number(value);
-        return Number.isFinite(parsed)?parsed:null;
+        const parsed=Number(value);return Number.isFinite(parsed)?parsed:null;
     }
-    const cellX=readField("m_cellX"),cellY=readField("m_cellY"),cellZ=readField("m_cellZ");
-    const vecX=readField("m_vecX"),vecY=readField("m_vecY"),vecZ=readField("m_vecZ");
-    if([cellX,cellY,cellZ,vecX,vecY,vecZ].some(value=>value===null))return null;
-    return {
-        x:cellX*CELL_SIZE+vecX,
-        y:cellY*CELL_SIZE+vecY,
-        z:cellZ*CELL_SIZE+vecZ
-    };
+    const cx=readField("m_cellX"),cy=readField("m_cellY"),cz=readField("m_cellZ");
+    const vx=readField("m_vecX"),vy=readField("m_vecY"),vz=readField("m_vecZ");
+    if([cx,cy,cz,vx,vy,vz].some(v=>v===null))return null;
+    return {x:cx*CELL_SIZE+vx,y:cy*CELL_SIZE+vy,z:cz*CELL_SIZE+vz};
 }
-
 function getReplayPlayers(){
     if(!replayPlayer)return [];
-    const demo=replayPlayer.getDemo();
-    if(!demo)return [];
+    const demo=replayPlayer.getDemo();if(!demo)return [];
     const viewAnglesByName=new Map();
     try{
         const commands=demo.getUserCommands?.()||[];
         for(const command of commands){
-            const slot=Number(command?.slot);
-            if(!Number.isFinite(slot))continue;
-            const controller=demo.getEntity(slot+1);
-            if(!controller)continue;
+            const slot=Number(command?.slot);if(!Number.isFinite(slot))continue;
+            const controller=demo.getEntity(slot+1);if(!controller)continue;
             const name=safeGet(controller,"m_iszPlayerName");
             const angles=command?.state?.base?.viewangles;
             if(!name||!angles)continue;
             const pitch=Number(angles.x??angles.pitch??angles[0]);
             const yaw=Number(angles.y??angles.yaw??angles[1]);
-            if(Number.isFinite(yaw)){
-                viewAnglesByName.set(String(name),{
-                    pitch:Number.isFinite(pitch)?pitch:0,
-                    yaw
-                });
-            }
+            if(Number.isFinite(yaw))viewAnglesByName.set(String(name),{pitch:Number.isFinite(pitch)?pitch:0,yaw});
         }
-    }catch(error){
-        console.warn("Не удалось получить направления взгляда игроков:",error);
-    }
-    const controllers=demo.getEntitiesByClassName("CCSPlayerController");
-    const result=[];
+    }catch(error){console.warn("Не удалось получить направления взгляда:",error)}
+    const controllers=demo.getEntitiesByClassName("CCSPlayerController"),result=[];
     for(const controller of controllers){
-        const name=safeGet(controller,"m_iszPlayerName");
-        if(!name)continue;
+        const name=safeGet(controller,"m_iszPlayerName");if(!name)continue;
         const team=Number(safeGet(controller,"m_iTeamNum"));
         const pawnHandle=safeGet(controller,"m_hPlayerPawn");
         let pawn=null;
-        try{
-            if(pawnHandle!==undefined&&pawnHandle!==null)pawn=demo.getEntityByHandle(pawnHandle);
-        }catch{}
+        try{if(pawnHandle!==undefined&&pawnHandle!==null)pawn=demo.getEntityByHandle(pawnHandle)}catch{}
         const healthValue=safeGet(pawn,"m_iHealth")??safeGet(controller,"m_iPawnHealth");
-        const health=Number(healthValue);
-        const position=pawn?getPawnPosition(pawn):null;
-        const viewAngles=viewAnglesByName.get(String(name))||null;
-        result.push({
-            name:String(name),
-            team,
-            health:Number.isFinite(health)?health:null,
-            position,
-            viewAngles
-        });
+        const health=Number(healthValue),position=pawn?getPawnPosition(pawn):null;
+        result.push({name:String(name),team,health:Number.isFinite(health)?health:null,position,viewAngles:viewAnglesByName.get(String(name))||null});
     }
     return result;
 }
-
 function updateReplayState(){
     if(!replayPlayer)return;
     const currentTick=replayPlayer.getCurrentTick();
     const totalTicks=replayLastTick-replayFirstTick;
     const progress=totalTicks>0?(currentTick-replayFirstTick)/totalTicks:0;
-    if(!timelineDragging){
-        $("replayTimeline").value=Math.max(0,Math.min(1000,Math.round(progress*1000)));
-    }
-    const seconds=(currentTick-replayFirstTick)/64;
-    const duration=totalTicks/64;
+    if(!timelineDragging)$("replayTimeline").value=Math.max(0,Math.min(1000,Math.round(progress*1000)));
+    const seconds=(currentTick-replayFirstTick)/64,duration=totalTicks/64;
     $("replayTick").textContent="Тик: "+currentTick;
     $("replayTime").textContent="Время: "+formatTime(seconds);
     $("replayCurrent").textContent=formatTime(seconds);
     $("replayDuration").textContent=formatTime(duration);
     const players=getReplayPlayers();
     latestReplayPlayers=players;
-    updateReplayPlayerSelector(players);
-    renderReplayPlayers(players);
-    update3DPlayers(players);
+    updateReplayPlayerSelector(players);renderReplayPlayers(players);update3DPlayers(players);
 }
-
-// PLAYER SELECTOR
-
 function updateReplayPlayerSelector(players){
     const select=$("replayPlayerSelect");
-    const names=players.map(player=>player.name).filter(Boolean).sort((a,b)=>a.localeCompare(b));
-    const oldNames=Array.from(select.options).map(option=>option.value).filter(Boolean);
-    const unchanged=names.length===oldNames.length&&names.every((name,index)=>name===oldNames[index]);
-    if(!unchanged){
-        select.innerHTML=`<option value="">Выбери игрока</option>${names.map(name=>
-            `<option value="${escapeHTML(name)}">${escapeHTML(name)}</option>`
-        ).join("")}`;
+    const names=players.map(p=>p.name).filter(Boolean).sort((a,b)=>a.localeCompare(b));
+    const old=Array.from(select.options).map(o=>o.value).filter(Boolean);
+    if(names.length!==old.length||!names.every((n,i)=>n===old[i])){
+        select.innerHTML=`<option value="">Выбери игрока</option>${names.map(n=>`<option value="${escapeHTML(n)}">${escapeHTML(n)}</option>`).join("")}`;
     }
-    if(selectedReplayPlayer&&names.includes(selectedReplayPlayer)){
-        select.value=selectedReplayPlayer;
-    }else if(names.length){
-        selectedReplayPlayer=names[0];
-        select.value=selectedReplayPlayer;
-    }
-    if(!names.length){
-        select.innerHTML='<option value="">Игроки не найдены</option>';
-        selectedReplayPlayer="";
-    }
+    if(selectedReplayPlayer&&names.includes(selectedReplayPlayer))select.value=selectedReplayPlayer;
+    else if(names.length){selectedReplayPlayer=names[0];select.value=selectedReplayPlayer}
+    if(!names.length){select.innerHTML='<option value="">Игроки не найдены</option>';selectedReplayPlayer=""}
 }
-
 function selectReplayPlayer(){
     selectedReplayPlayer=$("replayPlayerSelect").value;
-    renderReplayPlayers(latestReplayPlayers);
-    updateReplayCamera(latestReplayPlayers);
+    renderReplayPlayers(latestReplayPlayers);updateReplayCamera(latestReplayPlayers);
 }
-
 function changeCameraMode(){
     replayCameraMode=$("cameraMode").value;
     if(replayCameraMode==="follow"&&!selectedReplayPlayer){
-        const first=latestReplayPlayers.find(player=>player.position);
-        if(first){
-            selectedReplayPlayer=first.name;
-            $("replayPlayerSelect").value=first.name;
-        }
+        const first=latestReplayPlayers.find(p=>p.position);
+        if(first){selectedReplayPlayer=first.name;$("replayPlayerSelect").value=first.name}
     }
     if(replayCameraMode==="orbit"){
         $("cameraStatus").textContent="Камера: общий вид";
-        threeCamera.fov=45;
-        threeCamera.updateProjectionMatrix();
-        updateCamera();
+        threeCamera.fov=45;threeCamera.updateProjectionMatrix();updateCamera();
     }else{
-        $("cameraStatus").textContent="Камера: от лица игрока";
-        updateReplayCamera(latestReplayPlayers);
+        $("cameraStatus").textContent="Камера: от лица игрока";updateReplayCamera(latestReplayPlayers);
     }
 }
-
-// PLAYER TABLE
-
 function renderReplayPlayers(players){
     const body=$("replayPlayers");
-    if(!players.length){
-        body.innerHTML='<tr><td colspan="7" class="empty">Игроки пока не найдены.</td></tr>';
-        return;
-    }
-    body.innerHTML=players.map(player=>{
-        const teamClass=player.team===2?"team-t":player.team===3?"team-ct":"";
-        const teamName=player.team===2?"T":player.team===3?"CT":"—";
-        const x=player.position?number(player.position.x,0):"—";
-        const y=player.position?number(player.position.y,0):"—";
-        const z=player.position?number(player.position.z,0):"—";
-        const yaw=player.viewAngles?number(player.viewAngles.yaw,1)+"°":"—";
-        const selected=player.name===selectedReplayPlayer?"selected":"";
-        return `<tr class="player-row ${selected}" onclick="choosePlayerFromTable('${escapeHTML(player.name)}')">
-            <td class="${teamClass}">${escapeHTML(player.name)}</td>
-            <td class="${teamClass}">${teamName}</td>
-            <td>${player.health??"—"}</td>
-            <td>${x}</td><td>${y}</td><td>${z}</td><td>${yaw}</td>
-        </tr>`;
+    if(!players.length){body.innerHTML='<tr><td colspan="7" class="empty">Игроки пока не найдены.</td></tr>';return}
+    body.innerHTML=players.map(p=>{
+        const cls=p.team===2?"team-t":p.team===3?"team-ct":"";
+        const team=p.team===2?"T":p.team===3?"CT":"—";
+        const x=p.position?number(p.position.x,0):"—";
+        const y=p.position?number(p.position.y,0):"—";
+        const z=p.position?number(p.position.z,0):"—";
+        const yaw=p.viewAngles?number(p.viewAngles.yaw,1)+"°":"—";
+        const selected=p.name===selectedReplayPlayer?"selected":"";
+        return `<tr class="player-row ${selected}" onclick="choosePlayerFromTable('${escapeHTML(p.name)}')">
+        <td class="${cls}">${escapeHTML(p.name)}</td><td class="${cls}">${team}</td>
+        <td>${p.health??"—"}</td><td>${x}</td><td>${y}</td><td>${z}</td><td>${yaw}</td></tr>`;
     }).join("");
 }
-
 function choosePlayerFromTable(name){
-    selectedReplayPlayer=name;
-    $("replayPlayerSelect").value=name;
-    renderReplayPlayers(latestReplayPlayers);
-    updateReplayCamera(latestReplayPlayers);
+    selectedReplayPlayer=name;$("replayPlayerSelect").value=name;
+    renderReplayPlayers(latestReplayPlayers);updateReplayCamera(latestReplayPlayers);
 }
 
-// THREE.JS SCENE
-
+// THREE.JS MAP
 function init3DScene(){
     const container=$("replay3d");
-    if(!window.THREE){
-        container.innerHTML='<div class="empty">Не удалось загрузить Three.js.</div>';
-        return;
-    }
+    if(!window.THREE){container.innerHTML='<div class="empty">Не удалось загрузить Three.js.</div>';return}
     if(threeRenderer){
-        threeRenderer.dispose();
-        threeRenderer.domElement.remove();
-        threeRenderer=null;
+        threeRenderer.dispose();threeRenderer.domElement.remove();threeRenderer=null;
     }
     threeScene=new THREE.Scene();
-    playerMeshes.clear();
     threeScene.background=new THREE.Color(0x090b10);
-    threeCamera=new THREE.PerspectiveCamera(
-        45,
-        container.clientWidth/container.clientHeight,
-        0.1,
-        2000
-    );
+    playerMeshes.clear();
+    threeCamera=new THREE.PerspectiveCamera(45,container.clientWidth/container.clientHeight,0.1,3000);
+    threeCamera.up.set(0,0,-1);
     threeRenderer=new THREE.WebGLRenderer({antialias:true});
     threeRenderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
     threeRenderer.setSize(container.clientWidth,container.clientHeight);
-    container.innerHTML="";
-    container.appendChild(threeRenderer.domElement);
-
-    threeScene.add(new THREE.AmbientLight(0xffffff,1.6));
-    const light=new THREE.DirectionalLight(0xffffff,1.2);
-    light.position.set(30,80,40);
-    threeScene.add(light);
-
-    buildMirageBlockout();
-
-    cameraTheta=Math.PI/4;
-    cameraPhi=1.0;
-    cameraRadius=105;
-    updateCamera();
-    addCameraControls(container);
-    animate3D();
+    container.innerHTML="";container.appendChild(threeRenderer.domElement);
+    threeScene.add(new THREE.AmbientLight(0xffffff,1.8));
+    const light=new THREE.DirectionalLight(0xffffff,1.3);
+    light.position.set(30,100,40);threeScene.add(light);
+    buildMirageRadar();
+    cameraTheta=0;cameraPhi=0.32;cameraRadius=145;
+    updateCamera();addCameraControls(container);animate3D();
 }
 
-// MIRAGE MAP
-
-const MAP={
-    stone:0xc8b18c,
-    light:0xd8c5a3,
-    dark:0x88765d,
-    plaster:0xbda987,
-    floor:0x98866b,
-    floor2:0xb09b78,
-    wood:0x78563a,
-    crate:0x92734d,
-    shadow:0x27231e,
-    metal:0x55534d
-};
-
-function mat(color){
-    return new THREE.MeshStandardMaterial({color,roughness:0.94});
+function radarPointToScene(px,py){
+    return {
+        x:(px-RADAR_SIZE/2)*SCENE_UNITS_PER_PIXEL,
+        z:(py-RADAR_SIZE/2)*SCENE_UNITS_PER_PIXEL
+    };
 }
-
-function box(x,y,z,w,h,d,color=MAP.stone){
-    const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat(color));
-    mesh.position.set(x,y+h/2,z);
-    replayMapGroup.add(mesh);
-    return mesh;
+function radarFractionToScene(x,y){
+    return radarPointToScene(x*RADAR_SIZE,y*RADAR_SIZE);
 }
-
-function floorArea(x,z,w,d,color=MAP.floor){
-    const mesh=new THREE.Mesh(new THREE.PlaneGeometry(w,d),mat(color));
-    mesh.rotation.x=-Math.PI/2;
-    mesh.position.set(x,0.015,z);
-    replayMapGroup.add(mesh);
-    return mesh;
-}
-
-function wallX(x,z,length,thickness=1,height=5,color=MAP.stone){
-    box(x,0,z,length,height,thickness,color);
-}
-
-function wallZ(x,z,length,thickness=1,height=5,color=MAP.stone){
-    box(x,0,z,thickness,height,length,color);
-}
-
-function wallGapX(x,z,length,gapCenter,gapWidth,thickness=1,height=5,color=MAP.stone){
-    const left=(length-gapWidth)/2;
-    const right=left;
-    box(x-length/2+left/2,0,z,left,height,thickness,color);
-    box(x+length/2-right/2,0,z,right,height,thickness,color);
-}
-
-function wallGapZ(x,z,length,gapCenter,gapWidth,thickness=1,height=5,color=MAP.stone){
-    const first=(length-gapWidth)/2;
-    const second=first;
-    box(x,0,z-length/2+first/2,thickness,height,first,color);
-    box(x,0,z+length/2-second/2,thickness,height,second,color);
-}
-
-function pillar(x,z,h=5,r=0.7,color=MAP.light){
-    const mesh=new THREE.Mesh(
-        new THREE.CylinderGeometry(r,r,h,12),
-        mat(color)
+function addZoneMarker(name,x,y,color){
+    const p=radarFractionToScene(x,y);
+    const ring=new THREE.Mesh(
+        new THREE.RingGeometry(2.4,3.0,48),
+        new THREE.MeshBasicMaterial({color,side:THREE.DoubleSide,transparent:true,opacity:.95})
     );
-    mesh.position.set(x,h/2,z);
-    replayMapGroup.add(mesh);
+    ring.rotation.x=-Math.PI/2;
+    ring.position.set(p.x,.22,p.z);
+    replayMapGroup.add(ring);
+    const center=new THREE.Mesh(
+        new THREE.CircleGeometry(1.5,32),
+        new THREE.MeshBasicMaterial({color,transparent:true,opacity:.35,side:THREE.DoubleSide})
+    );
+    center.rotation.x=-Math.PI/2;center.position.set(p.x,.2,p.z);
+    replayMapGroup.add(center);
+    addMapLabel(name,p.x,p.z,color);
 }
-
-function crate(x,z,w=3,h=2.5,d=3){
-    box(x,0,z,w,h,d,MAP.crate);
-    box(x,h*0.35,z,w+0.12,0.13,d+0.12,MAP.wood);
-    box(x,h*0.72,z,w+0.12,0.13,d+0.12,MAP.wood);
-}
-
-function stairs(x,z,count,width,depth,height,direction="z",color=MAP.light){
-    for(let i=0;i<count;i++){
-        const rise=height*(i+1);
-        const mesh=new THREE.Mesh(
-            new THREE.BoxGeometry(
-                direction==="z"?width:depth,
-                rise,
-                direction==="z"?depth:width
-            ),
-            mat(color)
-        );
-        mesh.position.set(
-            x+(direction==="x"?i*depth:0),
-            rise/2,
-            z+(direction==="z"?i*depth:0)
-        );
-        replayMapGroup.add(mesh);
-    }
-}
-
-function label(text,x,z,color="#ff9a70"){
+function addMapLabel(text,x,z,color){
     const canvas=document.createElement("canvas");
-    canvas.width=512;
-    canvas.height=128;
+    canvas.width=512;canvas.height=128;
     const ctx=canvas.getContext("2d");
-    ctx.fillStyle="rgba(10,12,16,.9)";
+    ctx.fillStyle="rgba(8,10,15,.88)";
     ctx.fillRect(0,0,512,128);
-    ctx.strokeStyle=color;
-    ctx.lineWidth=6;
-    ctx.strokeRect(4,4,504,120);
-    ctx.fillStyle="#fff";
-    ctx.font="bold 54px Arial";
-    ctx.textAlign="center";
-    ctx.textBaseline="middle";
-    ctx.fillText(text,256,64);
+    ctx.strokeStyle=color;ctx.lineWidth=5;ctx.strokeRect(3,3,506,122);
+    ctx.fillStyle="#fff";ctx.font="bold 48px Arial";
+    ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(text,256,64);
     const texture=new THREE.CanvasTexture(canvas);
-    const sprite=new THREE.Sprite(new THREE.SpriteMaterial({
-        map:texture,
-        transparent:true,
-        depthTest:false
-    }));
-    sprite.position.set(x,8,z);
-    sprite.scale.set(12,3,1);
-    sprite.renderOrder=4;
+    const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:texture,transparent:true,depthTest:false}));
+    sprite.position.set(x,5,z);sprite.scale.set(12,3,1);
     replayMapGroup.add(sprite);
 }
-
-function roof(x,z,w,d,y,color=MAP.dark){
-    const mesh=new THREE.Mesh(
-        new THREE.BoxGeometry(w,0.65,d),
-        mat(color)
-    );
-    mesh.position.set(x,y,z);
-    replayMapGroup.add(mesh);
-}
-
-function archX(x,z,width,height=5,depth=1.5){
-    const p=0.9;
-    box(x-width/2,z*0,z,p,height,depth,MAP.light);
-    box(x+width/2,0,z,p,height,depth,MAP.light);
-    box(x,height-0.8,z,width+p*2,1.6,depth,MAP.light);
-}
-
-function building(x,z,w,d,h,color=MAP.plaster){
-    box(x,0,z,w,h,d,color);
-    roof(x,z,w+0.4,d+0.4,h+0.35,MAP.dark);
-}
-
-function buildMirageBlockout(){
+function buildMirageRadar(){
     if(replayMapGroup)threeScene.remove(replayMapGroup);
     replayMapGroup=new THREE.Group();
+    const size=RADAR_SIZE*SCENE_UNITS_PER_PIXEL;
+    const ground=new THREE.Mesh(
+        new THREE.PlaneGeometry(size,size),
+        new THREE.MeshStandardMaterial({color:0x777777,roughness:1})
+    );
+    ground.rotation.x=-Math.PI/2;
+    ground.position.y=0;
+    replayMapGroup.add(ground);
 
-    // Основной контур карты. Координаты сцены условные.
-    floorArea(0,0,150,118,MAP.floor);
+    const loader=new THREE.TextureLoader();
+    loader.setCrossOrigin("anonymous");
+    loader.load(MIRAGE_RADAR_URL,texture=>{
+        if(!replayMapGroup)return;
+        texture.colorSpace=THREE.SRGBColorSpace;
+        ground.material.map=texture;
+        ground.material.color.set(0xffffff);
+        ground.material.needsUpdate=true;
+        radarLoaded=true;
+        $("mapStatus").textContent="Карта: радар Mirage загружен";
+    },undefined,error=>{
+        console.error("Не удалось загрузить радар Mirage:",error);
+        $("mapStatus").textContent="Карта: ошибка загрузки радара";
+    });
 
-    // Дорожки и основные игровые зоны
-    floorArea(0,0,32,112,MAP.floor2);
-    floorArea(0,-10,86,24,MAP.floor2);
-    floorArea(0,30,72,22,MAP.floor2);
-    floorArea(0,-42,88,22,MAP.floor2);
-    floorArea(-48,0,25,48,MAP.floor2);
-    floorArea(48,0,25,48,MAP.floor2);
+    // Позиции объектов указаны в долях официального радара.
+    addZoneMarker("CT SPAWN",.28,.70,0x438cff);
+    addZoneMarker("T SPAWN",.87,.36,0xff7138);
+    addZoneMarker("A SITE",.54,.76,0xffa05c);
+    addZoneMarker("B SITE",.23,.28,0xffa05c);
 
-    // Внешние стены с разрывами для выходов
-    wallGapX(0,-58,150,0,25,2,7,MAP.stone);
-    wallGapX(0,58,150,0,25,2,7,MAP.stone);
-    wallGapZ(-74,0,116,0,25,2,7,MAP.stone);
-    wallGapZ(74,0,116,0,25,2,7,MAP.stone);
-
-    // CT spawn — верхняя часть
-    floorArea(0,-48,42,18,0x9f8d70);
-    building(-22,-48,15,12,7,MAP.plaster);
-    building(22,-48,15,12,7,MAP.plaster);
-    wallX(0,-38,35,1,4,MAP.stone);
-    crate(-8,-49,4,2.5,3);
-    crate(8,-49,4,2.5,3);
-
-    // MID — центральная зона
-    floorArea(0,0,36,30,0x8f8068);
-    building(-25,-8,12,15,7,MAP.plaster);
-    building(25,-8,12,15,7,MAP.plaster);
-    wallZ(-13,0,22,1.2,4,MAP.stone);
-    wallZ(13,0,22,1.2,4,MAP.stone);
-    wallX(0,-17,24,1.2,4,MAP.stone);
-    wallX(0,17,24,1.2,4,MAP.stone);
-
-    // Центральные проходы
-    floorArea(0,-24,24,18,MAP.floor2);
-    floorArea(0,24,24,18,MAP.floor2);
-    wallGapX(0,-17,24,0,9,1,4,MAP.stone);
-    wallGapX(0,17,24,0,9,1,4,MAP.stone);
-    wallGapZ(-13,0,22,0,8,1,4,MAP.stone);
-    wallGapZ(13,0,22,0,8,1,4,MAP.stone);
-
-    // MID укрытия и детали
-    crate(-6,-4,3,2.4,3);
-    crate(6,4,3,2.4,3);
-    crate(-20,10,4,2.5,3);
-    crate(20,-10,4,2.5,3);
-    pillar(-4,0,4,0.65);
-    pillar(4,0,4,0.65);
-
-    // CONNECTOR / SHORT / CATWALK
-    floorArea(28,2,24,10,MAP.floor2);
-    wallZ(28,2,16,1,4,MAP.stone);
-    wallX(35,2,14,1,4,MAP.stone);
-    floorArea(-28,-2,24,10,MAP.floor2);
-    wallZ(-28,-2,16,1,4,MAP.stone);
-    wallX(-35,-2,14,1,4,MAP.stone);
-
-    // A SITE — правая сторона карты
-    floorArea(51,-22,42,38,0xb09b78);
-    floorArea(43,-4,25,18,MAP.floor2);
-
-    // Здания A
-    building(62,-36,15,12,8,MAP.plaster);
-    building(39,-35,12,10,6,MAP.stone);
-    building(65,-8,12,13,7,MAP.plaster);
-    building(34,-14,9,12,5,MAP.stoneDark);
-
-    // Стены A и проходы
-    wallX(48,-2,42,1.2,5,MAP.stone);
-    wallZ(29,-19,24,1.2,5,MAP.stone);
-    wallZ(72,-20,25,1.2,5,MAP.stone);
-    wallGapX(50,-43,38,0,9,1.2,5,MAP.stone);
-    wallGapZ(50,-20,24,0,8,1.2,5,MAP.stone);
-
-    // Укрытия A
-    crate(49,-24,4,3,4);
-    crate(60,-18,4,2.8,4);
-    crate(39,-27,3,2.5,3);
-    crate(65,-28,3,2.5,3);
-    crate(52,-7,3,2.2,3);
-
-    // Лестницы A / переход
-    stairs(27,-8,6,5,1.2,0.35,"z");
-    stairs(70,-4,5,4,1.2,0.35,"x");
-    wallZ(24,-24,16,1,4,MAP.stone);
-    crate(28,-33,4,3,4);
-
-    // B SITE — левая сторона карты
-    floorArea(-51,24,40,36,0xa99574);
-    floorArea(-42,7,25,18,MAP.floor2);
-
-    // Здания B
-    building(-63,39,14,12,7,MAP.plaster);
-    building(-39,42,13,10,6,MAP.stone);
-    building(-65,10,12,12,7,MAP.plaster);
-    building(-34,13,10,12,5,MAP.stoneDark);
-
-    // Стены B и проходы
-    wallX(-49,4,42,1.2,5,MAP.stone);
-    wallZ(-28,22,25,1.2,5,MAP.stone);
-    wallZ(-72,22,24,1.2,5,MAP.stone);
-    wallGapX(-50,48,38,0,9,1.2,5,MAP.stone);
-    wallGapZ(-50,22,24,0,8,1.2,5,MAP.stone);
-
-    // Укрытия B
-    crate(-49,24,4,3,4);
-    crate(-60,18,4,2.8,4);
-    crate(-39,28,3,2.5,3);
-    crate(-65,31,3,2.5,3);
-    crate(-52,7,3,2.2,3);
-
-    // Переходы к B
-    stairs(-27,8,6,5,1.2,0.35,"z");
-    stairs(-70,5,5,4,1.2,0.35,"x");
-    wallZ(-24,25,16,1,4,MAP.stone);
-    crate(-28,35,4,3,4);
-
-    // T SPAWN — нижняя часть
-    floorArea(0,49,48,16,0x9d8a6c);
-    building(-24,49,14,10,6,MAP.plaster);
-    building(24,49,14,10,6,MAP.plaster);
-    wallX(0,39,38,1,4,MAP.stone);
-    crate(-9,49,4,2.5,3);
-    crate(9,49,4,2.5,3);
-
-    // Соединительные улицы от T spawn к карте
-    floorArea(-28,35,22,24,MAP.floor2);
-    floorArea(28,35,22,24,MAP.floor2);
-    floorArea(0,30,20,22,MAP.floor2);
-
-    // Декоративные бортики, камни и небольшие объекты
-    for(let i=0;i<6;i++){
-        box(-68+i*5,0,-5,3,1.1,0.8,MAP.dark);
-        box(43+i*4,0,8,3,1.1,0.8,MAP.dark);
-    }
-
-    // Небольшие колонны
-    pillar(-43,0,4,0.7);
-    pillar(43,0,4,0.7);
-    pillar(-12,30,4,0.65);
-    pillar(12,-30,4,0.65);
-
-    // Названия ключевых зон
-    label("A SITE",51,-22,"#ff9a70");
-    label("B SITE",-51,24,"#ff9a70");
-    label("MID",0,0,"#ffffff");
-    label("CT SPAWN",0,-49,"#70aaff");
-    label("T SPAWN",0,50,"#ff9a70");
-
-    // Поле координат для ориентира
-    const grid=new THREE.GridHelper(150,30,0x655e51,0x746b5b);
-    grid.position.y=0.025;
+    const grid=new THREE.GridHelper(size,32,0x777777,0x555555);
+    grid.position.y=-.03;
     replayMapGroup.add(grid);
-
     threeScene.add(replayMapGroup);
+    $("mapStatus").textContent="Карта: загружается радар Mirage...";
 }
 
-// WORLD COORDINATES
-// Важно: пока используется автоматическое масштабирование и центрирование
-// по первой доступной группе игроков. Это не геодезическая калибровка Mirage.
-
+// ПЕРЕВОД ИГРОВЫХ КООРДИНАТ В КООРДИНАТЫ РАДАРА.
+// Формула: pixelX=(gameX-posX)/scale; pixelY=(posY-gameY)/scale.
 function getPlayerScenePosition(player){
-    if(!player||!player.position||!replayMapTransform)return null;
-    const t=replayMapTransform;
+    if(!player||!player.position)return null;
+    const world=player.position;
+    const pixelX=(world.x-MIRAGE_POS_X)/MIRAGE_SCALE;
+    const pixelY=(MIRAGE_POS_Y-world.y)/MIRAGE_SCALE;
+    const p=radarPointToScene(pixelX,pixelY);
     return {
-        x:(player.position.x-t.centerX)*t.scale,
-        y:(player.position.z-t.centerZ)*t.scale,
-        z:(player.position.y-t.centerY)*t.scale
+        x:p.x,
+        y:Math.max(0,world.z*0.03),
+        z:p.z
     };
 }
 
 function update3DPlayers(players){
     if(!threeScene)return;
-    const validPlayers=players.filter(player=>
-        player.position&&
-        Number.isFinite(player.position.x)&&
-        Number.isFinite(player.position.y)&&
-        Number.isFinite(player.position.z)
-    );
-
+    const valid=players.filter(p=>p.position&&
+        Number.isFinite(p.position.x)&&Number.isFinite(p.position.y)&&Number.isFinite(p.position.z));
     for(const visual of playerMeshes.values())visual.group.visible=false;
-    if(!validPlayers.length)return;
-
-    if(!replayMapTransform){
-        const centerX=validPlayers.reduce((sum,p)=>sum+p.position.x,0)/validPlayers.length;
-        const centerY=validPlayers.reduce((sum,p)=>sum+p.position.y,0)/validPlayers.length;
-        const centerZ=validPlayers.reduce((sum,p)=>sum+p.position.z,0)/validPlayers.length;
-        replayMapTransform={
-            centerX,
-            centerY,
-            centerZ,
-            scale:0.012
-        };
-    }
-
-    for(const player of validPlayers){
-        const id=player.name;
-        let visual=playerMeshes.get(id);
-        if(!visual){
-            visual=createPlayerVisual(player);
-            playerMeshes.set(id,visual);
-        }
-        const position=getPlayerScenePosition(player);
-        if(!position)continue;
-
-        visual.group.position.set(position.x,0,position.z);
+    for(const player of valid){
+        let visual=playerMeshes.get(player.name);
+        if(!visual){visual=createPlayerVisual(player);playerMeshes.set(player.name,visual)}
+        const pos=getPlayerScenePosition(player);if(!pos)continue;
+        visual.group.position.set(pos.x,pos.y,pos.z);
         visual.group.visible=true;
-        visual.label.position.set(0,3.3,0);
-        visual.marker.position.set(0,0.28,0);
-
         if(player.viewAngles&&Number.isFinite(player.viewAngles.yaw)){
             const yaw=player.viewAngles.yaw*Math.PI/180;
-            const direction=new THREE.Vector3(Math.cos(yaw),0,Math.sin(yaw)).normalize();
-            visual.arrow.position.set(0,0.75,0);
+            const direction=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw)).normalize();
+            visual.arrow.position.set(0,.8,0);
             visual.arrow.setDirection(direction);
             visual.arrow.visible=true;
-        }else{
-            visual.arrow.visible=false;
-        }
+        }else visual.arrow.visible=false;
     }
-    updateReplayCamera(validPlayers);
+    updateReplayCamera(valid);
 }
-
-// PLAYER MARKERS
-
 function createPlayerNameLabel(name,color){
-    const canvas=document.createElement("canvas");
-    canvas.width=512;
-    canvas.height=128;
+    const canvas=document.createElement("canvas");canvas.width=512;canvas.height=128;
     const ctx=canvas.getContext("2d");
-    ctx.clearRect(0,0,512,128);
-    ctx.fillStyle="rgba(8,10,15,.88)";
-    ctx.beginPath();
-    ctx.roundRect(10,18,492,92,18);
-    ctx.fill();
-    ctx.strokeStyle=color;
-    ctx.lineWidth=5;
-    ctx.stroke();
-    ctx.fillStyle="#fff";
-    ctx.font="bold 42px Arial";
-    ctx.textAlign="center";
-    ctx.textBaseline="middle";
-    let text=String(name||"Player");
-    if(text.length>20)text=text.slice(0,19)+"…";
+    ctx.fillStyle="rgba(8,10,15,.9)";ctx.fillRect(10,18,492,92);
+    ctx.strokeStyle=color;ctx.lineWidth=5;ctx.strokeRect(10,18,492,92);
+    ctx.fillStyle="#fff";ctx.font="bold 42px Arial";
+    ctx.textAlign="center";ctx.textBaseline="middle";
+    let text=String(name||"Player");if(text.length>20)text=text.slice(0,19)+"…";
     ctx.fillText(text,256,65,460);
     const texture=new THREE.CanvasTexture(canvas);
-    texture.minFilter=THREE.LinearFilter;
-    const sprite=new THREE.Sprite(new THREE.SpriteMaterial({
-        map:texture,
-        transparent:true,
-        depthTest:false
-    }));
-    sprite.scale.set(8.5,2.15,1);
-    sprite.renderOrder=5;
+    const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:texture,transparent:true,depthTest:false}));
+    sprite.scale.set(8.5,2.15,1);sprite.renderOrder=5;
     return sprite;
 }
-
 function createPlayerVisual(player){
     const color=player.team===2?0xff7138:0x438cff;
     const group=new THREE.Group();
     const marker=new THREE.Mesh(
-        new THREE.CylinderGeometry(1.25,1.25,0.45,20),
-        new THREE.MeshStandardMaterial({
-            color,
-            roughness:0.45,
-            emissive:color,
-            emissiveIntensity:0.12
-        })
+        new THREE.CylinderGeometry(.8,.8,.55,20),
+        new THREE.MeshStandardMaterial({color,emissive:color,emissiveIntensity:.18})
     );
-    group.add(marker);
-
-    const nameLabel=createPlayerNameLabel(
-        player.name,
-        player.team===2?"#ff7138":"#438cff"
-    );
-    group.add(nameLabel);
-
-    const arrow=new THREE.ArrowHelper(
-        new THREE.Vector3(1,0,0),
-        new THREE.Vector3(0,0.7,0),
-        5.5,
-        color,
-        1.5,
-        0.85
-    );
-    arrow.line.material.depthTest=false;
-    arrow.cone.material.depthTest=false;
-    arrow.renderOrder=4;
-    group.add(arrow);
-    threeScene.add(group);
-    return {group,marker,label:nameLabel,arrow};
+    marker.position.y=.35;group.add(marker);
+    const label=createPlayerNameLabel(player.name,player.team===2?"#ff7138":"#438cff");
+    label.position.y=3.2;group.add(label);
+    const arrow=new THREE.ArrowHelper(new THREE.Vector3(1,0,0),new THREE.Vector3(0,.8,0),3.5,color,1.1,.65);
+    arrow.line.material.depthTest=false;arrow.cone.material.depthTest=false;
+    group.add(arrow);threeScene.add(group);
+    return {group,marker,label,arrow};
 }
 
-// FIRST PERSON CAMERA
-
+// КАМЕРА ОТ ЛИЦА ИГРОКА
 function updateReplayCamera(players){
     if(!threeCamera||replayCameraMode!=="follow")return;
     let player=players.find(p=>p.name===selectedReplayPlayer&&p.position);
     if(!player)player=players.find(p=>p.position);
-    if(!player){
-        $("cameraStatus").textContent="Камера: нет данных о позиции";
-        return;
-    }
-    const position=getPlayerScenePosition(player);
-    if(!position)return;
-    if(!player.viewAngles){
-        $("cameraStatus").textContent="Камера: позиция игрока (направление недоступно)";
-        return;
-    }
+    if(!player){$("cameraStatus").textContent="Камера: нет данных о позиции";return}
+    const pos=getPlayerScenePosition(player);
+    if(!pos)return;
+    if(!player.viewAngles){$("cameraStatus").textContent="Камера: направление недоступно";return}
     const yaw=player.viewAngles.yaw*Math.PI/180;
     const pitch=player.viewAngles.pitch*Math.PI/180;
     const direction=new THREE.Vector3(
         Math.cos(yaw)*Math.cos(pitch),
         -Math.sin(pitch),
-        Math.sin(yaw)*Math.cos(pitch)
+        -Math.sin(yaw)*Math.cos(pitch)
     ).normalize();
-
-    const eyeHeight=1.6;
-    threeCamera.position.set(position.x,position.y+eyeHeight,position.z);
-    const distance=20;
+    const eyeHeight=1.7;
+    threeCamera.position.set(pos.x,pos.y+eyeHeight,pos.z);
+    threeCamera.up.set(0,1,0);
     threeCamera.lookAt(
-        position.x+direction.x*distance,
-        position.y+eyeHeight+direction.y*distance,
-        position.z+direction.z*distance
+        pos.x+direction.x*20,
+        pos.y+eyeHeight+direction.y*20,
+        pos.z+direction.z*20
     );
-    threeCamera.fov=75;
-    threeCamera.updateProjectionMatrix();
+    threeCamera.fov=75;threeCamera.updateProjectionMatrix();
     $("cameraStatus").textContent="Камера: "+player.name;
 }
 
-// ORBIT CAMERA
-
+// ОБЩАЯ КАМЕРА
 function updateCamera(){
     if(!threeCamera||replayCameraMode==="follow")return;
     const x=cameraRadius*Math.sin(cameraPhi)*Math.cos(cameraTheta);
     const y=cameraRadius*Math.cos(cameraPhi);
     const z=cameraRadius*Math.sin(cameraPhi)*Math.sin(cameraTheta);
     threeCamera.position.set(x,y,z);
+    threeCamera.up.set(0,0,-1);
     threeCamera.lookAt(0,0,0);
 }
-
 function addCameraControls(container){
     const canvas=threeRenderer.domElement;
     canvas.addEventListener("pointerdown",event=>{
         if(replayCameraMode==="follow")return;
-        dragActive=true;
-        lastMouseX=event.clientX;
-        lastMouseY=event.clientY;
+        dragActive=true;lastMouseX=event.clientX;lastMouseY=event.clientY;
         canvas.setPointerCapture(event.pointerId);
     });
-    canvas.addEventListener("pointerup",()=>{dragActive=false});
-    canvas.addEventListener("pointercancel",()=>{dragActive=false});
+    canvas.addEventListener("pointerup",()=>dragActive=false);
+    canvas.addEventListener("pointercancel",()=>dragActive=false);
     canvas.addEventListener("pointermove",event=>{
         if(!dragActive||replayCameraMode==="follow")return;
-        const dx=event.clientX-lastMouseX;
-        const dy=event.clientY-lastMouseY;
-        lastMouseX=event.clientX;
-        lastMouseY=event.clientY;
-        cameraTheta-=dx*0.008;
-        cameraPhi=Math.max(0.15,Math.min(Math.PI-0.15,cameraPhi+dy*0.008));
+        const dx=event.clientX-lastMouseX,dy=event.clientY-lastMouseY;
+        lastMouseX=event.clientX;lastMouseY=event.clientY;
+        cameraTheta-=dx*.008;
+        cameraPhi=Math.max(.12,Math.min(1.45,cameraPhi+dy*.008));
         updateCamera();
     });
     canvas.addEventListener("wheel",event=>{
         if(replayCameraMode==="follow")return;
         event.preventDefault();
-        cameraRadius+=event.deltaY*0.06;
-        cameraRadius=Math.max(25,Math.min(220,cameraRadius));
+        cameraRadius=Math.max(35,Math.min(260,cameraRadius+event.deltaY*.06));
         updateCamera();
     },{passive:false});
 }
-
 function animate3D(){
     if(!threeRenderer||!threeScene||!threeCamera)return;
     requestAnimationFrame(animate3D);
     threeRenderer.render(threeScene,threeCamera);
 }
-
-// RESIZE
-
 function resize3D(){
     if(!threeRenderer||!threeCamera)return;
     const container=$("replay3d");
@@ -1422,23 +842,13 @@ function resize3D(){
 }
 
 // EVENTS
-
-$("replayTimeline").addEventListener("pointerdown",()=>{
-    timelineDragging=true;
-});
-$("replayTimeline").addEventListener("pointercancel",()=>{
-    timelineDragging=false;
-});
-
-$("nickname").addEventListener("keydown",event=>{
-    if(event.key==="Enter")searchPlayer();
-});
-
+$("replayTimeline").addEventListener("pointerdown",()=>timelineDragging=true);
+$("replayTimeline").addEventListener("pointercancel",()=>timelineDragging=false);
+$("nickname").addEventListener("keydown",event=>{if(event.key==="Enter")searchPlayer()});
 window.addEventListener("resize",()=>{
     if(currentData)drawElo();
     resize3D();
 });
 </script>
-
 </body>
 </html>
