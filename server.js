@@ -1,4 +1,3 @@
-
 const express = require("express");
 const path = require("path");
 const crypto = require("crypto");
@@ -289,62 +288,32 @@ function safeSecretEquals(provided, expected) {
 // ZSTD DECOMPRESSION
 // ================================
 
-function decompressZstdFile(inputPath, outputPath) {
-    const inputFd = fs.openSync(inputPath, "r");
-    const outputFd = fs.openSync(outputPath, "w");
-
+async function decompressZstdFile(inputPath, outputPath) {
     let totalOutput = 0;
 
-    try {
-        const decoder = new Decompress((chunk) => {
-            if (!chunk || chunk.length === 0) {
-                return;
-            }
-
+    const sizeLimiter = new Transform({
+        transform(chunk, encoding, callback) {
             totalOutput += chunk.length;
 
             if (totalOutput > MAX_UNCOMPRESSED_SIZE) {
-                throw new Error(
-                    "Распакованное демо превышает лимит 500 МБ."
+                return callback(
+                    new Error("Распакованное демо превышает лимит 500 МБ.")
                 );
             }
 
-            fs.writeSync(outputFd, Buffer.from(chunk));
-        });
-
-        const inputBuffer = Buffer.allocUnsafe(1024 * 1024);
-
-        while (true) {
-            const bytesRead = fs.readSync(
-                inputFd,
-                inputBuffer,
-                0,
-                inputBuffer.length,
-                null
-            );
-
-            if (bytesRead === 0) {
-                break;
-            }
-
-            const chunk = new Uint8Array(
-                inputBuffer.buffer,
-                inputBuffer.byteOffset,
-                bytesRead
-            );
-
-            decoder.push(chunk);
+            callback(null, chunk);
         }
+    });
 
-        decoder.push(new Uint8Array(0), true);
+    await pipeline(
+        fs.createReadStream(inputPath),
+        createZstdDecompress(),
+        sizeLimiter,
+        fs.createWriteStream(outputPath)
+    );
 
-        if (totalOutput === 0) {
-            throw new Error("После распаковки файл оказался пустым.");
-        }
-
-    } finally {
-        fs.closeSync(inputFd);
-        fs.closeSync(outputFd);
+    if (totalOutput === 0) {
+        throw new Error("После распаковки файл оказался пустым.");
     }
 
     return outputPath;
@@ -581,7 +550,7 @@ app.get("/api/health", (req, res) => {
 // ================================
 
 app.post("/api/demo/upload", (req, res) => {
-    demoUpload.single("demo")(req, res, error => {
+    demoUpload.single("demo")(req, res, async error => {
         if (error) {
             const status = error instanceof multer.MulterError
                 ? (
@@ -616,7 +585,7 @@ app.post("/api/demo/upload", (req, res) => {
                     `${crypto.randomUUID()}.dem`
                 );
 
-                decompressZstdFile(
+                await decompressZstdFile(
                     uploadedPath,
                     decompressedPath
                 );
