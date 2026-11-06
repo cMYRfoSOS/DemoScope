@@ -1,13 +1,13 @@
-
 {
   "name": "demoscope",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "description": "FACEIT player statistics and CS2 demo analytics",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
+    "@deademx/cs2": "^5.0.0",
     "@laihoe/demoparser2": "^0.42.0",
     "express": "^4.21.2",
     "multer": "^2.0.2"
