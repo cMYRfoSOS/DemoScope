@@ -416,7 +416,7 @@ th {
 }
 
 .player-table {
-    min-width: 450px;
+    min-width: 550px;
 }
 
 .team-t {
@@ -673,12 +673,13 @@ th {
                     <th>Здоровье</th>
                     <th>X</th>
                     <th>Y</th>
+                    <th>Z</th>
                 </tr>
             </thead>
 
             <tbody id="replayPlayers">
                 <tr>
-                    <td colspan="5" class="empty">
+                    <td colspan="6" class="empty">
                         Загрузи демку
                     </td>
                 </tr>
@@ -814,9 +815,10 @@ let threeScene = null;
 let threeCamera = null;
 let threeRenderer = null;
 let playerMeshes = new Map();
+let replayMapTransform = null;
 
 let cameraTheta = Math.PI / 4;
-let cameraPhi = 1.0;
+let cameraPhi = 0.95;
 let cameraRadius = 85;
 
 let dragActive = false;
@@ -1397,29 +1399,28 @@ function renderDemo(data) {
 async function startReplayFromUrl(replayUrl, mapName) {
     if (!window.deadem || !window.deadem.cs2) {
         throw new Error(
-            "Не загрузилась библиотека CS2 Replay. Проверь CDN."
+            "Не загрузилась библиотека CS2 Replay. Проверь подключение к CDN."
         );
     }
 
     const { Player } = window.deadem.cs2;
 
     if (!Player) {
-        throw new Error("Функция Player не найдена.");
+        throw new Error("В библиотеке не найдена функция Player.");
     }
 
-    $("demoStatus").textContent =
-        "Получаем демку с сервера...";
+    $("demoStatus").textContent = "Получаем распакованную демку с сервера...";
 
     const response = await fetch(replayUrl);
 
     if (!response.ok) {
-        throw new Error("Не удалось получить файл демки.");
+        throw new Error("Сервер не смог передать файл демки в браузер.");
     }
 
     const replayBlob = await response.blob();
 
     $("demoStatus").textContent =
-        "Загружаем демку в проигрыватель...";
+        "Индексируем демку в браузере. Это может занять некоторое время...";
 
     const player = new Player();
 
@@ -1427,7 +1428,6 @@ async function startReplayFromUrl(replayUrl, mapName) {
         await player.load(replayBlob.stream());
 
         replayPlayer = player;
-
         replayFirstTick = player.getFirstTick();
         replayLastTick = player.getLastTick();
 
@@ -1443,24 +1443,20 @@ async function startReplayFromUrl(replayUrl, mapName) {
 
         $("replayMap").textContent = mapName || "CS2";
         $("replayTimeline").value = 0;
+        replayMapTransform = null;
 
-        // Сначала показываем окно
+        // Сначала показываем панель, чтобы браузер рассчитал её размеры.
         $("replayPanel").classList.remove("hidden");
 
-        // Даём браузеру рассчитать размеры окна
         await new Promise(resolve => {
             requestAnimationFrame(() => {
                 requestAnimationFrame(resolve);
             });
         });
 
-        // Только теперь создаём 3D-сцену
+        // Создаём сцену уже с известной шириной и высотой.
         init3DScene();
-
-        // Обновляем размеры
         resize3D();
-
-        // Получаем состояние игроков
         updateReplayState();
 
         $("demoStatus").textContent =
@@ -1477,10 +1473,10 @@ async function startReplayFromUrl(replayUrl, mapName) {
         } catch {}
 
         replayPlayer = null;
-
         throw error;
     }
 }
+
 // ================================
 // REPLAY CONTROLS
 // ================================
@@ -1641,19 +1637,24 @@ function vectorValue(value) {
 function getPawnPosition(pawn) {
     if (!pawn) return null;
 
-    const prefix =
-        "CBodyComponent.m_skeletonInstance.m_vecOrigin";
+    // CS2 хранит позицию как индекс ячейки и смещение внутри неё.
+    const prefix = "CBodyComponent.m_skeletonInstance.m_vecOrigin";
+    const CELL_SIZE = 512;
 
-    function readField(field) {
-        const value = safeGet(pawn, `${prefix}.${field}`);
+    function readField(name) {
+        const value = safeGet(pawn, `${prefix}.${name}`);
 
-        if (value === undefined || value === null) {
+        if (
+            value === undefined ||
+            value === null ||
+            value === ""
+        ) {
             return null;
         }
 
-        const number = Number(value);
+        const parsed = Number(value);
 
-        return Number.isFinite(number) ? number : null;
+        return Number.isFinite(parsed) ? parsed : null;
     }
 
     const cellX = readField("m_cellX");
@@ -1665,13 +1666,11 @@ function getPawnPosition(pawn) {
     const vecZ = readField("m_vecZ");
 
     if (
-        cellX === null || cellY === null || cellZ === null ||
-        vecX === null || vecY === null || vecZ === null
+        [cellX, cellY, cellZ, vecX, vecY, vecZ]
+            .some(value => value === null)
     ) {
         return null;
     }
-
-    const CELL_SIZE = 512;
 
     return {
         x: cellX * CELL_SIZE + vecX,
@@ -1710,7 +1709,10 @@ function getReplayPlayers() {
         let pawn = null;
 
         try {
-            if (pawnHandle !== undefined && pawnHandle !== null) {
+            if (
+                pawnHandle !== undefined &&
+                pawnHandle !== null
+            ) {
                 pawn = demo.getEntityByHandle(pawnHandle);
             }
         } catch {}
@@ -1778,7 +1780,7 @@ function renderReplayPlayers(players) {
     if (!players.length) {
         body.innerHTML = `
             <tr>
-                <td colspan="5" class="empty">
+                <td colspan="6" class="empty">
                     Игроки пока не найдены.
                 </td>
             </tr>
@@ -1807,6 +1809,10 @@ function renderReplayPlayers(players) {
             ? number(player.position.y, 0)
             : "—";
 
+        const z = player.position
+            ? number(player.position.z, 0)
+            : "—";
+
         return `
             <tr>
                 <td class="${teamClass}">
@@ -1818,6 +1824,7 @@ function renderReplayPlayers(players) {
                 <td>${player.health ?? "—"}</td>
                 <td>${x}</td>
                 <td>${y}</td>
+                <td>${z}</td>
             </tr>
         `;
     }).join("");
@@ -1844,6 +1851,8 @@ function init3DScene() {
     }
 
     threeScene = new THREE.Scene();
+    playerMeshes.clear();
+
     threeScene.background = new THREE.Color(0x090b10);
 
     threeCamera = new THREE.PerspectiveCamera(
@@ -1895,7 +1904,7 @@ function init3DScene() {
     threeScene.add(light);
 
     cameraTheta = Math.PI / 4;
-    cameraPhi = 1.0;
+    cameraPhi = 0.95;
     cameraRadius = 85;
 
     updateCamera();
@@ -1988,8 +1997,11 @@ function animate3D() {
 function update3DPlayers(players) {
     if (!threeScene) return;
 
-    const validPlayers = players.filter(
-        p => p.position
+    const validPlayers = players.filter(player =>
+        player.position &&
+        Number.isFinite(player.position.x) &&
+        Number.isFinite(player.position.y) &&
+        Number.isFinite(player.position.z)
     );
 
     for (const mesh of playerMeshes.values()) {
@@ -1998,15 +2010,27 @@ function update3DPlayers(players) {
 
     if (!validPlayers.length) return;
 
-    const centerX = validPlayers.reduce(
-        (sum, p) => sum + p.position.x,
-        0
-    ) / validPlayers.length;
+    // Один раз задаём центр координат для этой демки.
+    // Благодаря этому точки не будут прыгать при каждом тике.
+    if (!replayMapTransform) {
+        const centerX = validPlayers.reduce(
+            (sum, player) => sum + player.position.x,
+            0
+        ) / validPlayers.length;
 
-    const centerY = validPlayers.reduce(
-        (sum, p) => sum + p.position.y,
-        0
-    ) / validPlayers.length;
+        const centerY = validPlayers.reduce(
+            (sum, player) => sum + player.position.y,
+            0
+        ) / validPlayers.length;
+
+        replayMapTransform = {
+            centerX,
+            centerY,
+            scale: 0.012
+        };
+    }
+
+    const { centerX, centerY, scale } = replayMapTransform;
 
     for (const player of validPlayers) {
         const id = player.name;
@@ -2014,10 +2038,11 @@ function update3DPlayers(players) {
         let mesh = playerMeshes.get(id);
 
         if (!mesh) {
-            const geometry = new THREE.SphereGeometry(
-                0.9,
-                16,
-                16
+            const geometry = new THREE.CylinderGeometry(
+                1.25,
+                1.25,
+                0.45,
+                20
             );
 
             const color = player.team === 2
@@ -2026,7 +2051,9 @@ function update3DPlayers(players) {
 
             const material = new THREE.MeshStandardMaterial({
                 color,
-                roughness: 0.5
+                roughness: 0.45,
+                emissive: color,
+                emissiveIntensity: 0.12
             });
 
             mesh = new THREE.Mesh(
@@ -2039,10 +2066,12 @@ function update3DPlayers(players) {
             playerMeshes.set(id, mesh);
         }
 
+        // X/Y — координаты на карте. Z — высота.
+        // Маркеры намеренно лежат на поверхности платформы.
         mesh.position.set(
-            (player.position.x - centerX) * 0.025,
-            Math.max(0.5, player.position.z * 0.015),
-            (player.position.y - centerY) * 0.025
+            (player.position.x - centerX) * scale,
+            0.28,
+            (player.position.y - centerY) * scale
         );
 
         mesh.visible = true;
