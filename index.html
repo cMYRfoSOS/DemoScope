@@ -45,13 +45,8 @@ header{
     margin:45px 0;
 }
 
-h1{
-    font-size:38px;
-    margin-bottom:10px;
-}
-
+h1{font-size:38px;margin-bottom:10px}
 h3{margin-top:0}
-
 .muted{color:#92939b}
 
 .search{
@@ -109,10 +104,7 @@ button:disabled{opacity:.5;cursor:wait}
     object-fit:cover;
 }
 
-.level{
-    color:#ff7138;
-    font-weight:bold;
-}
+.level{color:#ff7138;font-weight:bold}
 
 .grid{
     display:grid;
@@ -151,11 +143,7 @@ button:disabled{opacity:.5;cursor:wait}
 }
 
 canvas{display:block}
-
-#eloChart{
-    width:100%;
-    height:100%;
-}
+#eloChart{width:100%;height:100%}
 
 .map-list{
     display:grid;
@@ -201,7 +189,7 @@ th{color:#999}
     color:#ffb18e;
 }
 
-/* DEMO ANALYSIS */
+/* DEMO */
 
 .demo-panel{border-color:#493126}
 
@@ -277,7 +265,7 @@ th{color:#999}
     margin-top:15px;
 }
 
-/* REPLAY PLAYER */
+/* REPLAY */
 
 .replay-panel{border-color:#68402e}
 
@@ -297,7 +285,7 @@ th{color:#999}
 
 .replay-stage{
     width:100%;
-    height:440px;
+    height:500px;
     overflow:hidden;
     position:relative;
     background:#090b10;
@@ -326,6 +314,7 @@ th{color:#999}
     padding:10px 14px;
     font-size:13px;
     pointer-events:none;
+    z-index:2;
 }
 
 .replay-controls{
@@ -338,6 +327,30 @@ th{color:#999}
 
 .replay-controls button{padding:12px 18px}
 .replay-controls select{padding:11px}
+
+.replay-camera-controls{
+    display:flex;
+    gap:12px;
+    flex-wrap:wrap;
+    margin-top:18px;
+    padding:15px;
+    background:#22232a;
+    border:1px solid #34353e;
+    border-radius:10px;
+}
+
+.replay-camera-controls label{
+    display:flex;
+    align-items:center;
+    gap:9px;
+    color:#bbb;
+    font-size:13px;
+}
+
+.replay-camera-controls select{
+    min-width:160px;
+    padding:10px;
+}
 
 .replay-timeline{
     width:100%;
@@ -366,6 +379,18 @@ th{color:#999}
 .team-t{color:#ff9a70}
 .team-ct{color:#70aaff}
 
+.player-row{
+    cursor:pointer;
+}
+
+.player-row:hover{
+    background:#292a32;
+}
+
+.player-row.selected{
+    background:#3a2923;
+}
+
 @media(max-width:700px){
     .grid{grid-template-columns:repeat(2,1fr)}
     .map-list{grid-template-columns:repeat(2,1fr)}
@@ -380,7 +405,14 @@ th{color:#999}
         align-items:stretch;
     }
     .demo-file{min-width:0}
-    .replay-stage{height:330px}
+    .replay-stage{height:350px}
+    .replay-camera-controls{
+        flex-direction:column;
+        align-items:stretch;
+    }
+    .replay-camera-controls label{
+        justify-content:space-between;
+    }
 }
 </style>
 </head>
@@ -396,20 +428,11 @@ th{color:#999}
 
 <section class="hero">
     <h1>Анализируй свою игру</h1>
-
-    <p class="muted">
-        FACEIT, Elo, матчи и анализ демок CS2
-    </p>
+    <p class="muted">FACEIT, Elo, матчи и анализ демок CS2</p>
 
     <div class="search">
-        <input
-            id="nickname"
-            placeholder="Введи ник или ссылку на FACEIT"
-        >
-
-        <button id="searchBtn" onclick="searchPlayer()">
-            Найти профиль
-        </button>
+        <input id="nickname" placeholder="Введи ник или ссылку на FACEIT">
+        <button id="searchBtn" onclick="searchPlayer()">Найти профиль</button>
     </div>
 
     <div id="status" class="status"></div>
@@ -418,7 +441,6 @@ th{color:#999}
 <!-- DEMO UPLOAD -->
 
 <section class="panel demo-panel">
-
     <div class="section-title">
         <h3>Анализ демо CS2</h3>
         <span class="level">DEMOSCOPE ANALYZER</span>
@@ -431,17 +453,10 @@ th{color:#999}
 
     <div class="demo-upload">
         <label class="demo-file">
-            <input
-                type="file"
-                id="demoFile"
-                accept=".dem,.dem.zst"
-            >
+            <input type="file" id="demoFile" accept=".dem,.dem.zst">
         </label>
 
-        <button
-            id="demoUploadBtn"
-            onclick="uploadDemo()"
-        >
+        <button id="demoUploadBtn" onclick="uploadDemo()">
             Анализировать демо
         </button>
     </div>
@@ -449,9 +464,7 @@ th{color:#999}
     <div id="demoStatus" class="demo-status"></div>
 
     <div id="demoResults" class="hidden">
-
         <div class="demo-summary">
-
             <div class="demo-stat">
                 <small>Карта</small>
                 <strong id="demoMap">—</strong>
@@ -466,7 +479,6 @@ th{color:#999}
                 <small>Событий обработано</small>
                 <strong id="demoEventCount">—</strong>
             </div>
-
         </div>
 
         <h3>Статистика игроков</h3>
@@ -487,17 +499,12 @@ th{color:#999}
                 </thead>
 
                 <tbody id="demoPlayers">
-                    <tr>
-                        <td colspan="8" class="empty">
-                            Здесь появится статистика
-                        </td>
-                    </tr>
+                    <tr><td colspan="8" class="empty">Здесь появится статистика</td></tr>
                 </tbody>
             </table>
         </div>
 
         <p class="demo-note" id="demoNote"></p>
-
     </div>
 </section>
 
@@ -507,8 +514,8 @@ th{color:#999}
 
     <div class="replay-header">
         <div>
-            <h3>Просмотр демо CS2</h3>
-            <div class="replay-badge">DEMOSCOPE REPLAY</div>
+            <h3>3D-просмотр демо CS2</h3>
+            <div class="replay-badge">DEMOSCOPE 3D REPLAY</div>
         </div>
 
         <span id="replayMap" class="level">—</span>
@@ -520,11 +527,30 @@ th{color:#999}
         <div class="replay-overlay">
             <div id="replayTick">Тик: —</div>
             <div id="replayTime">Время: 0:00</div>
+            <div id="cameraStatus">Камера: общий вид</div>
         </div>
     </div>
 
-    <div class="replay-controls">
+    <div class="replay-camera-controls">
 
+        <label>
+            Режим камеры
+            <select id="cameraMode" onchange="changeCameraMode()">
+                <option value="orbit">Общий вид</option>
+                <option value="follow">От лица игрока</option>
+            </select>
+        </label>
+
+        <label>
+            Выбрать игрока
+            <select id="replayPlayerSelect" onchange="selectReplayPlayer()">
+                <option value="">Загрузка игроков...</option>
+            </select>
+        </label>
+
+    </div>
+
+    <div class="replay-controls">
         <button onclick="stepReplay(-1)" title="Назад на один тик">◀</button>
 
         <button id="playButton" onclick="playReplay()">
@@ -542,7 +568,6 @@ th{color:#999}
             <option value="2">2x</option>
             <option value="4">4x</option>
         </select>
-
     </div>
 
     <input
@@ -561,9 +586,7 @@ th{color:#999}
         <span id="replayDuration">0:00</span>
     </div>
 
-    <h3 style="margin-top:25px">
-        Игроки в текущем моменте
-    </h3>
+    <h3 style="margin-top:25px">Игроки в текущем моменте</h3>
 
     <div class="demo-table-wrap">
         <table class="player-table">
@@ -580,21 +603,17 @@ th{color:#999}
             </thead>
 
             <tbody id="replayPlayers">
-                <tr>
-                    <td colspan="7" class="empty">
-                        Загрузи демку
-                    </td>
-                </tr>
+                <tr><td colspan="7" class="empty">Загрузи демку</td></tr>
             </tbody>
         </table>
     </div>
 
     <p class="replay-note">
-        Над маркерами отображаются ники, стрелки показывают направление взгляда.
-        Оранжевые маркеры — T, синие — CT. Геометрия оригинальных карт
-        и модели CS2 пока не подключены. Если демка не содержит user commands,
-        стрелки направления могут отсутствовать. Перемещение камеры: зажми мышь
-        и двигай её. Колесо мыши меняет масштаб.
+        Можно переключаться между игроками и наблюдать за перемещением камеры.
+        Оранжевые маркеры — T, синие — CT. Карта Mirage в этой версии является
+        упрощённой 3D-схемой, а не точной копией оригинальной карты.
+        Перемещение камеры мышью и масштабирование колёсиком доступны в режиме
+        общего вида.
     </p>
 
 </section>
@@ -614,7 +633,6 @@ th{color:#999}
     </section>
 
     <section class="grid">
-
         <div class="metric">
             <small>Текущий Elo</small>
             <strong id="elo">—</strong>
@@ -634,11 +652,9 @@ th{color:#999}
             <small>Победы</small>
             <strong id="winrate">—</strong>
         </div>
-
     </section>
 
     <section class="panel">
-
         <div class="section-title">
             <h3>График Elo</h3>
 
@@ -653,18 +669,12 @@ th{color:#999}
             <canvas id="eloChart"></canvas>
         </div>
 
-        <p class="muted" id="eloNote">
-            Загружаем историю Elo...
-        </p>
-
+        <p class="muted" id="eloNote">Загружаем историю Elo...</p>
     </section>
 
     <section class="panel">
         <h3>Лучшая игра за неделю</h3>
-
-        <div id="bestMatch" class="empty">
-            Нет доступных данных за неделю
-        </div>
+        <div id="bestMatch" class="empty">Нет доступных данных за неделю</div>
     </section>
 
     <section class="panel">
@@ -692,11 +702,7 @@ th{color:#999}
                 </thead>
 
                 <tbody id="history">
-                    <tr>
-                        <td colspan="6" class="empty">
-                            Матчи не найдены
-                        </td>
-                    </tr>
+                    <tr><td colspan="6" class="empty">Матчи не найдены</td></tr>
                 </tbody>
             </table>
         </div>
@@ -717,8 +723,14 @@ let replayUpdateTimer = null;
 let threeScene = null;
 let threeCamera = null;
 let threeRenderer = null;
+
 let playerMeshes = new Map();
 let replayMapTransform = null;
+let replayMapGroup = null;
+
+let replayCameraMode = "orbit";
+let selectedReplayPlayer = "";
+let latestReplayPlayers = [];
 
 let cameraTheta = Math.PI / 4;
 let cameraPhi = 0.95;
@@ -765,9 +777,7 @@ function number(value, digits = 2) {
 
     const n = Number(value);
 
-    return Number.isFinite(n)
-        ? n.toFixed(digits)
-        : "—";
+    return Number.isFinite(n) ? n.toFixed(digits) : "—";
 }
 
 function formatTime(seconds) {
@@ -795,7 +805,7 @@ function cleanNickname(value) {
 }
 
 // ================================
-// FACEIT SEARCH
+// FACEIT
 // ================================
 
 async function searchPlayer() {
@@ -819,17 +829,13 @@ async function searchPlayer() {
         const data = await response.json();
 
         if (!response.ok) {
-            throw new Error(
-                data.error || "Не удалось загрузить профиль."
-            );
+            throw new Error(data.error || "Не удалось загрузить профиль.");
         }
 
         currentData = data;
-
         $("results").classList.remove("hidden");
 
         render(data);
-
         requestAnimationFrame(drawElo);
 
         showStatus("");
@@ -867,9 +873,7 @@ function render(data) {
 
     const matches = data.matches || [];
 
-    const wins = matches.filter(
-        m => m.result === "win"
-    ).length;
+    const wins = matches.filter(m => m.result === "win").length;
 
     const known = matches.filter(
         m => m.result === "win" || m.result === "loss"
@@ -902,17 +906,14 @@ function renderBest(best) {
                 <small>Карта</small>
                 <strong>${escapeHTML(best.map || "—")}</strong>
             </div>
-
             <div class="metric">
                 <small>K/D</small>
                 <strong>${number(best.kd)}</strong>
             </div>
-
             <div class="metric">
                 <small>Убийства</small>
                 <strong>${best.kills ?? "—"}</strong>
             </div>
-
             <div class="metric">
                 <small>ADR</small>
                 <strong>${number(best.adr, 1)}</strong>
@@ -1057,12 +1058,7 @@ function drawElo() {
         ctx.fillStyle = "#999";
         ctx.font = "14px Arial";
         ctx.textAlign = "center";
-
-        ctx.fillText(
-            "Пока нет данных Elo",
-            width / 2,
-            height / 2
-        );
+        ctx.fillText("Пока нет данных Elo", width / 2, height / 2);
 
         $("eloNote").textContent =
             "История Elo пока не содержит точек.";
@@ -1072,13 +1068,10 @@ function drawElo() {
 
     const values = points.map(p => p.elo);
 
-    let min = Math.min(...values);
-    let max = Math.max(...values);
+    let min = Math.min(...values) - 20;
+    let max = Math.max(...values) + 20;
 
     if (min === max) {
-        min -= 20;
-        max += 20;
-    } else {
         min -= 20;
         max += 20;
     }
@@ -1114,11 +1107,8 @@ function drawElo() {
         const x = getX(i);
         const y = getY(point.elo);
 
-        if (i === 0) {
-            ctx.moveTo(x, y);
-        } else {
-            ctx.lineTo(x, y);
-        }
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
     });
 
     ctx.strokeStyle = "#ff7138";
@@ -1128,7 +1118,6 @@ function drawElo() {
     points.forEach((point, i) => {
         ctx.beginPath();
         ctx.arc(getX(i), getY(point.elo), 4, 0, Math.PI * 2);
-
         ctx.fillStyle = "#ff7138";
         ctx.fill();
     });
@@ -1161,8 +1150,7 @@ async function uploadDemo() {
     $("replayPanel").classList.add("hidden");
 
     if (!file) {
-        $("demoStatus").textContent =
-            "Сначала выбери файл демо.";
+        $("demoStatus").textContent = "Сначала выбери файл демо.";
         return;
     }
 
@@ -1184,6 +1172,8 @@ async function uploadDemo() {
             "Файл слишком большой. Максимальный размер — 200 МБ.";
         return;
     }
+
+    pauseReplay();
 
     if (replayPlayer) {
         try {
@@ -1211,13 +1201,10 @@ async function uploadDemo() {
         const data = await response.json();
 
         if (!response.ok || !data.ok) {
-            throw new Error(
-                data.error || "Не удалось обработать демо."
-            );
+            throw new Error(data.error || "Не удалось обработать демо.");
         }
 
         renderDemo(data);
-
         $("demoResults").classList.remove("hidden");
 
         $("demoStatus").textContent =
@@ -1227,7 +1214,7 @@ async function uploadDemo() {
             await startReplayFromUrl(data.replayUrl, data.map);
         } else {
             $("demoStatus").textContent =
-                "Статистика готова, но сервер не вернул адрес демки для просмотра.";
+                "Статистика готова, но сервер не вернул адрес демки.";
         }
 
     } catch (error) {
@@ -1347,9 +1334,16 @@ async function startReplayFromUrl(replayUrl, mapName) {
 
         $("replayMap").textContent = mapName || "CS2";
         $("replayTimeline").value = 0;
-        replayMapTransform = null;
 
-        // Показываем окно до создания Three.js сцены.
+        replayMapTransform = null;
+        latestReplayPlayers = [];
+        selectedReplayPlayer = "";
+        replayCameraMode = "orbit";
+
+        $("cameraMode").value = "orbit";
+        $("replayPlayerSelect").innerHTML =
+            '<option value="">Загрузка игроков...</option>';
+
         $("replayPanel").classList.remove("hidden");
 
         await new Promise(resolve => {
@@ -1390,7 +1384,6 @@ function playReplay() {
     const speed = Number($("replaySpeed").value) || 1;
 
     replayPlaying = true;
-
     $("playButton").textContent = "▶ Идёт воспроизведение";
 
     if (replayUpdateTimer) {
@@ -1399,7 +1392,7 @@ function playReplay() {
 
     replayUpdateTimer = setInterval(() => {
         updateReplayState();
-    }, 150);
+    }, 100);
 
     replayPlayer.play(speed)
         .catch(error => {
@@ -1416,7 +1409,6 @@ function playReplay() {
             }
 
             $("playButton").textContent = "▶ Воспроизвести";
-
             updateReplayState();
         });
 }
@@ -1425,7 +1417,6 @@ function pauseReplay() {
     if (!replayPlayer) return;
 
     replayPlayer.pause();
-
     replayPlaying = false;
 
     if (replayUpdateTimer) {
@@ -1434,7 +1425,6 @@ function pauseReplay() {
     }
 
     $("playButton").textContent = "▶ Воспроизвести";
-
     updateReplayState();
 }
 
@@ -1540,8 +1530,9 @@ function vectorValue(value) {
 function getPawnPosition(pawn) {
     if (!pawn) return null;
 
-    // Позиция CS2: индекс ячейки + смещение внутри ячейки.
-    const prefix = "CBodyComponent.m_skeletonInstance.m_vecOrigin";
+    const prefix =
+        "CBodyComponent.m_skeletonInstance.m_vecOrigin";
+
     const CELL_SIZE = 512;
 
     function readField(name) {
@@ -1589,7 +1580,6 @@ function getReplayPlayers() {
 
     if (!demo) return [];
 
-    // Deadem: user command slot N связан с контроллером entity N + 1.
     const viewAnglesByName = new Map();
 
     try {
@@ -1613,7 +1603,6 @@ function getReplayPlayers() {
 
             if (!name || !angles) continue;
 
-            // QAngle: x — pitch, y — yaw.
             const pitch = Number(
                 angles.x ?? angles.pitch ?? angles[0]
             );
@@ -1699,7 +1688,6 @@ function updateReplayState() {
     if (!replayPlayer) return;
 
     const currentTick = replayPlayer.getCurrentTick();
-
     const totalTicks = replayLastTick - replayFirstTick;
 
     const progress = totalTicks > 0
@@ -1714,23 +1702,97 @@ function updateReplayState() {
     const seconds = (currentTick - replayFirstTick) / 64;
     const duration = totalTicks / 64;
 
-    $("replayTick").textContent =
-        "Тик: " + currentTick;
-
-    $("replayTime").textContent =
-        "Время: " + formatTime(seconds);
-
-    $("replayCurrent").textContent =
-        formatTime(seconds);
-
-    $("replayDuration").textContent =
-        formatTime(duration);
+    $("replayTick").textContent = "Тик: " + currentTick;
+    $("replayTime").textContent = "Время: " + formatTime(seconds);
+    $("replayCurrent").textContent = formatTime(seconds);
+    $("replayDuration").textContent = formatTime(duration);
 
     const players = getReplayPlayers();
 
+    latestReplayPlayers = players;
+
+    updateReplayPlayerSelector(players);
     renderReplayPlayers(players);
     update3DPlayers(players);
 }
+
+// ================================
+// PLAYER SELECTOR
+// ================================
+
+function updateReplayPlayerSelector(players) {
+    const select = $("replayPlayerSelect");
+
+    const names = players
+        .map(player => player.name)
+        .filter(Boolean)
+        .sort((a, b) => a.localeCompare(b));
+
+    const oldNames = Array.from(select.options)
+        .map(option => option.value)
+        .filter(Boolean);
+
+    const unchanged =
+        names.length === oldNames.length &&
+        names.every((name, index) => name === oldNames[index]);
+
+    if (!unchanged) {
+        select.innerHTML = `
+            <option value="">Выбери игрока</option>
+            ${names.map(name =>
+                `<option value="${escapeHTML(name)}">${escapeHTML(name)}</option>`
+            ).join("")}
+        `;
+    }
+
+    if (
+        selectedReplayPlayer &&
+        names.includes(selectedReplayPlayer)
+    ) {
+        select.value = selectedReplayPlayer;
+    } else if (names.length) {
+        selectedReplayPlayer = names[0];
+        select.value = selectedReplayPlayer;
+    }
+
+    if (!names.length) {
+        select.innerHTML = '<option value="">Игроки не найдены</option>';
+        selectedReplayPlayer = "";
+    }
+}
+
+function selectReplayPlayer() {
+    selectedReplayPlayer = $("replayPlayerSelect").value;
+
+    renderReplayPlayers(latestReplayPlayers);
+    updateReplayCamera(latestReplayPlayers);
+}
+
+function changeCameraMode() {
+    replayCameraMode = $("cameraMode").value;
+
+    if (replayCameraMode === "follow" && !selectedReplayPlayer) {
+        const first = latestReplayPlayers.find(player => player.position);
+
+        if (first) {
+            selectedReplayPlayer = first.name;
+            $("replayPlayerSelect").value = first.name;
+        }
+    }
+
+    if (replayCameraMode === "orbit") {
+        $("cameraStatus").textContent = "Камера: общий вид";
+        updateCamera();
+    } else {
+        $("cameraStatus").textContent =
+            "Камера: от лица игрока";
+        updateReplayCamera(latestReplayPlayers);
+    }
+}
+
+// ================================
+// PLAYER TABLE
+// ================================
 
 function renderReplayPlayers(players) {
     const body = $("replayPlayers");
@@ -1775,14 +1837,18 @@ function renderReplayPlayers(players) {
             ? number(player.viewAngles.yaw, 1) + "°"
             : "—";
 
+        const selected =
+            player.name === selectedReplayPlayer
+                ? "selected"
+                : "";
+
         return `
-            <tr>
-                <td class="${teamClass}">
-                    ${escapeHTML(player.name)}
-                </td>
-                <td class="${teamClass}">
-                    ${teamName}
-                </td>
+            <tr
+                class="player-row ${selected}"
+                onclick="choosePlayerFromTable('${escapeHTML(player.name)}')"
+            >
+                <td class="${teamClass}">${escapeHTML(player.name)}</td>
+                <td class="${teamClass}">${teamName}</td>
                 <td>${player.health ?? "—"}</td>
                 <td>${x}</td>
                 <td>${y}</td>
@@ -1791,6 +1857,14 @@ function renderReplayPlayers(players) {
             </tr>
         `;
     }).join("");
+}
+
+function choosePlayerFromTable(name) {
+    selectedReplayPlayer = name;
+    $("replayPlayerSelect").value = name;
+
+    renderReplayPlayers(latestReplayPlayers);
+    updateReplayCamera(latestReplayPlayers);
 }
 
 // ================================
@@ -1809,7 +1883,6 @@ function init3DScene() {
     if (threeRenderer) {
         threeRenderer.dispose();
         threeRenderer.domElement.remove();
-
         threeRenderer = null;
     }
 
@@ -1822,7 +1895,7 @@ function init3DScene() {
         45,
         container.clientWidth / container.clientHeight,
         0.1,
-        1000
+        1500
     );
 
     threeRenderer = new THREE.WebGLRenderer({
@@ -1841,30 +1914,14 @@ function init3DScene() {
     container.innerHTML = "";
     container.appendChild(threeRenderer.domElement);
 
-    const grid = new THREE.GridHelper(
-        100,
-        25,
-        0x555566,
-        0x292a36
-    );
-
-    threeScene.add(grid);
-
-    const ambient = new THREE.AmbientLight(
-        0xffffff,
-        1.3
-    );
-
+    const ambient = new THREE.AmbientLight(0xffffff, 1.4);
     threeScene.add(ambient);
 
-    const light = new THREE.DirectionalLight(
-        0xffffff,
-        1.0
-    );
-
+    const light = new THREE.DirectionalLight(0xffffff, 1.1);
     light.position.set(30, 60, 40);
-
     threeScene.add(light);
+
+    buildMirageBlockout();
 
     cameraTheta = Math.PI / 4;
     cameraPhi = 1.0;
@@ -1875,8 +1932,160 @@ function init3DScene() {
     animate3D();
 }
 
+// ================================
+// MIRAGE BLOCKOUT
+// ================================
+
+function createMapBox(x, y, z, width, height, depth, color = 0xb6a184) {
+    const geometry = new THREE.BoxGeometry(width, height, depth);
+
+    const material = new THREE.MeshStandardMaterial({
+        color,
+        roughness: 0.9
+    });
+
+    const mesh = new THREE.Mesh(geometry, material);
+
+    mesh.position.set(x, y + height / 2, z);
+
+    replayMapGroup.add(mesh);
+
+    return mesh;
+}
+
+function createMapLabel(text, x, z) {
+    const canvas = document.createElement("canvas");
+
+    canvas.width = 512;
+    canvas.height = 128;
+
+    const ctx = canvas.getContext("2d");
+
+    ctx.fillStyle = "rgba(12,14,19,.88)";
+    ctx.fillRect(0, 0, 512, 128);
+
+    ctx.strokeStyle = "#ff9a70";
+    ctx.lineWidth = 5;
+    ctx.strokeRect(4, 4, 504, 120);
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 52px Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(text, 256, 64);
+
+    const texture = new THREE.CanvasTexture(canvas);
+
+    const sprite = new THREE.Sprite(
+        new THREE.SpriteMaterial({
+            map: texture,
+            transparent: true,
+            depthTest: false
+        })
+    );
+
+    sprite.position.set(x, 5, z);
+    sprite.scale.set(12, 3, 1);
+    sprite.renderOrder = 3;
+
+    replayMapGroup.add(sprite);
+}
+
+function buildMirageBlockout() {
+    if (replayMapGroup) {
+        threeScene.remove(replayMapGroup);
+    }
+
+    replayMapGroup = new THREE.Group();
+
+    const ground = new THREE.Mesh(
+        new THREE.PlaneGeometry(120, 100),
+        new THREE.MeshStandardMaterial({
+            color: 0x8e806b,
+            roughness: 1
+        })
+    );
+
+    ground.rotation.x = -Math.PI / 2;
+    ground.position.y = -0.15;
+
+    replayMapGroup.add(ground);
+
+    // Условные внешние стены.
+    const wallColor = 0xc0ad8c;
+    const buildingColor = 0x9c896e;
+    const darkColor = 0x766b5a;
+
+    createMapBox(0, 0, -49, 120, 4, 2, wallColor);
+    createMapBox(0, 0, 49, 120, 4, 2, wallColor);
+    createMapBox(-59, 0, 0, 2, 4, 100, wallColor);
+    createMapBox(59, 0, 0, 2, 4, 100, wallColor);
+
+    // Центральная область.
+    createMapBox(-18, 0, -17, 17, 5, 9, buildingColor);
+    createMapBox(15, 0, -17, 18, 5, 9, buildingColor);
+    createMapBox(-1, 0, 16, 12, 4, 9, buildingColor);
+
+    // Левые постройки.
+    createMapBox(-43, 0, -27, 15, 6, 14, buildingColor);
+    createMapBox(-43, 0, -7, 12, 4, 8, wallColor);
+    createMapBox(-42, 0, 20, 18, 5, 13, buildingColor);
+    createMapBox(-48, 0, 37, 10, 4, 5, darkColor);
+
+    // Правые постройки.
+    createMapBox(42, 0, -29, 18, 5, 13, buildingColor);
+    createMapBox(45, 0, -8, 12, 4, 9, wallColor);
+    createMapBox(42, 0, 20, 19, 6, 15, buildingColor);
+    createMapBox(49, 0, 38, 9, 4, 5, darkColor);
+
+    // Небольшие перегородки.
+    createMapBox(-23, 0, 4, 2, 3, 15, wallColor);
+    createMapBox(24, 0, 5, 2, 3, 15, wallColor);
+    createMapBox(0, 0, -33, 22, 3, 2, wallColor);
+    createMapBox(0, 0, 33, 24, 3, 2, wallColor);
+
+    // Условные колонны и элементы архитектуры.
+    for (const x of [-12, -7, 7, 12]) {
+        const column = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.8, 1, 4, 12),
+            new THREE.MeshStandardMaterial({color:0xd1bea0})
+        );
+
+        column.position.set(x, 2, 0);
+        replayMapGroup.add(column);
+    }
+
+    // Площадки.
+    createMapBox(-42, 0, -39, 25, 0.6, 10, 0x9d8a70);
+    createMapBox(42, 0, 39, 25, 0.6, 10, 0x9d8a70);
+
+    // Условные обозначения зон.
+    createMapLabel("A", -42, -40);
+    createMapLabel("MID", 0, 0);
+    createMapLabel("B", 42, 40);
+
+    // Сетка на земле.
+    const grid = new THREE.GridHelper(
+        120,
+        30,
+        0x655e51,
+        0x746b5b
+    );
+
+    grid.position.y = 0.02;
+    replayMapGroup.add(grid);
+
+    threeScene.add(replayMapGroup);
+}
+
+// ================================
+// ORBIT CAMERA
+// ================================
+
 function updateCamera() {
     if (!threeCamera) return;
+
+    if (replayCameraMode === "follow") return;
 
     const x =
         cameraRadius * Math.sin(cameraPhi) * Math.cos(cameraTheta);
@@ -1895,6 +2104,8 @@ function addCameraControls(container) {
     const canvas = threeRenderer.domElement;
 
     canvas.addEventListener("pointerdown", event => {
+        if (replayCameraMode === "follow") return;
+
         dragActive = true;
         lastMouseX = event.clientX;
         lastMouseY = event.clientY;
@@ -1911,7 +2122,7 @@ function addCameraControls(container) {
     });
 
     canvas.addEventListener("pointermove", event => {
-        if (!dragActive) return;
+        if (!dragActive || replayCameraMode === "follow") return;
 
         const dx = event.clientX - lastMouseX;
         const dy = event.clientY - lastMouseY;
@@ -1930,6 +2141,8 @@ function addCameraControls(container) {
     });
 
     canvas.addEventListener("wheel", event => {
+        if (replayCameraMode === "follow") return;
+
         event.preventDefault();
 
         cameraRadius += event.deltaY * 0.06;
@@ -1949,14 +2162,11 @@ function animate3D() {
 
     requestAnimationFrame(animate3D);
 
-    threeRenderer.render(
-        threeScene,
-        threeCamera
-    );
+    threeRenderer.render(threeScene, threeCamera);
 }
 
 // ================================
-// PLAYER LABELS AND MODELS
+// PLAYER LABELS AND MARKERS
 // ================================
 
 function createPlayerNameLabel(name, color) {
@@ -1993,7 +2203,6 @@ function createPlayerNameLabel(name, color) {
     ctx.fillText(label, 256, 65, 460);
 
     const texture = new THREE.CanvasTexture(canvas);
-
     texture.minFilter = THREE.LinearFilter;
 
     const material = new THREE.SpriteMaterial({
@@ -2017,7 +2226,6 @@ function createPlayerVisual(player) {
 
     const group = new THREE.Group();
 
-    // Player marker
     const geometry = new THREE.CylinderGeometry(
         1.25,
         1.25,
@@ -2032,14 +2240,10 @@ function createPlayerVisual(player) {
         emissiveIntensity: 0.12
     });
 
-    const marker = new THREE.Mesh(
-        geometry,
-        material
-    );
+    const marker = new THREE.Mesh(geometry, material);
 
     group.add(marker);
 
-    // Player name
     const label = createPlayerNameLabel(
         player.name,
         player.team === 2 ? "#ff7138" : "#438cff"
@@ -2047,7 +2251,6 @@ function createPlayerVisual(player) {
 
     group.add(label);
 
-    // View direction arrow
     const arrow = new THREE.ArrowHelper(
         new THREE.Vector3(1, 0, 0),
         new THREE.Vector3(0, 0.7, 0),
@@ -2073,6 +2276,24 @@ function createPlayerVisual(player) {
     };
 }
 
+// ================================
+// WORLD COORDINATES
+// ================================
+
+function getPlayerScenePosition(player) {
+    if (!player || !player.position || !replayMapTransform) {
+        return null;
+    }
+
+    const {centerX, centerY, scale} = replayMapTransform;
+
+    return {
+        x: (player.position.x - centerX) * scale,
+        y: (player.position.z - replayMapTransform.centerZ) * scale,
+        z: (player.position.y - centerY) * scale
+    };
+}
+
 function update3DPlayers(players) {
     if (!threeScene) return;
 
@@ -2083,15 +2304,12 @@ function update3DPlayers(players) {
         Number.isFinite(player.position.z)
     );
 
-    // Hide markers that are not currently active.
     for (const visual of playerMeshes.values()) {
         visual.group.visible = false;
     }
 
     if (!validPlayers.length) return;
 
-    // Keep one coordinate origin for the entire replay,
-    // so markers do not shift as players move.
     if (!replayMapTransform) {
         const centerX = validPlayers.reduce(
             (sum, player) => sum + player.position.x,
@@ -2103,18 +2321,18 @@ function update3DPlayers(players) {
             0
         ) / validPlayers.length;
 
+        const centerZ = validPlayers.reduce(
+            (sum, player) => sum + player.position.z,
+            0
+        ) / validPlayers.length;
+
         replayMapTransform = {
             centerX,
             centerY,
+            centerZ,
             scale: 0.012
         };
     }
-
-    const {
-        centerX,
-        centerY,
-        scale
-    } = replayMapTransform;
 
     for (const player of validPlayers) {
         const id = player.name;
@@ -2126,20 +2344,16 @@ function update3DPlayers(players) {
             playerMeshes.set(id, visual);
         }
 
-        const x =
-            (player.position.x - centerX) * scale;
+        const position = getPlayerScenePosition(player);
 
-        const z =
-            (player.position.y - centerY) * scale;
+        if (!position) continue;
 
-        // Keep the markers on the platform.
-        visual.group.position.set(x, 0, z);
+        visual.group.position.set(position.x, 0, position.z);
         visual.group.visible = true;
 
         visual.label.position.set(0, 3.3, 0);
         visual.marker.position.set(0, 0.28, 0);
 
-        // Source 2 QAngle: x = pitch, y = yaw.
         if (
             player.viewAngles &&
             Number.isFinite(player.viewAngles.yaw)
@@ -2161,7 +2375,81 @@ function update3DPlayers(players) {
             visual.arrow.visible = false;
         }
     }
+
+    updateReplayCamera(validPlayers);
 }
+
+// ================================
+// FIRST-PERSON FOLLOW CAMERA
+// ================================
+
+function updateReplayCamera(players) {
+    if (!threeCamera || replayCameraMode !== "follow") return;
+
+    let player = players.find(
+        p => p.name === selectedReplayPlayer && p.position
+    );
+
+    if (!player) {
+        player = players.find(p => p.position);
+    }
+
+    if (!player) {
+        $("cameraStatus").textContent =
+            "Камера: нет данных о позиции";
+        return;
+    }
+
+    const position = getPlayerScenePosition(player);
+
+    if (!position) return;
+
+    if (!player.viewAngles) {
+        $("cameraStatus").textContent =
+            "Камера: позиция игрока (направление недоступно)";
+        return;
+    }
+
+    const yaw =
+        player.viewAngles.yaw * Math.PI / 180;
+
+    const pitch =
+        player.viewAngles.pitch * Math.PI / 180;
+
+    const direction = new THREE.Vector3(
+        Math.cos(yaw) * Math.cos(pitch),
+        -Math.sin(pitch),
+        Math.sin(yaw) * Math.cos(pitch)
+    ).normalize();
+
+    const eyeHeight = 1.6;
+
+    threeCamera.position.set(
+        position.x,
+        position.y + eyeHeight,
+        position.z
+    );
+
+    const lookDistance = 20;
+
+    const target = new THREE.Vector3(
+        position.x + direction.x * lookDistance,
+        position.y + eyeHeight + direction.y * lookDistance,
+        position.z + direction.z * lookDistance
+    );
+
+    threeCamera.lookAt(target);
+
+    threeCamera.fov = 75;
+    threeCamera.updateProjectionMatrix();
+
+    $("cameraStatus").textContent =
+        "Камера: " + player.name;
+}
+
+// ================================
+// RESIZE
+// ================================
 
 function resize3D() {
     if (!threeRenderer || !threeCamera) return;
