@@ -5,7 +5,9 @@ const crypto = require("crypto");
 const os = require("os");
 const fs = require("fs");
 const multer = require("multer");
-const { Decompress } = require("fzstd");
+const { createZstdDecompress } = require("node:zlib");
+const { Transform } = require("node:stream");
+const { pipeline } = require("node:stream/promises");
 
 const {
     parseHeader,
