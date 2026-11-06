@@ -1639,23 +1639,45 @@ function vectorValue(value) {
 }
 
 function getPawnPosition(pawn) {
-    const fields = [
-        "m_vOldOrigin",
-        "m_vecOrigin",
-        "m_vecAbsOrigin",
-        "m_pGameSceneNode.m_vecAbsOrigin",
-        "m_CBodyComponent.m_pSceneNode.m_vecAbsOrigin"
-    ];
+    if (!pawn) return null;
 
-    for (const field of fields) {
-        const position = vectorValue(
-            safeGet(pawn, field)
-        );
+    const prefix =
+        "CBodyComponent.m_skeletonInstance.m_vecOrigin";
 
-        if (position) return position;
+    function readField(field) {
+        const value = safeGet(pawn, `${prefix}.${field}`);
+
+        if (value === undefined || value === null) {
+            return null;
+        }
+
+        const number = Number(value);
+
+        return Number.isFinite(number) ? number : null;
     }
 
-    return null;
+    const cellX = readField("m_cellX");
+    const cellY = readField("m_cellY");
+    const cellZ = readField("m_cellZ");
+
+    const vecX = readField("m_vecX");
+    const vecY = readField("m_vecY");
+    const vecZ = readField("m_vecZ");
+
+    if (
+        cellX === null || cellY === null || cellZ === null ||
+        vecX === null || vecY === null || vecZ === null
+    ) {
+        return null;
+    }
+
+    const CELL_SIZE = 512;
+
+    return {
+        x: cellX * CELL_SIZE + vecX,
+        y: cellY * CELL_SIZE + vecY,
+        z: cellZ * CELL_SIZE + vecZ
+    };
 }
 
 function getReplayPlayers() {
