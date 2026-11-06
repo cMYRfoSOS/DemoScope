@@ -5,473 +5,382 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DemoScope — FACEIT Analytics</title>
 
-<!-- CS2 DEMO PLAYER -->
 <script src="https://cdn.jsdelivr.net/npm/@deademx/cs2@5.0.0/dist/deadem-cs2.min.js"></script>
-
-<!-- THREE.JS -->
 <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
 
 <style>
-* {
-    box-sizing: border-box;
+*{box-sizing:border-box}
+
+body{
+    margin:0;
+    background:#101114;
+    color:#f2f2f2;
+    font-family:Arial,sans-serif;
 }
 
-body {
-    margin: 0;
-    background: #101114;
-    color: #f2f2f2;
-    font-family: Arial, sans-serif;
+header{
+    padding:22px 7%;
+    border-bottom:1px solid #292a30;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
 }
 
-header {
-    padding: 22px 7%;
-    border-bottom: 1px solid #292a30;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+.logo{
+    font-size:25px;
+    font-weight:bold;
+    color:#ff7138;
 }
 
-.logo {
-    font-size: 25px;
-    font-weight: bold;
-    color: #ff7138;
+.logo span{color:white}
+
+.container{
+    max-width:1200px;
+    margin:35px auto;
+    padding:0 20px;
 }
 
-.logo span {
-    color: white;
+.hero{
+    text-align:center;
+    margin:45px 0;
 }
 
-.container {
-    max-width: 1200px;
-    margin: 35px auto;
-    padding: 0 20px;
+h1{
+    font-size:38px;
+    margin-bottom:10px;
 }
 
-.hero {
-    text-align: center;
-    margin: 45px 0;
+h3{margin-top:0}
+
+.muted{color:#92939b}
+
+.search{
+    display:flex;
+    max-width:650px;
+    margin:25px auto;
+    gap:10px;
 }
 
-h1 {
-    font-size: 38px;
-    margin-bottom: 10px;
+input,select{
+    background:#202127;
+    border:1px solid #383941;
+    color:white;
+    padding:14px;
+    border-radius:9px;
 }
 
-h3 {
-    margin-top: 0;
+input{min-width:0}
+.search input{flex:1}
+
+button{
+    background:#ff7138;
+    border:0;
+    color:#111;
+    font-weight:bold;
+    padding:14px 22px;
+    border-radius:9px;
+    cursor:pointer;
 }
 
-.muted {
-    color: #92939b;
+button:hover{background:#ff8a5c}
+button:disabled{opacity:.5;cursor:wait}
+
+.panel{
+    background:#191a20;
+    border:1px solid #292a32;
+    border-radius:13px;
+    padding:22px;
+    margin:20px 0;
 }
 
-.search {
-    display: flex;
-    max-width: 650px;
-    margin: 25px auto;
-    gap: 10px;
+.hidden{display:none!important}
+
+.profile{
+    display:flex;
+    align-items:center;
+    gap:18px;
 }
 
-input,
-select {
-    background: #202127;
-    border: 1px solid #383941;
-    color: white;
-    padding: 14px;
-    border-radius: 9px;
+.avatar{
+    width:76px;
+    height:76px;
+    border-radius:50%;
+    background:#30313a;
+    object-fit:cover;
 }
 
-input {
-    min-width: 0;
+.level{
+    color:#ff7138;
+    font-weight:bold;
 }
 
-.search input {
-    flex: 1;
+.grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:14px;
+    margin:18px 0;
 }
 
-button {
-    background: #ff7138;
-    border: 0;
-    color: #111;
-    font-weight: bold;
-    padding: 14px 22px;
-    border-radius: 9px;
-    cursor: pointer;
+.metric{
+    background:#191a20;
+    border:1px solid #292a32;
+    border-radius:12px;
+    padding:19px;
 }
 
-button:hover {
-    background: #ff8a5c;
+.metric small{color:#92939b}
+
+.metric strong{
+    display:block;
+    font-size:27px;
+    margin-top:10px;
 }
 
-button:disabled {
-    opacity: .5;
-    cursor: wait;
+.section-title{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+    flex-wrap:wrap;
 }
 
-.panel {
-    background: #191a20;
-    border: 1px solid #292a32;
-    border-radius: 13px;
-    padding: 22px;
-    margin: 20px 0;
+.chart-wrap{
+    height:260px;
+    position:relative;
+    width:100%;
 }
 
-.hidden {
-    display: none !important;
+canvas{display:block}
+
+#eloChart{
+    width:100%;
+    height:100%;
 }
 
-.profile {
-    display: flex;
-    align-items: center;
-    gap: 18px;
+.map-list{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:12px;
 }
 
-.avatar {
-    width: 76px;
-    height: 76px;
-    border-radius: 50%;
-    background: #30313a;
-    object-fit: cover;
+.map-item{
+    background:#24252c;
+    padding:15px;
+    border-radius:9px;
 }
 
-.level {
-    color: #ff7138;
-    font-weight: bold;
+.map-item strong{
+    display:block;
+    margin-bottom:8px;
 }
 
-.grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 14px;
-    margin: 18px 0;
+table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:14px;
 }
 
-.metric {
-    background: #191a20;
-    border: 1px solid #292a32;
-    border-radius: 12px;
-    padding: 19px;
+th,td{
+    padding:13px 9px;
+    text-align:left;
+    border-bottom:1px solid #303139;
 }
 
-.metric small {
-    color: #92939b;
+th{color:#999}
+.win{color:#5bd69a}
+.loss{color:#ff6868}
+
+.empty{
+    text-align:center;
+    color:#999;
+    padding:25px;
 }
 
-.metric strong {
-    display: block;
-    font-size: 27px;
-    margin-top: 10px;
-}
-
-.section-title {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-}
-
-.chart-wrap {
-    height: 260px;
-    position: relative;
-    width: 100%;
-}
-
-canvas {
-    display: block;
-}
-
-#eloChart {
-    width: 100%;
-    height: 100%;
-}
-
-.map-list {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-}
-
-.map-item {
-    background: #24252c;
-    padding: 15px;
-    border-radius: 9px;
-}
-
-.map-item strong {
-    display: block;
-    margin-bottom: 8px;
-}
-
-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 14px;
-}
-
-th, td {
-    padding: 13px 9px;
-    text-align: left;
-    border-bottom: 1px solid #303139;
-}
-
-th {
-    color: #999;
-}
-
-.win {
-    color: #5bd69a;
-}
-
-.loss {
-    color: #ff6868;
-}
-
-.empty {
-    text-align: center;
-    color: #999;
-    padding: 25px;
-}
-
-.status {
-    margin: 15px auto;
-    color: #ffb18e;
+.status{
+    margin:15px auto;
+    color:#ffb18e;
 }
 
 /* DEMO ANALYSIS */
 
-.demo-panel {
-    border-color: #493126;
+.demo-panel{border-color:#493126}
+
+.demo-description{
+    color:#92939b;
+    line-height:1.6;
 }
 
-.demo-description {
-    color: #92939b;
-    line-height: 1.6;
+.demo-upload{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    flex-wrap:wrap;
 }
 
-.demo-upload {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
+.demo-file{
+    display:block;
+    flex:1;
+    min-width:220px;
+    padding:13px;
+    background:#202127;
+    border:1px dashed #555660;
+    border-radius:9px;
+    color:#ccc;
 }
 
-.demo-file {
-    display: block;
-    flex: 1;
-    min-width: 220px;
-    padding: 13px;
-    background: #202127;
-    border: 1px dashed #555660;
-    border-radius: 9px;
-    color: #ccc;
+.demo-file input{
+    width:100%;
+    padding:0;
+    border:0;
+    background:transparent;
 }
 
-.demo-file input {
-    width: 100%;
-    padding: 0;
-    border: 0;
-    background: transparent;
+.demo-status{
+    margin-top:17px;
+    color:#ffb18e;
+    line-height:1.5;
 }
 
-.demo-status {
-    margin-top: 17px;
-    color: #ffb18e;
-    line-height: 1.5;
+.demo-summary{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:12px;
+    margin:20px 0;
 }
 
-.demo-summary {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-    margin: 20px 0;
+.demo-stat{
+    background:#24252c;
+    padding:15px;
+    border-radius:9px;
 }
 
-.demo-stat {
-    background: #24252c;
-    padding: 15px;
-    border-radius: 9px;
+.demo-stat small{color:#999}
+
+.demo-stat strong{
+    display:block;
+    font-size:20px;
+    margin-top:8px;
 }
 
-.demo-stat small {
-    color: #999;
+.demo-table-wrap{overflow-x:auto}
+.demo-table{min-width:650px}
+
+.demo-player{
+    color:#ff9a70;
+    font-weight:bold;
 }
 
-.demo-stat strong {
-    display: block;
-    font-size: 20px;
-    margin-top: 8px;
-}
-
-.demo-table-wrap {
-    overflow-x: auto;
-}
-
-.demo-table {
-    min-width: 650px;
-}
-
-.demo-player {
-    color: #ff9a70;
-    font-weight: bold;
-}
-
-.demo-note {
-    color: #92939b;
-    font-size: 13px;
-    line-height: 1.5;
-    margin-top: 15px;
+.demo-note{
+    color:#92939b;
+    font-size:13px;
+    line-height:1.5;
+    margin-top:15px;
 }
 
 /* REPLAY PLAYER */
 
-.replay-panel {
-    border-color: #68402e;
+.replay-panel{border-color:#68402e}
+
+.replay-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+    flex-wrap:wrap;
 }
 
-.replay-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
+.replay-badge{
+    color:#ff7138;
+    font-weight:bold;
+    font-size:12px;
 }
 
-.replay-badge {
-    color: #ff7138;
-    font-weight: bold;
-    font-size: 12px;
+.replay-stage{
+    width:100%;
+    height:440px;
+    overflow:hidden;
+    position:relative;
+    background:#090b10;
+    border:1px solid #353640;
+    border-radius:12px;
+    margin-top:18px;
 }
 
-.replay-stage {
-    width: 100%;
-    height: 440px;
-    overflow: hidden;
-    position: relative;
-    background: #090b10;
-    border: 1px solid #353640;
-    border-radius: 12px;
-    margin-top: 18px;
+#replay3d{
+    width:100%;
+    height:100%;
 }
 
-#replay3d {
-    width: 100%;
-    height: 100%;
+#replay3d canvas{
+    width:100%;
+    height:100%;
 }
 
-#replay3d canvas {
-    width: 100%;
-    height: 100%;
+.replay-overlay{
+    position:absolute;
+    left:15px;
+    top:14px;
+    background:rgba(0,0,0,.7);
+    border:1px solid #444;
+    border-radius:8px;
+    padding:10px 14px;
+    font-size:13px;
+    pointer-events:none;
 }
 
-.replay-overlay {
-    position: absolute;
-    left: 15px;
-    top: 14px;
-    background: rgba(0,0,0,.7);
-    border: 1px solid #444;
-    border-radius: 8px;
-    padding: 10px 14px;
-    font-size: 13px;
-    pointer-events: none;
+.replay-controls{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-top:17px;
 }
 
-.replay-controls {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-top: 17px;
+.replay-controls button{padding:12px 18px}
+.replay-controls select{padding:11px}
+
+.replay-timeline{
+    width:100%;
+    margin-top:15px;
+    accent-color:#ff7138;
+    cursor:pointer;
 }
 
-.replay-controls button {
-    padding: 12px 18px;
+.replay-info{
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    flex-wrap:wrap;
+    color:#999;
+    font-size:13px;
 }
 
-.replay-controls select {
-    padding: 11px;
+.replay-note{
+    color:#999;
+    font-size:13px;
+    line-height:1.6;
+    margin-top:16px;
 }
 
-.replay-timeline {
-    width: 100%;
-    margin-top: 15px;
-    accent-color: #ff7138;
-    cursor: pointer;
-}
+.player-table{min-width:550px}
+.team-t{color:#ff9a70}
+.team-ct{color:#70aaff}
 
-.replay-info {
-    display: flex;
-    justify-content: space-between;
-    gap: 10px;
-    flex-wrap: wrap;
-    color: #999;
-    font-size: 13px;
-}
-
-.replay-note {
-    color: #999;
-    font-size: 13px;
-    line-height: 1.6;
-    margin-top: 16px;
-}
-
-.player-table {
-    min-width: 550px;
-}
-
-.team-t {
-    color: #ff9a70;
-}
-
-.team-ct {
-    color: #70aaff;
-}
-
-@media(max-width:700px) {
-    .grid {
-        grid-template-columns: repeat(2, 1fr);
+@media(max-width:700px){
+    .grid{grid-template-columns:repeat(2,1fr)}
+    .map-list{grid-template-columns:repeat(2,1fr)}
+    h1{font-size:29px}
+    .search{flex-direction:column}
+    .profile{align-items:flex-start}
+    table{font-size:12px}
+    th,td{padding:9px 5px}
+    .demo-summary{grid-template-columns:1fr}
+    .demo-upload{
+        flex-direction:column;
+        align-items:stretch;
     }
-
-    .map-list {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    h1 {
-        font-size: 29px;
-    }
-
-    .search {
-        flex-direction: column;
-    }
-
-    .profile {
-        align-items: flex-start;
-    }
-
-    table {
-        font-size: 12px;
-    }
-
-    th, td {
-        padding: 9px 5px;
-    }
-
-    .demo-summary {
-        grid-template-columns: 1fr;
-    }
-
-    .demo-upload {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .demo-file {
-        min-width: 0;
-    }
-
-    .replay-stage {
-        height: 330px;
-    }
+    .demo-file{min-width:0}
+    .replay-stage{height:330px}
 }
 </style>
 </head>
@@ -599,9 +508,7 @@ th {
     <div class="replay-header">
         <div>
             <h3>Просмотр демо CS2</h3>
-            <div class="replay-badge">
-                DEMOSCOPE REPLAY
-            </div>
+            <div class="replay-badge">DEMOSCOPE REPLAY</div>
         </div>
 
         <span id="replayMap" class="level">—</span>
@@ -618,21 +525,15 @@ th {
 
     <div class="replay-controls">
 
-        <button onclick="stepReplay(-1)" title="Назад на один тик">
-            ◀
-        </button>
+        <button onclick="stepReplay(-1)" title="Назад на один тик">◀</button>
 
         <button id="playButton" onclick="playReplay()">
             ▶ Воспроизвести
         </button>
 
-        <button onclick="pauseReplay()">
-            ⏸ Пауза
-        </button>
+        <button onclick="pauseReplay()">⏸ Пауза</button>
 
-        <button onclick="stepReplay(1)" title="Вперёд на один тик">
-            ▶
-        </button>
+        <button onclick="stepReplay(1)" title="Вперёд на один тик">▶</button>
 
         <select id="replaySpeed" title="Скорость воспроизведения">
             <option value="0.25">0.25x</option>
@@ -674,12 +575,13 @@ th {
                     <th>X</th>
                     <th>Y</th>
                     <th>Z</th>
+                    <th>Yaw</th>
                 </tr>
             </thead>
 
             <tbody id="replayPlayers">
                 <tr>
-                    <td colspan="6" class="empty">
+                    <td colspan="7" class="empty">
                         Загрузи демку
                     </td>
                 </tr>
@@ -688,10 +590,11 @@ th {
     </div>
 
     <p class="replay-note">
-        Это экспериментальный 3D-просмотр позиций игроков.
-        Геометрия оригинальных карт и модели CS2 пока не подключены.
-        Для полноценной 3D-реконструкции потребуется отдельный набор игровых ресурсов.
-        Перемещение камеры: зажми мышь и двигай её. Колесо мыши меняет масштаб.
+        Над маркерами отображаются ники, стрелки показывают направление взгляда.
+        Оранжевые маркеры — T, синие — CT. Геометрия оригинальных карт
+        и модели CS2 пока не подключены. Если демка не содержит user commands,
+        стрелки направления могут отсутствовать. Перемещение камеры: зажми мышь
+        и двигай её. Колесо мыши меняет масштаб.
     </p>
 
 </section>
@@ -1409,7 +1312,8 @@ async function startReplayFromUrl(replayUrl, mapName) {
         throw new Error("В библиотеке не найдена функция Player.");
     }
 
-    $("demoStatus").textContent = "Получаем распакованную демку с сервера...";
+    $("demoStatus").textContent =
+        "Получаем распакованную демку с сервера...";
 
     const response = await fetch(replayUrl);
 
@@ -1445,7 +1349,7 @@ async function startReplayFromUrl(replayUrl, mapName) {
         $("replayTimeline").value = 0;
         replayMapTransform = null;
 
-        // Сначала показываем панель, чтобы браузер рассчитал её размеры.
+        // Показываем окно до создания Three.js сцены.
         $("replayPanel").classList.remove("hidden");
 
         await new Promise(resolve => {
@@ -1454,7 +1358,6 @@ async function startReplayFromUrl(replayUrl, mapName) {
             });
         });
 
-        // Создаём сцену уже с известной шириной и высотой.
         init3DScene();
         resize3D();
         updateReplayState();
@@ -1637,7 +1540,7 @@ function vectorValue(value) {
 function getPawnPosition(pawn) {
     if (!pawn) return null;
 
-    // CS2 хранит позицию как индекс ячейки и смещение внутри неё.
+    // Позиция CS2: индекс ячейки + смещение внутри ячейки.
     const prefix = "CBodyComponent.m_skeletonInstance.m_vecOrigin";
     const CELL_SIZE = 512;
 
@@ -1686,6 +1589,53 @@ function getReplayPlayers() {
 
     if (!demo) return [];
 
+    // Deadem: user command slot N связан с контроллером entity N + 1.
+    const viewAnglesByName = new Map();
+
+    try {
+        const commands = demo.getUserCommands?.() || [];
+
+        for (const command of commands) {
+            const slot = Number(command?.slot);
+
+            if (!Number.isFinite(slot)) continue;
+
+            const controller = demo.getEntity(slot + 1);
+
+            if (!controller) continue;
+
+            const name = safeGet(
+                controller,
+                "m_iszPlayerName"
+            );
+
+            const angles = command?.state?.base?.viewangles;
+
+            if (!name || !angles) continue;
+
+            // QAngle: x — pitch, y — yaw.
+            const pitch = Number(
+                angles.x ?? angles.pitch ?? angles[0]
+            );
+
+            const yaw = Number(
+                angles.y ?? angles.yaw ?? angles[1]
+            );
+
+            if (Number.isFinite(yaw)) {
+                viewAnglesByName.set(String(name), {
+                    pitch: Number.isFinite(pitch) ? pitch : 0,
+                    yaw
+                });
+            }
+        }
+    } catch (error) {
+        console.warn(
+            "Не удалось получить направления взгляда игроков:",
+            error
+        );
+    }
+
     const controllers = demo.getEntitiesByClassName(
         "CCSPlayerController"
     );
@@ -1693,7 +1643,10 @@ function getReplayPlayers() {
     const result = [];
 
     for (const controller of controllers) {
-        const name = safeGet(controller, "m_iszPlayerName");
+        const name = safeGet(
+            controller,
+            "m_iszPlayerName"
+        );
 
         if (!name) continue;
 
@@ -1717,20 +1670,25 @@ function getReplayPlayers() {
             }
         } catch {}
 
-        const health = Number(
+        const healthValue =
             safeGet(pawn, "m_iHealth") ??
-            safeGet(controller, "m_iPawnHealth")
-        );
+            safeGet(controller, "m_iPawnHealth");
+
+        const health = Number(healthValue);
 
         const position = pawn
             ? getPawnPosition(pawn)
             : null;
 
+        const viewAngles =
+            viewAnglesByName.get(String(name)) || null;
+
         result.push({
             name: String(name),
             team,
             health: Number.isFinite(health) ? health : null,
-            position
+            position,
+            viewAngles
         });
     }
 
@@ -1780,7 +1738,7 @@ function renderReplayPlayers(players) {
     if (!players.length) {
         body.innerHTML = `
             <tr>
-                <td colspan="6" class="empty">
+                <td colspan="7" class="empty">
                     Игроки пока не найдены.
                 </td>
             </tr>
@@ -1813,6 +1771,10 @@ function renderReplayPlayers(players) {
             ? number(player.position.z, 0)
             : "—";
 
+        const yaw = player.viewAngles
+            ? number(player.viewAngles.yaw, 1) + "°"
+            : "—";
+
         return `
             <tr>
                 <td class="${teamClass}">
@@ -1825,6 +1787,7 @@ function renderReplayPlayers(players) {
                 <td>${x}</td>
                 <td>${y}</td>
                 <td>${z}</td>
+                <td>${yaw}</td>
             </tr>
         `;
     }).join("");
@@ -1904,13 +1867,11 @@ function init3DScene() {
     threeScene.add(light);
 
     cameraTheta = Math.PI / 4;
-    cameraPhi = 0.95;
+    cameraPhi = 1.0;
     cameraRadius = 85;
 
     updateCamera();
-
     addCameraControls(container);
-
     animate3D();
 }
 
@@ -1994,6 +1955,124 @@ function animate3D() {
     );
 }
 
+// ================================
+// PLAYER LABELS AND MODELS
+// ================================
+
+function createPlayerNameLabel(name, color) {
+    const canvas = document.createElement("canvas");
+
+    canvas.width = 512;
+    canvas.height = 128;
+
+    const ctx = canvas.getContext("2d");
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = "rgba(8, 10, 15, 0.88)";
+
+    ctx.beginPath();
+    ctx.roundRect(10, 18, 492, 92, 18);
+    ctx.fill();
+
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 5;
+    ctx.stroke();
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 42px Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    let label = String(name || "Player");
+
+    if (label.length > 20) {
+        label = label.slice(0, 19) + "…";
+    }
+
+    ctx.fillText(label, 256, 65, 460);
+
+    const texture = new THREE.CanvasTexture(canvas);
+
+    texture.minFilter = THREE.LinearFilter;
+
+    const material = new THREE.SpriteMaterial({
+        map: texture,
+        transparent: true,
+        depthTest: false
+    });
+
+    const sprite = new THREE.Sprite(material);
+
+    sprite.scale.set(8.5, 2.15, 1);
+    sprite.renderOrder = 5;
+
+    return sprite;
+}
+
+function createPlayerVisual(player) {
+    const color = player.team === 2
+        ? 0xff7138
+        : 0x438cff;
+
+    const group = new THREE.Group();
+
+    // Player marker
+    const geometry = new THREE.CylinderGeometry(
+        1.25,
+        1.25,
+        0.45,
+        20
+    );
+
+    const material = new THREE.MeshStandardMaterial({
+        color,
+        roughness: 0.45,
+        emissive: color,
+        emissiveIntensity: 0.12
+    });
+
+    const marker = new THREE.Mesh(
+        geometry,
+        material
+    );
+
+    group.add(marker);
+
+    // Player name
+    const label = createPlayerNameLabel(
+        player.name,
+        player.team === 2 ? "#ff7138" : "#438cff"
+    );
+
+    group.add(label);
+
+    // View direction arrow
+    const arrow = new THREE.ArrowHelper(
+        new THREE.Vector3(1, 0, 0),
+        new THREE.Vector3(0, 0.7, 0),
+        5.5,
+        color,
+        1.5,
+        0.85
+    );
+
+    arrow.line.material.depthTest = false;
+    arrow.cone.material.depthTest = false;
+    arrow.renderOrder = 4;
+
+    group.add(arrow);
+
+    threeScene.add(group);
+
+    return {
+        group,
+        marker,
+        label,
+        arrow
+    };
+}
+
 function update3DPlayers(players) {
     if (!threeScene) return;
 
@@ -2004,14 +2083,15 @@ function update3DPlayers(players) {
         Number.isFinite(player.position.z)
     );
 
-    for (const mesh of playerMeshes.values()) {
-        mesh.visible = false;
+    // Hide markers that are not currently active.
+    for (const visual of playerMeshes.values()) {
+        visual.group.visible = false;
     }
 
     if (!validPlayers.length) return;
 
-    // Один раз задаём центр координат для этой демки.
-    // Благодаря этому точки не будут прыгать при каждом тике.
+    // Keep one coordinate origin for the entire replay,
+    // so markers do not shift as players move.
     if (!replayMapTransform) {
         const centerX = validPlayers.reduce(
             (sum, player) => sum + player.position.x,
@@ -2030,51 +2110,56 @@ function update3DPlayers(players) {
         };
     }
 
-    const { centerX, centerY, scale } = replayMapTransform;
+    const {
+        centerX,
+        centerY,
+        scale
+    } = replayMapTransform;
 
     for (const player of validPlayers) {
         const id = player.name;
 
-        let mesh = playerMeshes.get(id);
+        let visual = playerMeshes.get(id);
 
-        if (!mesh) {
-            const geometry = new THREE.CylinderGeometry(
-                1.25,
-                1.25,
-                0.45,
-                20
-            );
-
-            const color = player.team === 2
-                ? 0xff7138
-                : 0x438cff;
-
-            const material = new THREE.MeshStandardMaterial({
-                color,
-                roughness: 0.45,
-                emissive: color,
-                emissiveIntensity: 0.12
-            });
-
-            mesh = new THREE.Mesh(
-                geometry,
-                material
-            );
-
-            threeScene.add(mesh);
-
-            playerMeshes.set(id, mesh);
+        if (!visual) {
+            visual = createPlayerVisual(player);
+            playerMeshes.set(id, visual);
         }
 
-        // X/Y — координаты на карте. Z — высота.
-        // Маркеры намеренно лежат на поверхности платформы.
-        mesh.position.set(
-            (player.position.x - centerX) * scale,
-            0.28,
-            (player.position.y - centerY) * scale
-        );
+        const x =
+            (player.position.x - centerX) * scale;
 
-        mesh.visible = true;
+        const z =
+            (player.position.y - centerY) * scale;
+
+        // Keep the markers on the platform.
+        visual.group.position.set(x, 0, z);
+        visual.group.visible = true;
+
+        visual.label.position.set(0, 3.3, 0);
+        visual.marker.position.set(0, 0.28, 0);
+
+        // Source 2 QAngle: x = pitch, y = yaw.
+        if (
+            player.viewAngles &&
+            Number.isFinite(player.viewAngles.yaw)
+        ) {
+            const yawRadians =
+                player.viewAngles.yaw * Math.PI / 180;
+
+            const direction = new THREE.Vector3(
+                Math.cos(yawRadians),
+                0,
+                Math.sin(yawRadians)
+            ).normalize();
+
+            visual.arrow.position.set(0, 0.75, 0);
+            visual.arrow.setDirection(direction);
+            visual.arrow.visible = true;
+
+        } else {
+            visual.arrow.visible = false;
+        }
     }
 }
 
@@ -2097,7 +2182,7 @@ function resize3D() {
 }
 
 // ================================
-// KEYBOARD
+// KEYBOARD AND RESIZE
 // ================================
 
 $("nickname").addEventListener("keydown", event => {
