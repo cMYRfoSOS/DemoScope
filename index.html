@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -6,310 +5,473 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DemoScope — FACEIT Analytics</title>
 
+<!-- CS2 DEMO PLAYER -->
+<script src="https://cdn.jsdelivr.net/npm/@deademx/cs2@5.0.0/dist/deadem-cs2.min.js"></script>
+
+<!-- THREE.JS -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
+
 <style>
-*{box-sizing:border-box}
-
-body{
- margin:0;
- background:#101114;
- color:#f2f2f2;
- font-family:Arial,sans-serif;
+* {
+    box-sizing: border-box;
 }
 
-header{
- padding:22px 7%;
- border-bottom:1px solid #292a30;
- display:flex;
- justify-content:space-between;
- align-items:center;
+body {
+    margin: 0;
+    background: #101114;
+    color: #f2f2f2;
+    font-family: Arial, sans-serif;
 }
 
-.logo{
- font-size:25px;
- font-weight:bold;
- color:#ff7138;
+header {
+    padding: 22px 7%;
+    border-bottom: 1px solid #292a30;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
-.logo span{color:white}
-
-.container{
- max-width:1150px;
- margin:35px auto;
- padding:0 20px;
+.logo {
+    font-size: 25px;
+    font-weight: bold;
+    color: #ff7138;
 }
 
-.hero{
- text-align:center;
- margin:45px 0;
+.logo span {
+    color: white;
 }
 
-h1{
- font-size:38px;
- margin-bottom:10px;
+.container {
+    max-width: 1200px;
+    margin: 35px auto;
+    padding: 0 20px;
 }
 
-.muted{color:#92939b}
-
-.search{
- display:flex;
- max-width:650px;
- margin:25px auto;
- gap:10px;
+.hero {
+    text-align: center;
+    margin: 45px 0;
 }
 
-input{
- flex:1;
- min-width:0;
- background:#202127;
- border:1px solid #383941;
- color:white;
- padding:16px;
- border-radius:9px;
- font-size:15px;
+h1 {
+    font-size: 38px;
+    margin-bottom: 10px;
 }
 
-button{
- background:#ff7138;
- border:0;
- color:#111;
- font-weight:bold;
- padding:15px 23px;
- border-radius:9px;
- cursor:pointer;
+h3 {
+    margin-top: 0;
 }
 
-button:hover{background:#ff8a5c}
-button:disabled{opacity:.5;cursor:wait}
-
-.panel{
- background:#191a20;
- border:1px solid #292a32;
- border-radius:13px;
- padding:22px;
- margin:20px 0;
+.muted {
+    color: #92939b;
 }
 
-.hidden{display:none}
-
-.profile{
- display:flex;
- align-items:center;
- gap:18px;
+.search {
+    display: flex;
+    max-width: 650px;
+    margin: 25px auto;
+    gap: 10px;
 }
 
-.avatar{
- width:76px;
- height:76px;
- border-radius:50%;
- background:#30313a;
- object-fit:cover;
+input,
+select {
+    background: #202127;
+    border: 1px solid #383941;
+    color: white;
+    padding: 14px;
+    border-radius: 9px;
 }
 
-.profile h2{margin:0 0 8px}
-
-.level{
- color:#ff7138;
- font-weight:bold;
+input {
+    min-width: 0;
 }
 
-.grid{
- display:grid;
- grid-template-columns:repeat(4,1fr);
- gap:14px;
- margin:18px 0;
+.search input {
+    flex: 1;
 }
 
-.metric{
- background:#191a20;
- border:1px solid #292a32;
- border-radius:12px;
- padding:19px;
+button {
+    background: #ff7138;
+    border: 0;
+    color: #111;
+    font-weight: bold;
+    padding: 14px 22px;
+    border-radius: 9px;
+    cursor: pointer;
 }
 
-.metric small{color:#92939b}
-
-.metric strong{
- display:block;
- font-size:27px;
- margin-top:10px;
+button:hover {
+    background: #ff8a5c;
 }
 
-h3{margin-top:0}
-
-.section-title{
- display:flex;
- justify-content:space-between;
- align-items:center;
- gap:12px;
- flex-wrap:wrap;
+button:disabled {
+    opacity: .5;
+    cursor: wait;
 }
 
-select{
- background:#25262d;
- color:white;
- border:1px solid #41424b;
- padding:9px;
- border-radius:7px;
+.panel {
+    background: #191a20;
+    border: 1px solid #292a32;
+    border-radius: 13px;
+    padding: 22px;
+    margin: 20px 0;
 }
 
-.chart-wrap{
- height:260px;
- position:relative;
- width:100%;
+.hidden {
+    display: none !important;
 }
 
-canvas{
- display:block;
- width:100%;
- height:100%;
+.profile {
+    display: flex;
+    align-items: center;
+    gap: 18px;
 }
 
-table{
- width:100%;
- border-collapse:collapse;
- font-size:14px;
+.avatar {
+    width: 76px;
+    height: 76px;
+    border-radius: 50%;
+    background: #30313a;
+    object-fit: cover;
 }
 
-th,td{
- padding:13px 9px;
- text-align:left;
- border-bottom:1px solid #303139;
+.level {
+    color: #ff7138;
+    font-weight: bold;
 }
 
-th{color:#999}
-.win{color:#5bd69a}
-.loss{color:#ff6868}
-
-.map-list{
- display:grid;
- grid-template-columns:repeat(3,1fr);
- gap:12px;
+.grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin: 18px 0;
 }
 
-.map-item{
- background:#24252c;
- padding:15px;
- border-radius:9px;
+.metric {
+    background: #191a20;
+    border: 1px solid #292a32;
+    border-radius: 12px;
+    padding: 19px;
 }
 
-.map-item strong{
- display:block;
- margin-bottom:8px;
+.metric small {
+    color: #92939b;
 }
 
-.status{
- margin:15px auto;
- color:#ffb18e;
+.metric strong {
+    display: block;
+    font-size: 27px;
+    margin-top: 10px;
 }
 
-.empty{
- text-align:center;
- color:#999;
- padding:25px;
+.section-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.chart-wrap {
+    height: 260px;
+    position: relative;
+    width: 100%;
+}
+
+canvas {
+    display: block;
+}
+
+#eloChart {
+    width: 100%;
+    height: 100%;
+}
+
+.map-list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+.map-item {
+    background: #24252c;
+    padding: 15px;
+    border-radius: 9px;
+}
+
+.map-item strong {
+    display: block;
+    margin-bottom: 8px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+th, td {
+    padding: 13px 9px;
+    text-align: left;
+    border-bottom: 1px solid #303139;
+}
+
+th {
+    color: #999;
+}
+
+.win {
+    color: #5bd69a;
+}
+
+.loss {
+    color: #ff6868;
+}
+
+.empty {
+    text-align: center;
+    color: #999;
+    padding: 25px;
+}
+
+.status {
+    margin: 15px auto;
+    color: #ffb18e;
 }
 
 /* DEMO ANALYSIS */
 
-.demo-panel{
- border-color:#493126;
+.demo-panel {
+    border-color: #493126;
 }
 
-.demo-description{
- color:#92939b;
- line-height:1.6;
- margin-bottom:20px;
+.demo-description {
+    color: #92939b;
+    line-height: 1.6;
 }
 
-.demo-upload{
- display:flex;
- align-items:center;
- gap:12px;
- flex-wrap:wrap;
+.demo-upload {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
 }
 
-.demo-file{
- display:block;
- flex:1;
- min-width:220px;
- padding:13px;
- background:#202127;
- border:1px dashed #555660;
- border-radius:9px;
- color:#ccc;
+.demo-file {
+    display: block;
+    flex: 1;
+    min-width: 220px;
+    padding: 13px;
+    background: #202127;
+    border: 1px dashed #555660;
+    border-radius: 9px;
+    color: #ccc;
 }
 
-.demo-file input{
- display:block;
- width:100%;
- padding:0;
- border:0;
- background:transparent;
+.demo-file input {
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
 }
 
-.demo-status{
- margin-top:17px;
- color:#ffb18e;
- line-height:1.5;
+.demo-status {
+    margin-top: 17px;
+    color: #ffb18e;
+    line-height: 1.5;
 }
 
-.demo-summary{
- display:grid;
- grid-template-columns:repeat(3,1fr);
- gap:12px;
- margin:20px 0;
+.demo-summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin: 20px 0;
 }
 
-.demo-stat{
- background:#24252c;
- padding:15px;
- border-radius:9px;
+.demo-stat {
+    background: #24252c;
+    padding: 15px;
+    border-radius: 9px;
 }
 
-.demo-stat small{
- color:#999;
+.demo-stat small {
+    color: #999;
 }
 
-.demo-stat strong{
- display:block;
- font-size:20px;
- margin-top:8px;
+.demo-stat strong {
+    display: block;
+    font-size: 20px;
+    margin-top: 8px;
 }
 
-.demo-table-wrap{
- overflow-x:auto;
+.demo-table-wrap {
+    overflow-x: auto;
 }
 
-.demo-table{
- min-width:650px;
+.demo-table {
+    min-width: 650px;
 }
 
-.demo-table tr:first-child td{
- border-top:1px solid #303139;
+.demo-player {
+    color: #ff9a70;
+    font-weight: bold;
 }
 
-.demo-player{
- color:#ff9a70;
- font-weight:bold;
+.demo-note {
+    color: #92939b;
+    font-size: 13px;
+    line-height: 1.5;
+    margin-top: 15px;
 }
 
-.demo-note{
- color:#92939b;
- font-size:13px;
- line-height:1.5;
- margin-top:15px;
+/* REPLAY PLAYER */
+
+.replay-panel {
+    border-color: #68402e;
 }
 
-@media(max-width:700px){
- .grid{grid-template-columns:repeat(2,1fr)}
- .map-list{grid-template-columns:repeat(2,1fr)}
- h1{font-size:29px}
- .search{flex-direction:column}
- .profile{align-items:flex-start}
- table{font-size:12px}
- th,td{padding:9px 5px}
- .demo-summary{grid-template-columns:1fr}
- .demo-upload{flex-direction:column;align-items:stretch}
- .demo-file{min-width:0}
+.replay-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.replay-badge {
+    color: #ff7138;
+    font-weight: bold;
+    font-size: 12px;
+}
+
+.replay-stage {
+    width: 100%;
+    height: 440px;
+    overflow: hidden;
+    position: relative;
+    background: #090b10;
+    border: 1px solid #353640;
+    border-radius: 12px;
+    margin-top: 18px;
+}
+
+#replay3d {
+    width: 100%;
+    height: 100%;
+}
+
+#replay3d canvas {
+    width: 100%;
+    height: 100%;
+}
+
+.replay-overlay {
+    position: absolute;
+    left: 15px;
+    top: 14px;
+    background: rgba(0,0,0,.7);
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    pointer-events: none;
+}
+
+.replay-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 17px;
+}
+
+.replay-controls button {
+    padding: 12px 18px;
+}
+
+.replay-controls select {
+    padding: 11px;
+}
+
+.replay-timeline {
+    width: 100%;
+    margin-top: 15px;
+    accent-color: #ff7138;
+    cursor: pointer;
+}
+
+.replay-info {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+    color: #999;
+    font-size: 13px;
+}
+
+.replay-note {
+    color: #999;
+    font-size: 13px;
+    line-height: 1.6;
+    margin-top: 16px;
+}
+
+.player-table {
+    min-width: 450px;
+}
+
+.team-t {
+    color: #ff9a70;
+}
+
+.team-ct {
+    color: #70aaff;
+}
+
+@media(max-width:700px) {
+    .grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .map-list {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    h1 {
+        font-size: 29px;
+    }
+
+    .search {
+        flex-direction: column;
+    }
+
+    .profile {
+        align-items: flex-start;
+    }
+
+    table {
+        font-size: 12px;
+    }
+
+    th, td {
+        padding: 9px 5px;
+    }
+
+    .demo-summary {
+        grid-template-columns: 1fr;
+    }
+
+    .demo-upload {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .demo-file {
+        min-width: 0;
+    }
+
+    .replay-stage {
+        height: 330px;
+    }
 }
 </style>
 </head>
@@ -317,784 +479,1585 @@ th{color:#999}
 <body>
 
 <header>
- <div class="logo">DEMO<span>SCOPE</span></div>
- <div class="muted">FACEIT Analytics</div>
+    <div class="logo">DEMO<span>SCOPE</span></div>
+    <div class="muted">FACEIT Analytics</div>
 </header>
 
 <main class="container">
 
 <section class="hero">
- <h1>Анализируй свою игру</h1>
- <p class="muted">
-  Статистика FACEIT, Elo, матчи и карты в одном месте
- </p>
+    <h1>Анализируй свою игру</h1>
 
- <div class="search">
-  <input id="nickname" placeholder="Введи ник или ссылку на FACEIT">
-  <button id="searchBtn" onclick="searchPlayer()">
-   Найти профиль
-  </button>
- </div>
+    <p class="muted">
+        FACEIT, Elo, матчи и анализ демок CS2
+    </p>
 
- <div id="status" class="status"></div>
+    <div class="search">
+        <input
+            id="nickname"
+            placeholder="Введи ник или ссылку на FACEIT"
+        >
+
+        <button id="searchBtn" onclick="searchPlayer()">
+            Найти профиль
+        </button>
+    </div>
+
+    <div id="status" class="status"></div>
 </section>
 
-<!-- АНАЛИЗ ДЕМО -->
+<!-- DEMO UPLOAD -->
 
 <section class="panel demo-panel">
- <div class="section-title">
-  <h3>Анализ демо CS2</h3>
-  <span class="level">DEMOSCOPE ANALYZER</span>
- </div>
 
- <p class="demo-description">
-  Загрузи демо матча CS2 в формате .dem или .dem.zst.
-  DemoScope обработает файл и покажет статистику игроков.
- </p>
+    <div class="section-title">
+        <h3>Анализ демо CS2</h3>
+        <span class="level">DEMOSCOPE ANALYZER</span>
+    </div>
 
- <div class="demo-upload">
-  <label class="demo-file">
-   <input
-    type="file"
-    id="demoFile"
-    accept=".dem,.dem.zst"
-   >
-  </label>
+    <p class="demo-description">
+        Загрузи демо CS2 в формате .dem или .dem.zst.
+        Получи статистику и открой интерактивный просмотр повтора.
+    </p>
 
-  <button id="demoUploadBtn" onclick="uploadDemo()">
-   Анализировать демо
-  </button>
- </div>
+    <div class="demo-upload">
+        <label class="demo-file">
+            <input
+                type="file"
+                id="demoFile"
+                accept=".dem,.dem.zst"
+            >
+        </label>
 
- <div id="demoStatus" class="demo-status"></div>
+        <button
+            id="demoUploadBtn"
+            onclick="uploadDemo()"
+        >
+            Анализировать демо
+        </button>
+    </div>
 
- <div id="demoResults" class="hidden">
+    <div id="demoStatus" class="demo-status"></div>
 
-  <div class="demo-summary">
-   <div class="demo-stat">
-    <small>Карта</small>
-    <strong id="demoMap">—</strong>
-   </div>
+    <div id="demoResults" class="hidden">
 
-   <div class="demo-stat">
-    <small>Игроков найдено</small>
-    <strong id="demoPlayerCount">—</strong>
-   </div>
+        <div class="demo-summary">
 
-   <div class="demo-stat">
-    <small>Событий обработано</small>
-    <strong id="demoEventCount">—</strong>
-   </div>
-  </div>
+            <div class="demo-stat">
+                <small>Карта</small>
+                <strong id="demoMap">—</strong>
+            </div>
 
-  <h3>Статистика игроков</h3>
+            <div class="demo-stat">
+                <small>Игроков найдено</small>
+                <strong id="demoPlayerCount">—</strong>
+            </div>
 
-  <div class="demo-table-wrap">
-   <table class="demo-table">
-    <thead>
-     <tr>
-      <th>#</th>
-      <th>Игрок</th>
-      <th>Убийства</th>
-      <th>Смерти</th>
-      <th>Ассисты</th>
-      <th>K/D</th>
-      <th>Урон</th>
-      <th>HS%</th>
-     </tr>
-    </thead>
+            <div class="demo-stat">
+                <small>Событий обработано</small>
+                <strong id="demoEventCount">—</strong>
+            </div>
 
-    <tbody id="demoPlayers">
-     <tr>
-      <td colspan="8" class="empty">
-       Здесь появится статистика демо
-      </td>
-     </tr>
-    </tbody>
-   </table>
-  </div>
+        </div>
 
-  <p class="demo-note" id="demoNote"></p>
- </div>
+        <h3>Статистика игроков</h3>
+
+        <div class="demo-table-wrap">
+            <table class="demo-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Игрок</th>
+                        <th>Убийства</th>
+                        <th>Смерти</th>
+                        <th>Ассисты</th>
+                        <th>K/D</th>
+                        <th>Урон</th>
+                        <th>HS%</th>
+                    </tr>
+                </thead>
+
+                <tbody id="demoPlayers">
+                    <tr>
+                        <td colspan="8" class="empty">
+                            Здесь появится статистика
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <p class="demo-note" id="demoNote"></p>
+
+    </div>
+</section>
+
+<!-- REPLAY VIEWER -->
+
+<section id="replayPanel" class="panel replay-panel hidden">
+
+    <div class="replay-header">
+        <div>
+            <h3>Просмотр демо CS2</h3>
+            <div class="replay-badge">
+                DEMOSCOPE REPLAY
+            </div>
+        </div>
+
+        <span id="replayMap" class="level">—</span>
+    </div>
+
+    <div class="replay-stage">
+        <div id="replay3d"></div>
+
+        <div class="replay-overlay">
+            <div id="replayTick">Тик: —</div>
+            <div id="replayTime">Время: 0:00</div>
+        </div>
+    </div>
+
+    <div class="replay-controls">
+
+        <button onclick="stepReplay(-1)" title="Назад на один тик">
+            ◀
+        </button>
+
+        <button id="playButton" onclick="playReplay()">
+            ▶ Воспроизвести
+        </button>
+
+        <button onclick="pauseReplay()">
+            ⏸ Пауза
+        </button>
+
+        <button onclick="stepReplay(1)" title="Вперёд на один тик">
+            ▶
+        </button>
+
+        <select id="replaySpeed" title="Скорость воспроизведения">
+            <option value="0.25">0.25x</option>
+            <option value="0.5">0.5x</option>
+            <option value="1" selected>1x</option>
+            <option value="2">2x</option>
+            <option value="4">4x</option>
+        </select>
+
+    </div>
+
+    <input
+        type="range"
+        id="replayTimeline"
+        class="replay-timeline"
+        min="0"
+        max="1000"
+        value="0"
+        oninput="previewReplayPosition()"
+        onchange="seekReplay()"
+    >
+
+    <div class="replay-info">
+        <span id="replayCurrent">0:00</span>
+        <span id="replayDuration">0:00</span>
+    </div>
+
+    <h3 style="margin-top:25px">
+        Игроки в текущем моменте
+    </h3>
+
+    <div class="demo-table-wrap">
+        <table class="player-table">
+            <thead>
+                <tr>
+                    <th>Игрок</th>
+                    <th>Команда</th>
+                    <th>Здоровье</th>
+                    <th>X</th>
+                    <th>Y</th>
+                </tr>
+            </thead>
+
+            <tbody id="replayPlayers">
+                <tr>
+                    <td colspan="5" class="empty">
+                        Загрузи демку
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <p class="replay-note">
+        Это экспериментальный 3D-просмотр позиций игроков.
+        Геометрия оригинальных карт и модели CS2 пока не подключены.
+        Для полноценной 3D-реконструкции потребуется отдельный набор игровых ресурсов.
+        Перемещение камеры: зажми мышь и двигай её. Колесо мыши меняет масштаб.
+    </p>
+
 </section>
 
 <!-- FACEIT PROFILE -->
 
 <div id="results" class="hidden">
 
-<section class="panel profile">
- <img id="avatar" class="avatar" src="" alt="">
- <div>
-  <h2 id="playerName">Игрок</h2>
-  <div class="muted" id="country"></div>
-  <div class="level" id="level"></div>
- </div>
-</section>
+    <section class="panel profile">
+        <img id="avatar" class="avatar" src="" alt="">
 
-<section class="grid">
- <div class="metric">
-  <small>Текущий Elo</small>
-  <strong id="elo">—</strong>
- </div>
+        <div>
+            <h2 id="playerName">Игрок</h2>
+            <div class="muted" id="country"></div>
+            <div class="level" id="level"></div>
+        </div>
+    </section>
 
- <div class="metric">
-  <small>Уровень FACEIT</small>
-  <strong id="skill">—</strong>
- </div>
+    <section class="grid">
 
- <div class="metric">
-  <small>Матчи в истории</small>
-  <strong id="matches">—</strong>
- </div>
+        <div class="metric">
+            <small>Текущий Elo</small>
+            <strong id="elo">—</strong>
+        </div>
 
- <div class="metric">
-  <small>Победы</small>
-  <strong id="winrate">—</strong>
- </div>
-</section>
+        <div class="metric">
+            <small>Уровень FACEIT</small>
+            <strong id="skill">—</strong>
+        </div>
 
-<section class="panel">
- <div class="section-title">
-  <h3>График Elo</h3>
+        <div class="metric">
+            <small>Матчи в истории</small>
+            <strong id="matches">—</strong>
+        </div>
 
-  <select id="eloRange" onchange="drawElo()">
-   <option value="30">Последние 30 матчей</option>
-   <option value="100">Последние 100 матчей</option>
-   <option value="300">Последние 300 матчей</option>
-  </select>
- </div>
+        <div class="metric">
+            <small>Победы</small>
+            <strong id="winrate">—</strong>
+        </div>
 
- <div class="chart-wrap">
-  <canvas id="eloChart"></canvas>
- </div>
+    </section>
 
- <p class="muted" id="eloNote">
-  Загружаем историю Elo...
- </p>
-</section>
+    <section class="panel">
 
-<section class="panel">
- <h3>Лучшая игра за неделю</h3>
- <div id="bestMatch" class="empty">
-  Нет доступных данных за неделю
- </div>
-</section>
+        <div class="section-title">
+            <h3>График Elo</h3>
 
-<section class="panel">
- <h3>Статистика по картам</h3>
- <div id="maps" class="map-list">
-  <div class="empty">Нет данных по картам</div>
- </div>
-</section>
+            <select id="eloRange" onchange="drawElo()">
+                <option value="30">Последние 30 матчей</option>
+                <option value="100">Последние 100 матчей</option>
+                <option value="300">Последние 300 матчей</option>
+            </select>
+        </div>
 
-<section class="panel">
- <h3>История матчей</h3>
+        <div class="chart-wrap">
+            <canvas id="eloChart"></canvas>
+        </div>
 
- <div style="overflow-x:auto">
-  <table>
-   <thead>
-    <tr>
-     <th>Дата</th>
-     <th>Результат</th>
-     <th>Карта</th>
-     <th>K/D</th>
-     <th>ADR</th>
-     <th>Elo</th>
-    </tr>
-   </thead>
+        <p class="muted" id="eloNote">
+            Загружаем историю Elo...
+        </p>
 
-   <tbody id="history">
-    <tr>
-     <td colspan="6" class="empty">
-      Матчи не найдены
-     </td>
-    </tr>
-   </tbody>
-  </table>
- </div>
-</section>
+    </section>
+
+    <section class="panel">
+        <h3>Лучшая игра за неделю</h3>
+
+        <div id="bestMatch" class="empty">
+            Нет доступных данных за неделю
+        </div>
+    </section>
+
+    <section class="panel">
+        <h3>Статистика по картам</h3>
+
+        <div id="maps" class="map-list">
+            <div class="empty">Нет данных по картам</div>
+        </div>
+    </section>
+
+    <section class="panel">
+        <h3>История матчей</h3>
+
+        <div style="overflow-x:auto">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Дата</th>
+                        <th>Результат</th>
+                        <th>Карта</th>
+                        <th>K/D</th>
+                        <th>ADR</th>
+                        <th>Elo</th>
+                    </tr>
+                </thead>
+
+                <tbody id="history">
+                    <tr>
+                        <td colspan="6" class="empty">
+                            Матчи не найдены
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
 
 </div>
+
 </main>
 
 <script>
 let currentData = null;
+let replayPlayer = null;
+let replayPlaying = false;
+let replayFirstTick = 0;
+let replayLastTick = 0;
+let replayUpdateTimer = null;
+
+let threeScene = null;
+let threeCamera = null;
+let threeRenderer = null;
+let playerMeshes = new Map();
+
+let cameraTheta = Math.PI / 4;
+let cameraPhi = 1.0;
+let cameraRadius = 85;
+
+let dragActive = false;
+let lastMouseX = 0;
+let lastMouseY = 0;
 
 const $ = id => document.getElementById(id);
 
-function showStatus(message){
- $("status").textContent = message;
+// ================================
+// ОБЩИЕ ФУНКЦИИ
+// ================================
+
+function escapeHTML(value) {
+    return String(value).replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+    }[char]));
 }
 
-function formatDate(value){
- if(!value) return "—";
-
- const date = new Date(value);
-
- return Number.isNaN(date.getTime())
-  ? "—"
-  : date.toLocaleDateString("ru-RU");
+function showStatus(message) {
+    $("status").textContent = message;
 }
 
-function number(value,digits=2){
- if(value === null || value === undefined || value === ""){
-  return "—";
- }
+function formatDate(value) {
+    if (!value) return "—";
 
- const n = Number(value);
+    const date = new Date(value);
 
- return Number.isFinite(n) ? n.toFixed(digits) : "—";
+    return Number.isNaN(date.getTime())
+        ? "—"
+        : date.toLocaleDateString("ru-RU");
 }
 
-function cleanNickname(value){
- value = value.trim();
+function number(value, digits = 2) {
+    if (value === null || value === undefined || value === "") {
+        return "—";
+    }
 
- try{
-  if(value.startsWith("http")){
-   const url = new URL(value);
-   const parts = url.pathname.split("/").filter(Boolean);
+    const n = Number(value);
 
-   return parts[parts.length-1] || "";
-  }
- }catch{}
-
- return value.replace(/^@/,"");
+    return Number.isFinite(n)
+        ? n.toFixed(digits)
+        : "—";
 }
 
-async function searchPlayer(){
- const nickname = cleanNickname($("nickname").value);
+function formatTime(seconds) {
+    seconds = Math.max(0, Math.floor(seconds || 0));
 
- if(!nickname){
-  showStatus("Введи ник FACEIT или ссылку на профиль.");
-  return;
- }
+    const minutes = Math.floor(seconds / 60);
+    const remaining = seconds % 60;
 
- $("searchBtn").disabled = true;
- $("results").classList.add("hidden");
-
- showStatus("Загружаем статистику FACEIT...");
-
- try{
-  const response = await fetch(
-   `/api/player/${encodeURIComponent(nickname)}/analytics`
-  );
-
-  const data = await response.json();
-
-  if(!response.ok){
-   throw new Error(
-    data.error || "Не удалось загрузить профиль."
-   );
-  }
-
-  currentData = data;
-
-  $("results").classList.remove("hidden");
-
-  render(data);
-
-  requestAnimationFrame(()=>{
-   drawElo();
-  });
-
-  showStatus("");
-
- }catch(error){
-  currentData = null;
-  showStatus("Ошибка: " + error.message);
-
- }finally{
-  $("searchBtn").disabled = false;
- }
+    return `${minutes}:${String(remaining).padStart(2, "0")}`;
 }
 
-function render(data){
- const p = data.player || {};
+function cleanNickname(value) {
+    value = value.trim();
 
- $("playerName").textContent = p.nickname || "Игрок";
+    try {
+        if (value.startsWith("http")) {
+            const url = new URL(value);
+            const parts = url.pathname.split("/").filter(Boolean);
 
- $("country").textContent = p.country
-  ? "Страна: " + p.country.toUpperCase()
-  : "";
+            return parts[parts.length - 1] || "";
+        }
+    } catch {}
 
- $("level").textContent = p.level
-  ? "FACEIT Level " + p.level
-  : "Уровень неизвестен";
-
- $("elo").textContent = p.elo ?? "—";
- $("skill").textContent = p.level ?? "—";
-
- if(p.avatar){
-  $("avatar").src = p.avatar;
- }else{
-  $("avatar").removeAttribute("src");
- }
-
- const matches = data.matches || [];
-
- const wins = matches.filter(
-  m=>m.result === "win"
- ).length;
-
- const known = matches.filter(
-  m=>m.result === "win" || m.result === "loss"
- ).length;
-
- $("matches").textContent = matches.length;
-
- $("winrate").textContent = known
-  ? Math.round(wins/known*100) + "%"
-  : "—";
-
- renderBest(data.bestMatch);
- renderMaps(data.maps || []);
- renderHistory(matches,data.matchStats || []);
-
- drawElo();
+    return value.replace(/^@/, "");
 }
 
-function renderBest(best){
- const box = $("bestMatch");
+// ================================
+// FACEIT SEARCH
+// ================================
 
- if(!best){
-  box.textContent = "Нет доступных данных за неделю.";
-  return;
- }
+async function searchPlayer() {
+    const nickname = cleanNickname($("nickname").value);
 
- box.innerHTML = `
-  <div class="grid">
-   <div class="metric">
-    <small>Карта</small>
-    <strong>${escapeHTML(best.map || "—")}</strong>
-   </div>
+    if (!nickname) {
+        showStatus("Введи ник FACEIT или ссылку на профиль.");
+        return;
+    }
 
-   <div class="metric">
-    <small>K/D</small>
-    <strong>${number(best.kd)}</strong>
-   </div>
+    $("searchBtn").disabled = true;
+    $("results").classList.add("hidden");
 
-   <div class="metric">
-    <small>Убийства</small>
-    <strong>${best.kills ?? "—"}</strong>
-   </div>
+    showStatus("Загружаем статистику FACEIT...");
 
-   <div class="metric">
-    <small>ADR</small>
-    <strong>${number(best.adr,1)}</strong>
-   </div>
-  </div>`;
+    try {
+        const response = await fetch(
+            `/api/player/${encodeURIComponent(nickname)}/analytics`
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                data.error || "Не удалось загрузить профиль."
+            );
+        }
+
+        currentData = data;
+
+        $("results").classList.remove("hidden");
+
+        render(data);
+
+        requestAnimationFrame(drawElo);
+
+        showStatus("");
+
+    } catch (error) {
+        currentData = null;
+        showStatus("Ошибка: " + error.message);
+
+    } finally {
+        $("searchBtn").disabled = false;
+    }
 }
 
-function renderMaps(maps){
- const box = $("maps");
+function render(data) {
+    const p = data.player || {};
 
- if(!maps.length){
-  box.innerHTML =
-   '<div class="empty">Статистика по картам пока недоступна.</div>';
-  return;
- }
+    $("playerName").textContent = p.nickname || "Игрок";
 
- box.innerHTML = maps.map(m=>`
-  <div class="map-item">
-   <strong>${escapeHTML(m.map)}</strong>
-   <div>Матчи: ${m.matches}</div>
-   <div>Победы: ${m.winRate}%</div>
-   <div>K/D: ${number(m.kd)}</div>
-   <div>ADR: ${number(m.adr,1)}</div>
-  </div>
- `).join("");
+    $("country").textContent = p.country
+        ? "Страна: " + p.country.toUpperCase()
+        : "";
+
+    $("level").textContent = p.level
+        ? "FACEIT Level " + p.level
+        : "Уровень неизвестен";
+
+    $("elo").textContent = p.elo ?? "—";
+    $("skill").textContent = p.level ?? "—";
+
+    if (p.avatar) {
+        $("avatar").src = p.avatar;
+    } else {
+        $("avatar").removeAttribute("src");
+    }
+
+    const matches = data.matches || [];
+
+    const wins = matches.filter(
+        m => m.result === "win"
+    ).length;
+
+    const known = matches.filter(
+        m => m.result === "win" || m.result === "loss"
+    ).length;
+
+    $("matches").textContent = matches.length;
+
+    $("winrate").textContent = known
+        ? Math.round(wins / known * 100) + "%"
+        : "—";
+
+    renderBest(data.bestMatch);
+    renderMaps(data.maps || []);
+    renderHistory(matches, data.matchStats || []);
+
+    drawElo();
 }
 
-function renderHistory(matches,stats){
- const body = $("history");
+function renderBest(best) {
+    const box = $("bestMatch");
 
- if(!matches.length){
-  body.innerHTML =
-   '<tr><td colspan="6" class="empty">История матчей недоступна.</td></tr>';
-  return;
- }
+    if (!best) {
+        box.textContent = "Нет доступных данных за неделю.";
+        return;
+    }
 
- const statMap = new Map(
-  stats
-   .filter(s=>s.matchId)
-   .map(s=>[String(s.matchId),s])
- );
+    box.innerHTML = `
+        <div class="grid">
+            <div class="metric">
+                <small>Карта</small>
+                <strong>${escapeHTML(best.map || "—")}</strong>
+            </div>
 
- body.innerHTML = [...matches]
-  .reverse()
-  .slice(0,100)
-  .map(m=>{
-   const s = statMap.get(String(m.id)) || m.stats || {};
+            <div class="metric">
+                <small>K/D</small>
+                <strong>${number(best.kd)}</strong>
+            </div>
 
-   const result = m.result === "win"
-    ? "Победа"
-    : m.result === "loss"
-     ? "Поражение"
-     : "—";
+            <div class="metric">
+                <small>Убийства</small>
+                <strong>${best.kills ?? "—"}</strong>
+            </div>
 
-   const resultClass = m.result === "win"
-    ? "win"
-    : m.result === "loss"
-     ? "loss"
-     : "";
-
-   return `<tr>
-    <td>${formatDate(m.date)}</td>
-    <td class="${resultClass}">${result}</td>
-    <td>${escapeHTML(m.map || "—")}</td>
-    <td>${number(s.kd)}</td>
-    <td>${number(s.adr,1)}</td>
-    <td>${m.elo ?? "—"}</td>
-   </tr>`;
-  }).join("");
+            <div class="metric">
+                <small>ADR</small>
+                <strong>${number(best.adr, 1)}</strong>
+            </div>
+        </div>
+    `;
 }
 
-/* ЗАГРУЗКА И АНАЛИЗ ДЕМО */
+function renderMaps(maps) {
+    const box = $("maps");
 
-async function uploadDemo(){
- const fileInput = $("demoFile");
- const button = $("demoUploadBtn");
- const file = fileInput.files[0];
+    if (!maps.length) {
+        box.innerHTML =
+            '<div class="empty">Статистика по картам пока недоступна.</div>';
+        return;
+    }
 
- $("demoResults").classList.add("hidden");
-
- if(!file){
-  $("demoStatus").textContent = "Сначала выбери файл демо.";
-  return;
- }
-
- const fileName = file.name.toLowerCase();
-
- const isDemo =
-  fileName.endsWith(".dem") ||
-  fileName.endsWith(".dem.zst");
-
- if(!isDemo){
-  $("demoStatus").textContent =
-   "Нужен файл с расширением .dem или .dem.zst.";
-  return;
- }
-
- const maxSize = 200 * 1024 * 1024;
-
- if(file.size > maxSize){
-  $("demoStatus").textContent =
-   "Файл слишком большой. Максимальный размер — 200 МБ.";
-  return;
- }
-
- const formData = new FormData();
- formData.append("demo",file);
-
- button.disabled = true;
- button.textContent = "Обрабатываем...";
-
- $("demoStatus").textContent =
-  "Загружаем демо. Распаковка и анализ могут занять некоторое время...";
-
- try{
-  const response = await fetch("/api/demo/upload",{
-   method:"POST",
-   body:formData
-  });
-
-  const data = await response.json();
-
-  if(!response.ok || !data.ok){
-   throw new Error(
-    data.error || "Не удалось обработать демо."
-   );
-  }
-
-  renderDemo(data);
-
-  $("demoStatus").textContent =
-   "Демо успешно обработано.";
-
-  $("demoResults").classList.remove("hidden");
-
- }catch(error){
-  $("demoStatus").textContent =
-   "Ошибка анализа: " + error.message;
-
- }finally{
-  button.disabled = false;
-  button.textContent = "Анализировать демо";
- }
+    box.innerHTML = maps.map(m => `
+        <div class="map-item">
+            <strong>${escapeHTML(m.map)}</strong>
+            <div>Матчи: ${m.matches}</div>
+            <div>Победы: ${m.winRate}%</div>
+            <div>K/D: ${number(m.kd)}</div>
+            <div>ADR: ${number(m.adr, 1)}</div>
+        </div>
+    `).join("");
 }
 
-function renderDemo(data){
- const players = Array.isArray(data.players)
-  ? [...data.players]
-  : [];
+function renderHistory(matches, stats) {
+    const body = $("history");
 
- players.sort((a,b)=>
-  Number(b.kills || 0)-Number(a.kills || 0)
- );
+    if (!matches.length) {
+        body.innerHTML =
+            '<tr><td colspan="6" class="empty">История матчей недоступна.</td></tr>';
+        return;
+    }
 
- $("demoMap").textContent =
-  data.map || "Не определена";
+    const statMap = new Map(
+        stats
+            .filter(s => s.matchId)
+            .map(s => [String(s.matchId), s])
+    );
 
- $("demoPlayerCount").textContent =
-  players.length;
+    body.innerHTML = [...matches]
+        .reverse()
+        .slice(0, 100)
+        .map(m => {
+            const s = statMap.get(String(m.id)) || m.stats || {};
 
- const events = data.events;
+            const result = m.result === "win"
+                ? "Победа"
+                : m.result === "loss"
+                    ? "Поражение"
+                    : "—";
 
- let eventCount = "—";
+            const resultClass = m.result === "win"
+                ? "win"
+                : m.result === "loss"
+                    ? "loss"
+                    : "";
 
- if(typeof events === "number"){
-  eventCount = events;
- }else if(events && typeof events === "object"){
-  eventCount = Object.values(events)
-   .reduce((sum,value)=>{
-    return sum + (Number(value) || 0);
-   },0);
- }
-
- $("demoEventCount").textContent = eventCount;
-
- const body = $("demoPlayers");
-
- if(!players.length){
-  body.innerHTML = `
-   <tr>
-    <td colspan="8" class="empty">
-     Сервер не вернул статистику игроков.
-    </td>
-   </tr>`;
-  return;
- }
-
- body.innerHTML = players.map((player,index)=>{
-  const name = player.name ||
-   player.nickname ||
-   player.player_name ||
-   "Неизвестный игрок";
-
-  const kills = Number(player.kills || 0);
-  const deaths = Number(player.deaths || 0);
-  const assists = Number(player.assists || 0);
-  const damage = Number(player.damage || 0);
-
-  const kd = player.kd !== undefined
-   ? number(player.kd)
-   : number(deaths ? kills/deaths : kills);
-
-  const hs = player.hsPercent ??
-   player.hs_percent ??
-   player.headshotPercent ??
-   player.headshot_percentage;
-
-  return `
-   <tr>
-    <td>${index+1}</td>
-    <td class="demo-player">${escapeHTML(name)}</td>
-    <td>${kills}</td>
-    <td>${deaths}</td>
-    <td>${assists}</td>
-    <td>${kd}</td>
-    <td>${damage}</td>
-    <td>${hs !== undefined ? number(hs,1)+"%" : "—"}</td>
-   </tr>`;
- }).join("");
-
- $("demoNote").textContent =
-  data.note ||
-  "Статистика рассчитана по событиям, найденным в загруженном демо.";
+            return `
+                <tr>
+                    <td>${formatDate(m.date)}</td>
+                    <td class="${resultClass}">${result}</td>
+                    <td>${escapeHTML(m.map || "—")}</td>
+                    <td>${number(s.kd)}</td>
+                    <td>${number(s.adr, 1)}</td>
+                    <td>${m.elo ?? "—"}</td>
+                </tr>
+            `;
+        }).join("");
 }
 
-/* ГРАФИК ELO */
+// ================================
+// ELO GRAPH
+// ================================
 
-function drawElo(){
- if(!currentData) return;
+function drawElo() {
+    if (!currentData) return;
 
- const canvas = $("eloChart");
- const rect = canvas.getBoundingClientRect();
+    const canvas = $("eloChart");
+    const rect = canvas.getBoundingClientRect();
 
- if(rect.width <= 0 || rect.height <= 0) return;
+    if (rect.width <= 0 || rect.height <= 0) return;
 
- const dpr = window.devicePixelRatio || 1;
+    const dpr = window.devicePixelRatio || 1;
 
- canvas.width = Math.round(rect.width*dpr);
- canvas.height = Math.round(rect.height*dpr);
+    canvas.width = Math.round(rect.width * dpr);
+    canvas.height = Math.round(rect.height * dpr);
 
- const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext("2d");
 
- ctx.setTransform(dpr,0,0,dpr,0,0);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
- const width = rect.width;
- const height = rect.height;
+    const width = rect.width;
+    const height = rect.height;
 
- ctx.clearRect(0,0,width,height);
+    ctx.clearRect(0, 0, width, height);
 
- const limit = Number($("eloRange").value);
+    const limit = Number($("eloRange").value);
 
- const matchPoints = (currentData.matches || [])
-  .filter(m=>
-   m.elo !== null &&
-   m.elo !== undefined &&
-   Number.isFinite(Number(m.elo))
-  )
-  .map(m=>({
-   date: Number(m.date) || 0,
-   elo: Number(m.elo)
-  }))
-  .sort((a,b)=>a.date-b.date);
+    const matchPoints = (currentData.matches || [])
+        .filter(m =>
+            m.elo !== null &&
+            m.elo !== undefined &&
+            Number.isFinite(Number(m.elo))
+        )
+        .map(m => ({
+            date: Number(m.date) || 0,
+            elo: Number(m.elo)
+        }))
+        .sort((a, b) => a.date - b.date);
 
- const savedPoints = (currentData.eloPoints || [])
-  .filter(p=>
-   p.elo !== null &&
-   p.elo !== undefined &&
-   Number.isFinite(Number(p.elo))
-  )
-  .map(p=>({
-   date: Number(p.date),
-   elo: Number(p.elo)
-  }))
-  .sort((a,b)=>a.date-b.date);
+    const savedPoints = (currentData.eloPoints || [])
+        .filter(p =>
+            p.elo !== null &&
+            p.elo !== undefined &&
+            Number.isFinite(Number(p.elo))
+        )
+        .map(p => ({
+            date: Number(p.date),
+            elo: Number(p.elo)
+        }))
+        .sort((a, b) => a.date - b.date);
 
- const usingMatches = matchPoints.length >= 2;
+    const usingMatches = matchPoints.length >= 2;
 
- const points = usingMatches
-  ? matchPoints.slice(-limit)
-  : savedPoints.slice(-limit);
+    const points = usingMatches
+        ? matchPoints.slice(-limit)
+        : savedPoints.slice(-limit);
 
- const left = 48;
- const right = 15;
- const top = 20;
- const bottom = 30;
+    const left = 48;
+    const right = 15;
+    const top = 20;
+    const bottom = 30;
 
- const chartW = width-left-right;
- const chartH = height-top-bottom;
+    const chartW = width - left - right;
+    const chartH = height - top - bottom;
 
- if(points.length === 0){
-  ctx.fillStyle = "#999";
-  ctx.font = "14px Arial";
-  ctx.textAlign = "center";
+    if (points.length === 0) {
+        ctx.fillStyle = "#999";
+        ctx.font = "14px Arial";
+        ctx.textAlign = "center";
 
-  ctx.fillText(
-   "Пока нет данных Elo",
-   width/2,
-   height/2
-  );
+        ctx.fillText(
+            "Пока нет данных Elo",
+            width / 2,
+            height / 2
+        );
 
-  $("eloNote").textContent =
-   "История Elo пока не содержит точек.";
+        $("eloNote").textContent =
+            "История Elo пока не содержит точек.";
 
-  return;
- }
+        return;
+    }
 
- const values = points.map(p=>p.elo);
+    const values = points.map(p => p.elo);
 
- let min = Math.min(...values);
- let max = Math.max(...values);
+    let min = Math.min(...values);
+    let max = Math.max(...values);
 
- if(min === max){
-  min -= 20;
-  max += 20;
- }else{
-  min -= 20;
-  max += 20;
- }
+    if (min === max) {
+        min -= 20;
+        max += 20;
+    } else {
+        min -= 20;
+        max += 20;
+    }
 
- const getX = i => points.length === 1
-  ? left+chartW/2
-  : left+chartW*i/(points.length-1);
+    const getX = i => points.length === 1
+        ? left + chartW / 2
+        : left + chartW * i / (points.length - 1);
 
- const getY = value =>
-  top+chartH*(max-value)/(max-min);
+    const getY = value =>
+        top + chartH * (max - value) / (max - min);
 
- ctx.strokeStyle = "#30313a";
- ctx.lineWidth = 1;
- ctx.fillStyle = "#999";
- ctx.font = "11px Arial";
- ctx.textAlign = "right";
+    ctx.strokeStyle = "#30313a";
+    ctx.lineWidth = 1;
+    ctx.fillStyle = "#999";
+    ctx.font = "11px Arial";
+    ctx.textAlign = "right";
 
- for(let i=0;i<5;i++){
-  const y = top+chartH*i/4;
-  const value = Math.round(max-(max-min)*i/4);
+    for (let i = 0; i < 5; i++) {
+        const y = top + chartH * i / 4;
+        const value = Math.round(max - (max - min) * i / 4);
 
-  ctx.beginPath();
-  ctx.moveTo(left,y);
-  ctx.lineTo(width-right,y);
-  ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(left, y);
+        ctx.lineTo(width - right, y);
+        ctx.stroke();
 
-  ctx.fillText(value,left-8,y+4);
- }
+        ctx.fillText(value, left - 8, y + 4);
+    }
 
- ctx.beginPath();
+    ctx.beginPath();
 
- points.forEach((point,i)=>{
-  const x = getX(i);
-  const y = getY(point.elo);
+    points.forEach((point, i) => {
+        const x = getX(i);
+        const y = getY(point.elo);
 
-  if(i===0){
-   ctx.moveTo(x,y);
-  }else{
-   ctx.lineTo(x,y);
-  }
- });
+        if (i === 0) {
+            ctx.moveTo(x, y);
+        } else {
+            ctx.lineTo(x, y);
+        }
+    });
 
- ctx.strokeStyle = "#ff7138";
- ctx.lineWidth = 2.5;
- ctx.stroke();
+    ctx.strokeStyle = "#ff7138";
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
 
- points.forEach((point,i)=>{
-  const x = getX(i);
-  const y = getY(point.elo);
+    points.forEach((point, i) => {
+        ctx.beginPath();
+        ctx.arc(getX(i), getY(point.elo), 4, 0, Math.PI * 2);
 
-  ctx.beginPath();
-  ctx.arc(x,y,4,0,Math.PI*2);
+        ctx.fillStyle = "#ff7138";
+        ctx.fill();
+    });
 
-  ctx.fillStyle = "#ff7138";
-  ctx.fill();
- });
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#999";
+    ctx.font = "11px Arial";
 
- ctx.textAlign = "center";
- ctx.fillStyle = "#999";
- ctx.font = "11px Arial";
+    ctx.fillText(
+        points.length + " точек Elo",
+        width / 2,
+        height - 5
+    );
 
- ctx.fillText(
-  points.length + " точек Elo",
-  width/2,
-  height-5
- );
-
- if(usingMatches){
-  $("eloNote").textContent =
-   "График построен по значениям Elo из истории матчей FACEIT.";
- }else if(points.length === 1){
-  $("eloNote").textContent =
-   "Пока сохранена только одна точка Elo. Новые значения появятся после изменения рейтинга.";
- }else{
-  $("eloNote").textContent =
-   "График построен по сохранённым значениям Elo.";
- }
+    $("eloNote").textContent = usingMatches
+        ? "График построен по значениям Elo из истории матчей FACEIT."
+        : "График построен по сохранённым значениям Elo.";
 }
 
-function escapeHTML(value){
- return String(value).replace(/[&<>"']/g,char=>({
-  "&":"&amp;",
-  "<":"&lt;",
-  ">":"&gt;",
-  '"':"&quot;",
-  "'":"&#39;"
- }[char]));
+// ================================
+// DEMO UPLOAD
+// ================================
+
+async function uploadDemo() {
+    const fileInput = $("demoFile");
+    const button = $("demoUploadBtn");
+    const file = fileInput.files[0];
+
+    $("demoResults").classList.add("hidden");
+    $("replayPanel").classList.add("hidden");
+
+    if (!file) {
+        $("demoStatus").textContent =
+            "Сначала выбери файл демо.";
+        return;
+    }
+
+    const fileName = file.name.toLowerCase();
+
+    if (
+        !fileName.endsWith(".dem") &&
+        !fileName.endsWith(".dem.zst")
+    ) {
+        $("demoStatus").textContent =
+            "Нужен файл .dem или .dem.zst.";
+        return;
+    }
+
+    const maxSize = 200 * 1024 * 1024;
+
+    if (file.size > maxSize) {
+        $("demoStatus").textContent =
+            "Файл слишком большой. Максимальный размер — 200 МБ.";
+        return;
+    }
+
+    if (replayPlayer) {
+        try {
+            await replayPlayer.dispose();
+        } catch {}
+
+        replayPlayer = null;
+    }
+
+    const formData = new FormData();
+    formData.append("demo", file);
+
+    button.disabled = true;
+    button.textContent = "Обрабатываем...";
+
+    $("demoStatus").textContent =
+        "Загружаем демо и анализируем матч...";
+
+    try {
+        const response = await fetch("/api/demo/upload", {
+            method: "POST",
+            body: formData
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.ok) {
+            throw new Error(
+                data.error || "Не удалось обработать демо."
+            );
+        }
+
+        renderDemo(data);
+
+        $("demoResults").classList.remove("hidden");
+
+        $("demoStatus").textContent =
+            "Статистика готова. Загружаем интерактивный повтор...";
+
+        if (data.replayUrl) {
+            await startReplayFromUrl(data.replayUrl, data.map);
+        } else {
+            $("demoStatus").textContent =
+                "Статистика готова, но сервер не вернул адрес демки для просмотра.";
+        }
+
+    } catch (error) {
+        $("demoStatus").textContent =
+            "Ошибка анализа: " + error.message;
+
+    } finally {
+        button.disabled = false;
+        button.textContent = "Анализировать демо";
+    }
 }
 
-$("nickname").addEventListener("keydown",event=>{
- if(event.key==="Enter"){
-  searchPlayer();
- }
+function renderDemo(data) {
+    const players = Array.isArray(data.players)
+        ? [...data.players]
+        : [];
+
+    players.sort((a, b) =>
+        Number(b.kills || 0) - Number(a.kills || 0)
+    );
+
+    $("demoMap").textContent = data.map || "Не определена";
+    $("demoPlayerCount").textContent = players.length;
+
+    const events = data.events || {};
+
+    const eventCount = Object.values(events)
+        .reduce((sum, value) => sum + (Number(value) || 0), 0);
+
+    $("demoEventCount").textContent = eventCount;
+
+    const body = $("demoPlayers");
+
+    if (!players.length) {
+        body.innerHTML = `
+            <tr>
+                <td colspan="8" class="empty">
+                    Сервер не вернул статистику игроков.
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    body.innerHTML = players.map((player, index) => {
+        const name = player.name || "Неизвестный игрок";
+        const kills = Number(player.kills || 0);
+        const deaths = Number(player.deaths || 0);
+        const assists = Number(player.assists || 0);
+
+        return `
+            <tr>
+                <td>${index + 1}</td>
+                <td class="demo-player">${escapeHTML(name)}</td>
+                <td>${kills}</td>
+                <td>${deaths}</td>
+                <td>${assists}</td>
+                <td>${number(player.kd)}</td>
+                <td>${Number(player.damage || 0)}</td>
+                <td>${number(player.hsPercent, 1)}%</td>
+            </tr>
+        `;
+    }).join("");
+
+    $("demoNote").textContent = data.note || "";
+}
+
+// ================================
+// REPLAY ENGINE
+// ================================
+
+async function startReplayFromUrl(replayUrl, mapName) {
+    if (!window.deadem || !window.deadem.cs2) {
+        throw new Error(
+            "Не загрузилась библиотека CS2 Replay. Проверь подключение к CDN."
+        );
+    }
+
+    const { Player } = window.deadem.cs2;
+
+    if (!Player) {
+        throw new Error(
+            "В библиотеке не найдена функция Player."
+        );
+    }
+
+    $("demoStatus").textContent =
+        "Получаем распакованную демку с сервера...";
+
+    const response = await fetch(replayUrl);
+
+    if (!response.ok) {
+        throw new Error(
+            "Сервер не смог передать файл демки в браузер."
+        );
+    }
+
+    const replayBlob = await response.blob();
+
+    $("demoStatus").textContent =
+        "Индексируем демку в браузере. Это может занять некоторое время...";
+
+    const player = new Player();
+
+    try {
+        await player.load(replayBlob.stream());
+
+        replayPlayer = player;
+
+        replayFirstTick = player.getFirstTick();
+        replayLastTick = player.getLastTick();
+
+        if (
+            !Number.isFinite(replayFirstTick) ||
+            !Number.isFinite(replayLastTick) ||
+            replayLastTick <= replayFirstTick
+        ) {
+            throw new Error(
+                "Не удалось определить начало и конец демки."
+            );
+        }
+
+        await player.seekToTick(replayFirstTick);
+
+        $("replayMap").textContent = mapName || "CS2";
+        $("replayTimeline").value = 0;
+
+        init3DScene();
+
+        $("replayPanel").classList.remove("hidden");
+
+        updateReplayState();
+
+        $("demoStatus").textContent =
+            "Демо загружено. Можно запускать воспроизведение.";
+
+        $("replayPanel").scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
+
+    } catch (error) {
+        try {
+            await player.dispose();
+        } catch {}
+
+        replayPlayer = null;
+
+        throw error;
+    }
+}
+
+// ================================
+// REPLAY CONTROLS
+// ================================
+
+function playReplay() {
+    if (!replayPlayer || replayPlaying) return;
+
+    const speed = Number($("replaySpeed").value) || 1;
+
+    replayPlaying = true;
+
+    $("playButton").textContent = "▶ Идёт воспроизведение";
+
+    if (replayUpdateTimer) {
+        clearInterval(replayUpdateTimer);
+    }
+
+    replayUpdateTimer = setInterval(() => {
+        updateReplayState();
+    }, 150);
+
+    replayPlayer.play(speed)
+        .catch(error => {
+            if (error.reason !== "paused") {
+                console.error("Ошибка воспроизведения:", error);
+            }
+        })
+        .finally(() => {
+            replayPlaying = false;
+
+            if (replayUpdateTimer) {
+                clearInterval(replayUpdateTimer);
+                replayUpdateTimer = null;
+            }
+
+            $("playButton").textContent = "▶ Воспроизвести";
+
+            updateReplayState();
+        });
+}
+
+function pauseReplay() {
+    if (!replayPlayer) return;
+
+    replayPlayer.pause();
+
+    replayPlaying = false;
+
+    if (replayUpdateTimer) {
+        clearInterval(replayUpdateTimer);
+        replayUpdateTimer = null;
+    }
+
+    $("playButton").textContent = "▶ Воспроизвести";
+
+    updateReplayState();
+}
+
+async function seekReplay() {
+    if (!replayPlayer) return;
+
+    pauseReplay();
+
+    const progress = Number($("replayTimeline").value) / 1000;
+
+    const tick = Math.round(
+        replayFirstTick +
+        (replayLastTick - replayFirstTick) * progress
+    );
+
+    try {
+        await replayPlayer.seekToTick(tick);
+        updateReplayState();
+    } catch (error) {
+        $("demoStatus").textContent =
+            "Ошибка перемотки: " + error.message;
+    }
+}
+
+function previewReplayPosition() {
+    if (!replayPlayer) return;
+
+    const progress = Number($("replayTimeline").value) / 1000;
+
+    const targetTick = Math.round(
+        replayFirstTick +
+        (replayLastTick - replayFirstTick) * progress
+    );
+
+    const seconds = (targetTick - replayFirstTick) / 64;
+
+    $("replayCurrent").textContent = formatTime(seconds);
+}
+
+async function stepReplay(direction) {
+    if (!replayPlayer) return;
+
+    pauseReplay();
+
+    try {
+        const current = replayPlayer.getCurrentTick();
+
+        if (direction > 0) {
+            replayPlayer.nextTick();
+        } else {
+            await replayPlayer.seekToTick(
+                Math.max(replayFirstTick, current - 1)
+            );
+        }
+
+        updateReplayState();
+
+    } catch (error) {
+        console.error("Ошибка шага:", error);
+    }
+}
+
+// ================================
+// REPLAY DATA
+// ================================
+
+function safeGet(entity, field) {
+    try {
+        return entity?.getField(field);
+    } catch {
+        return undefined;
+    }
+}
+
+function vectorValue(value) {
+    if (!value) return null;
+
+    let x, y, z;
+
+    if (Array.isArray(value) || ArrayBuffer.isView(value)) {
+        [x, y, z] = value;
+    } else if (typeof value === "object") {
+        x = value.x ?? value.X ?? value[0];
+        y = value.y ?? value.Y ?? value[1];
+        z = value.z ?? value.Z ?? value[2];
+    }
+
+    x = Number(x);
+    y = Number(y);
+    z = Number(z);
+
+    if (
+        !Number.isFinite(x) ||
+        !Number.isFinite(y) ||
+        !Number.isFinite(z)
+    ) {
+        return null;
+    }
+
+    return { x, y, z };
+}
+
+function getPawnPosition(pawn) {
+    const fields = [
+        "m_vOldOrigin",
+        "m_vecOrigin",
+        "m_vecAbsOrigin",
+        "m_pGameSceneNode.m_vecAbsOrigin",
+        "m_CBodyComponent.m_pSceneNode.m_vecAbsOrigin"
+    ];
+
+    for (const field of fields) {
+        const position = vectorValue(
+            safeGet(pawn, field)
+        );
+
+        if (position) return position;
+    }
+
+    return null;
+}
+
+function getReplayPlayers() {
+    if (!replayPlayer) return [];
+
+    const demo = replayPlayer.getDemo();
+
+    if (!demo) return [];
+
+    const controllers = demo.getEntitiesByClassName(
+        "CCSPlayerController"
+    );
+
+    const result = [];
+
+    for (const controller of controllers) {
+        const name = safeGet(controller, "m_iszPlayerName");
+
+        if (!name) continue;
+
+        const team = Number(
+            safeGet(controller, "m_iTeamNum")
+        );
+
+        const pawnHandle = safeGet(
+            controller,
+            "m_hPlayerPawn"
+        );
+
+        let pawn = null;
+
+        try {
+            if (pawnHandle !== undefined && pawnHandle !== null) {
+                pawn = demo.getEntityByHandle(pawnHandle);
+            }
+        } catch {}
+
+        const health = Number(
+            safeGet(pawn, "m_iHealth") ??
+            safeGet(controller, "m_iPawnHealth")
+        );
+
+        const position = pawn
+            ? getPawnPosition(pawn)
+            : null;
+
+        result.push({
+            name: String(name),
+            team,
+            health: Number.isFinite(health) ? health : null,
+            position
+        });
+    }
+
+    return result;
+}
+
+function updateReplayState() {
+    if (!replayPlayer) return;
+
+    const currentTick = replayPlayer.getCurrentTick();
+
+    const totalTicks = replayLastTick - replayFirstTick;
+
+    const progress = totalTicks > 0
+        ? (currentTick - replayFirstTick) / totalTicks
+        : 0;
+
+    $("replayTimeline").value = Math.max(
+        0,
+        Math.min(1000, Math.round(progress * 1000))
+    );
+
+    const seconds = (currentTick - replayFirstTick) / 64;
+    const duration = totalTicks / 64;
+
+    $("replayTick").textContent =
+        "Тик: " + currentTick;
+
+    $("replayTime").textContent =
+        "Время: " + formatTime(seconds);
+
+    $("replayCurrent").textContent =
+        formatTime(seconds);
+
+    $("replayDuration").textContent =
+        formatTime(duration);
+
+    const players = getReplayPlayers();
+
+    renderReplayPlayers(players);
+    update3DPlayers(players);
+}
+
+function renderReplayPlayers(players) {
+    const body = $("replayPlayers");
+
+    if (!players.length) {
+        body.innerHTML = `
+            <tr>
+                <td colspan="5" class="empty">
+                    Игроки пока не найдены.
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    body.innerHTML = players.map(player => {
+        const teamClass = player.team === 2
+            ? "team-t"
+            : player.team === 3
+                ? "team-ct"
+                : "";
+
+        const teamName = player.team === 2
+            ? "T"
+            : player.team === 3
+                ? "CT"
+                : "—";
+
+        const x = player.position
+            ? number(player.position.x, 0)
+            : "—";
+
+        const y = player.position
+            ? number(player.position.y, 0)
+            : "—";
+
+        return `
+            <tr>
+                <td class="${teamClass}">
+                    ${escapeHTML(player.name)}
+                </td>
+                <td class="${teamClass}">
+                    ${teamName}
+                </td>
+                <td>${player.health ?? "—"}</td>
+                <td>${x}</td>
+                <td>${y}</td>
+            </tr>
+        `;
+    }).join("");
+}
+
+// ================================
+// THREE.JS SCENE
+// ================================
+
+function init3DScene() {
+    const container = $("replay3d");
+
+    if (!window.THREE) {
+        container.innerHTML =
+            '<div class="empty">Не удалось загрузить Three.js.</div>';
+        return;
+    }
+
+    if (threeRenderer) {
+        threeRenderer.dispose();
+        threeRenderer.domElement.remove();
+
+        threeRenderer = null;
+    }
+
+    threeScene = new THREE.Scene();
+    threeScene.background = new THREE.Color(0x090b10);
+
+    threeCamera = new THREE.PerspectiveCamera(
+        45,
+        container.clientWidth / container.clientHeight,
+        0.1,
+        1000
+    );
+
+    threeRenderer = new THREE.WebGLRenderer({
+        antialias: true
+    });
+
+    threeRenderer.setPixelRatio(
+        Math.min(window.devicePixelRatio || 1, 2)
+    );
+
+    threeRenderer.setSize(
+        container.clientWidth,
+        container.clientHeight
+    );
+
+    container.innerHTML = "";
+    container.appendChild(threeRenderer.domElement);
+
+    const grid = new THREE.GridHelper(
+        100,
+        25,
+        0x555566,
+        0x292a36
+    );
+
+    threeScene.add(grid);
+
+    const ambient = new THREE.AmbientLight(
+        0xffffff,
+        1.3
+    );
+
+    threeScene.add(ambient);
+
+    const light = new THREE.DirectionalLight(
+        0xffffff,
+        1.0
+    );
+
+    light.position.set(30, 60, 40);
+
+    threeScene.add(light);
+
+    cameraTheta = Math.PI / 4;
+    cameraPhi = 1.0;
+    cameraRadius = 85;
+
+    updateCamera();
+
+    addCameraControls(container);
+
+    animate3D();
+}
+
+function updateCamera() {
+    if (!threeCamera) return;
+
+    const x =
+        cameraRadius * Math.sin(cameraPhi) * Math.cos(cameraTheta);
+
+    const y =
+        cameraRadius * Math.cos(cameraPhi);
+
+    const z =
+        cameraRadius * Math.sin(cameraPhi) * Math.sin(cameraTheta);
+
+    threeCamera.position.set(x, y, z);
+    threeCamera.lookAt(0, 0, 0);
+}
+
+function addCameraControls(container) {
+    const canvas = threeRenderer.domElement;
+
+    canvas.addEventListener("pointerdown", event => {
+        dragActive = true;
+        lastMouseX = event.clientX;
+        lastMouseY = event.clientY;
+
+        canvas.setPointerCapture(event.pointerId);
+    });
+
+    canvas.addEventListener("pointerup", () => {
+        dragActive = false;
+    });
+
+    canvas.addEventListener("pointercancel", () => {
+        dragActive = false;
+    });
+
+    canvas.addEventListener("pointermove", event => {
+        if (!dragActive) return;
+
+        const dx = event.clientX - lastMouseX;
+        const dy = event.clientY - lastMouseY;
+
+        lastMouseX = event.clientX;
+        lastMouseY = event.clientY;
+
+        cameraTheta -= dx * 0.008;
+
+        cameraPhi = Math.max(
+            0.15,
+            Math.min(Math.PI - 0.15, cameraPhi + dy * 0.008)
+        );
+
+        updateCamera();
+    });
+
+    canvas.addEventListener("wheel", event => {
+        event.preventDefault();
+
+        cameraRadius += event.deltaY * 0.06;
+
+        cameraRadius = Math.max(
+            20,
+            Math.min(180, cameraRadius)
+        );
+
+        updateCamera();
+
+    }, { passive: false });
+}
+
+function animate3D() {
+    if (!threeRenderer || !threeScene || !threeCamera) return;
+
+    requestAnimationFrame(animate3D);
+
+    threeRenderer.render(
+        threeScene,
+        threeCamera
+    );
+}
+
+function update3DPlayers(players) {
+    if (!threeScene) return;
+
+    const validPlayers = players.filter(
+        p => p.position
+    );
+
+    for (const mesh of playerMeshes.values()) {
+        mesh.visible = false;
+    }
+
+    if (!validPlayers.length) return;
+
+    const centerX = validPlayers.reduce(
+        (sum, p) => sum + p.position.x,
+        0
+    ) / validPlayers.length;
+
+    const centerY = validPlayers.reduce(
+        (sum, p) => sum + p.position.y,
+        0
+    ) / validPlayers.length;
+
+    for (const player of validPlayers) {
+        const id = player.name;
+
+        let mesh = playerMeshes.get(id);
+
+        if (!mesh) {
+            const geometry = new THREE.SphereGeometry(
+                0.9,
+                16,
+                16
+            );
+
+            const color = player.team === 2
+                ? 0xff7138
+                : 0x438cff;
+
+            const material = new THREE.MeshStandardMaterial({
+                color,
+                roughness: 0.5
+            });
+
+            mesh = new THREE.Mesh(
+                geometry,
+                material
+            );
+
+            threeScene.add(mesh);
+
+            playerMeshes.set(id, mesh);
+        }
+
+        mesh.position.set(
+            (player.position.x - centerX) * 0.025,
+            Math.max(0.5, player.position.z * 0.015),
+            (player.position.y - centerY) * 0.025
+        );
+
+        mesh.visible = true;
+    }
+}
+
+function resize3D() {
+    if (!threeRenderer || !threeCamera) return;
+
+    const container = $("replay3d");
+
+    if (!container.clientWidth || !container.clientHeight) return;
+
+    threeCamera.aspect =
+        container.clientWidth / container.clientHeight;
+
+    threeCamera.updateProjectionMatrix();
+
+    threeRenderer.setSize(
+        container.clientWidth,
+        container.clientHeight
+    );
+}
+
+// ================================
+// KEYBOARD
+// ================================
+
+$("nickname").addEventListener("keydown", event => {
+    if (event.key === "Enter") {
+        searchPlayer();
+    }
 });
 
-window.addEventListener("resize",()=>{
- if(currentData){
-  drawElo();
- }
+window.addEventListener("resize", () => {
+    if (currentData) {
+        drawElo();
+    }
+
+    resize3D();
 });
+
 </script>
 
 </body>
 </html>
-```
