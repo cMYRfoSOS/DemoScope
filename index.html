@@ -357,6 +357,7 @@ th{color:#999}
     margin-top:15px;
     accent-color:#ff7138;
     cursor:pointer;
+    touch-action:pan-y;
 }
 
 .replay-info{
@@ -719,6 +720,9 @@ let replayPlaying = false;
 let replayFirstTick = 0;
 let replayLastTick = 0;
 let replayUpdateTimer = null;
+
+/* Исправление перемотки */
+let timelineDragging = false;
 
 let threeScene = null;
 let threeCamera = null;
@@ -1335,6 +1339,8 @@ async function startReplayFromUrl(replayUrl, mapName) {
         $("replayMap").textContent = mapName || "CS2";
         $("replayTimeline").value = 0;
 
+        timelineDragging = false;
+
         replayMapTransform = null;
         latestReplayPlayers = [];
         selectedReplayPlayer = "";
@@ -1428,17 +1434,24 @@ function pauseReplay() {
     updateReplayState();
 }
 
+/* ИСПРАВЛЕННАЯ ПЕРЕМОТКА */
 async function seekReplay() {
     if (!replayPlayer) return;
 
-    pauseReplay();
-
+    // Сначала запоминаем выбранную позицию ползунка.
+    // Это важно: pauseReplay() обновляет интерфейс и может
+    // изменить значение ползунка.
     const progress = Number($("replayTimeline").value) / 1000;
 
     const tick = Math.round(
         replayFirstTick +
         (replayLastTick - replayFirstTick) * progress
     );
+
+    // Разрешаем обновлять ползунок после отпускания мыши.
+    timelineDragging = false;
+
+    pauseReplay();
 
     try {
         await replayPlayer.seekToTick(tick);
@@ -1694,10 +1707,15 @@ function updateReplayState() {
         ? (currentTick - replayFirstTick) / totalTicks
         : 0;
 
-    $("replayTimeline").value = Math.max(
-        0,
-        Math.min(1000, Math.round(progress * 1000))
-    );
+    // Главное исправление:
+    // пока пользователь держит мышь на ползунке,
+    // автоматическое обновление не меняет его положение.
+    if (!timelineDragging) {
+        $("replayTimeline").value = Math.max(
+            0,
+            Math.min(1000, Math.round(progress * 1000))
+        );
+    }
 
     const seconds = (currentTick - replayFirstTick) / 64;
     const duration = totalTicks / 64;
@@ -2011,7 +2029,6 @@ function buildMirageBlockout() {
 
     replayMapGroup.add(ground);
 
-    // Условные внешние стены.
     const wallColor = 0xc0ad8c;
     const buildingColor = 0x9c896e;
     const darkColor = 0x766b5a;
@@ -2021,30 +2038,25 @@ function buildMirageBlockout() {
     createMapBox(-59, 0, 0, 2, 4, 100, wallColor);
     createMapBox(59, 0, 0, 2, 4, 100, wallColor);
 
-    // Центральная область.
     createMapBox(-18, 0, -17, 17, 5, 9, buildingColor);
     createMapBox(15, 0, -17, 18, 5, 9, buildingColor);
     createMapBox(-1, 0, 16, 12, 4, 9, buildingColor);
 
-    // Левые постройки.
     createMapBox(-43, 0, -27, 15, 6, 14, buildingColor);
     createMapBox(-43, 0, -7, 12, 4, 8, wallColor);
     createMapBox(-42, 0, 20, 18, 5, 13, buildingColor);
     createMapBox(-48, 0, 37, 10, 4, 5, darkColor);
 
-    // Правые постройки.
     createMapBox(42, 0, -29, 18, 5, 13, buildingColor);
     createMapBox(45, 0, -8, 12, 4, 9, wallColor);
     createMapBox(42, 0, 20, 19, 6, 15, buildingColor);
     createMapBox(49, 0, 38, 9, 4, 5, darkColor);
 
-    // Небольшие перегородки.
     createMapBox(-23, 0, 4, 2, 3, 15, wallColor);
     createMapBox(24, 0, 5, 2, 3, 15, wallColor);
     createMapBox(0, 0, -33, 22, 3, 2, wallColor);
     createMapBox(0, 0, 33, 24, 3, 2, wallColor);
 
-    // Условные колонны и элементы архитектуры.
     for (const x of [-12, -7, 7, 12]) {
         const column = new THREE.Mesh(
             new THREE.CylinderGeometry(0.8, 1, 4, 12),
@@ -2055,16 +2067,13 @@ function buildMirageBlockout() {
         replayMapGroup.add(column);
     }
 
-    // Площадки.
     createMapBox(-42, 0, -39, 25, 0.6, 10, 0x9d8a70);
     createMapBox(42, 0, 39, 25, 0.6, 10, 0x9d8a70);
 
-    // Условные обозначения зон.
     createMapLabel("A", -42, -40);
     createMapLabel("MID", 0, 0);
     createMapLabel("B", 42, 40);
 
-    // Сетка на земле.
     const grid = new THREE.GridHelper(
         120,
         30,
@@ -2472,6 +2481,16 @@ function resize3D() {
 // ================================
 // KEYBOARD AND RESIZE
 // ================================
+
+// Не даём автоматическому обновлению сбрасывать ползунок,
+// пока пользователь удерживает его мышью.
+$("replayTimeline").addEventListener("pointerdown", () => {
+    timelineDragging = true;
+});
+
+$("replayTimeline").addEventListener("pointercancel", () => {
+    timelineDragging = false;
+});
 
 $("nickname").addEventListener("keydown", event => {
     if (event.key === "Enter") {
