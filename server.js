@@ -31,7 +31,6 @@ const MAX_UNCOMPRESSED_SIZE = 500 * 1024 * 1024;
 
 const DEMO_TEMP_DIR = path.join(os.tmpdir(), "demoscope-uploads");
 
-// Временное хранилище демок для последующего просмотра в браузере.
 const replaySessions = new Map();
 const REPLAY_SESSION_TTL_MS = 10 * 60 * 1000;
 const MAX_REPLAY_SESSIONS = 2;
@@ -41,57 +40,39 @@ fs.mkdirSync(DEMO_TEMP_DIR, { recursive: true });
 
 function getReplayStorageSize() {
     let total = 0;
-
     for (const session of replaySessions.values()) {
         total += session.size || 0;
     }
-
     return total;
 }
 
 function deleteReplaySession(sessionId) {
     const session = replaySessions.get(sessionId);
-
     if (!session) return;
-
     replaySessions.delete(sessionId);
     fs.promises.unlink(session.path).catch(() => {});
 }
 
 function cleanupExpiredReplaySessions() {
     const now = Date.now();
-
     for (const [sessionId, session] of replaySessions.entries()) {
-        if (session.expiresAt <= now) {
-            deleteReplaySession(sessionId);
-        }
+        if (session.expiresAt <= now) deleteReplaySession(sessionId);
     }
 }
 
-const replayCleanupTimer = setInterval(
-    cleanupExpiredReplaySessions,
-    60 * 1000
-);
-
+const replayCleanupTimer = setInterval(cleanupExpiredReplaySessions, 60 * 1000);
 replayCleanupTimer.unref?.();
 
 app.use(express.static(path.join(__dirname)));
 
 const demoUpload = multer({
     dest: DEMO_TEMP_DIR,
-    limits: {
-        fileSize: MAX_DEMO_SIZE,
-        files: 1
-    },
+    limits: { fileSize: MAX_DEMO_SIZE, files: 1 },
     fileFilter: (req, file, callback) => {
         const name = String(file.originalname || "").toLowerCase();
-
         if (!name.endsWith(".dem") && !name.endsWith(".dem.zst")) {
-            return callback(
-                new Error("Разрешены только файлы .dem и .dem.zst")
-            );
+            return callback(new Error("Разрешены только файлы .dem и .dem.zst"));
         }
-
         callback(null, true);
     }
 });
@@ -101,9 +82,7 @@ const demoUpload = multer({
 // ================================
 
 async function faceit(endpoint) {
-    if (!API_KEY) {
-        throw new Error("Не настроен FACEIT_API_KEY в Render.");
-    }
+    if (!API_KEY) throw new Error("Не настроен FACEIT_API_KEY в Render.");
 
     const response = await fetch(`${API}${endpoint}`, {
         headers: {
@@ -115,9 +94,7 @@ async function faceit(endpoint) {
     const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-        throw new Error(
-            data.message || `Ошибка FACEIT API: ${response.status}`
-        );
+        throw new Error(data.message || `Ошибка FACEIT API: ${response.status}`);
     }
 
     return data;
@@ -137,24 +114,14 @@ async function supabaseRequest(resource, options = {}) {
         Accept: "application/json"
     };
 
-    if (options.body !== undefined) {
-        headers["Content-Type"] = "application/json";
-    }
+    if (options.body !== undefined) headers["Content-Type"] = "application/json";
+    if (options.prefer) headers.Prefer = options.prefer;
 
-    if (options.prefer) {
-        headers.Prefer = options.prefer;
-    }
-
-    const response = await fetch(
-        `${SUPABASE_URL}/rest/v1/${resource}`,
-        {
-            method: options.method || "GET",
-            headers,
-            body: options.body === undefined
-                ? undefined
-                : JSON.stringify(options.body)
-        }
-    );
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/${resource}`, {
+        method: options.method || "GET",
+        headers,
+        body: options.body === undefined ? undefined : JSON.stringify(options.body)
+    });
 
     const raw = await response.text();
     let data = null;
@@ -169,10 +136,7 @@ async function supabaseRequest(resource, options = {}) {
         const message = data && typeof data === "object"
             ? (data.message || data.details || data.hint || data.error)
             : data;
-
-        throw new Error(
-            message || `Ошибка Supabase: ${response.status}`
-        );
+        throw new Error(message || `Ошибка Supabase: ${response.status}`);
     }
 
     return data;
@@ -181,9 +145,7 @@ async function supabaseRequest(resource, options = {}) {
 async function saveEloSnapshot(playerId, nickname, elo) {
     const numericElo = Number(elo);
 
-    if (!playerId ||
-        !Number.isFinite(numericElo) ||
-        numericElo < 0) {
+    if (!playerId || !Number.isFinite(numericElo) || numericElo < 0) {
         return false;
     }
 
@@ -207,9 +169,7 @@ async function getEloSnapshots(playerId) {
         limit: "300"
     });
 
-    const rows = await supabaseRequest(
-        `elo_snapshots?${params.toString()}`
-    );
+    const rows = await supabaseRequest(`elo_snapshots?${params.toString()}`);
 
     return (Array.isArray(rows) ? rows : [])
         .map(row => ({
@@ -217,8 +177,7 @@ async function getEloSnapshots(playerId) {
             elo: Number(row.elo)
         }))
         .filter(point =>
-            Number.isFinite(point.date) &&
-            Number.isFinite(point.elo)
+            Number.isFinite(point.date) && Number.isFinite(point.elo)
         )
         .reverse();
 }
@@ -245,17 +204,12 @@ function numberStat(stats, keys) {
     for (const key of keys) {
         const value = stats?.[key];
 
-        if (value !== undefined &&
-            value !== null &&
-            value !== "") {
-
+        if (value !== undefined && value !== null && value !== "") {
             const number = Number(
                 String(value).replace("%", "").replace(",", ".")
             );
 
-            if (Number.isFinite(number)) {
-                return number;
-            }
+            if (Number.isFinite(number)) return number;
         }
     }
 
@@ -272,10 +226,7 @@ function normalizeMatch(item) {
         item.started_at;
 
     let date = rawDate ? Number(rawDate) : null;
-
-    if (date && date < 1e12) {
-        date *= 1000;
-    }
+    if (date && date < 1e12) date *= 1000;
 
     return {
         matchId: stats["Match Id"] || item.match_id || null,
@@ -294,10 +245,7 @@ async function getPlayer(nickname) {
         `/players?nickname=${encodeURIComponent(nickname)}&game=cs2`
     );
 
-    if (!player.player_id) {
-        throw new Error("Профиль FACEIT не найден.");
-    }
-
+    if (!player.player_id) throw new Error("Профиль FACEIT не найден.");
     return player;
 }
 
@@ -305,9 +253,7 @@ async function getPages(endpoint) {
     const requests = [];
 
     for (let offset = 0; offset < 300; offset += 100) {
-        requests.push(
-            faceit(`${endpoint}&offset=${offset}&limit=100`)
-        );
+        requests.push(faceit(`${endpoint}&offset=${offset}&limit=100`));
     }
 
     const results = await Promise.allSettled(requests);
@@ -366,9 +312,7 @@ async function decompressZstdFile(inputPath, outputPath) {
 // ================================
 
 function asRows(value) {
-    if (Array.isArray(value)) {
-        return value;
-    }
+    if (Array.isArray(value)) return value;
 
     if (typeof value === "string") {
         try {
@@ -387,29 +331,209 @@ function eventNumber(value) {
     return Number.isFinite(number) ? number : 0;
 }
 
+function getEventName(event, keys) {
+    for (const key of keys) {
+        const value = event?.[key];
+        if (value !== undefined && value !== null && String(value).trim()) {
+            return String(value).trim();
+        }
+    }
+    return "";
+}
+
+function isHeadshot(event) {
+    const value = event?.headshot;
+    return value === true || value === 1 || value === "1" ||
+        String(value).toLowerCase() === "true";
+}
+
+function safeParseEvent(filePath, eventName, extraPlayer = [], extraOther = []) {
+    try {
+        return asRows(parseEvent(filePath, eventName, extraPlayer, extraOther));
+    } catch (error) {
+        console.warn(`Не удалось прочитать событие ${eventName}:`, error.message);
+        return [];
+    }
+}
+
+// Формирует список интересных эпизодов по событиям всей демки.
+function buildHighlights(deaths) {
+    const highlights = [];
+    const validKills = [];
+
+    for (const event of deaths) {
+        const tick = Number(event.tick);
+        const round = Number(
+            event.total_rounds_played ??
+            event.round ??
+            event.round_number
+        );
+
+        const attacker = getEventName(event, [
+            "attacker_name",
+            "attacker"
+        ]);
+
+        const victim = getEventName(event, [
+            "user_name",
+            "user"
+        ]);
+
+        if (!Number.isFinite(tick) || tick < 0) continue;
+        if (!attacker || attacker.toLowerCase() === "world") continue;
+        if (!victim || victim.toLowerCase() === "world") continue;
+        if (attacker.toLowerCase() === victim.toLowerCase()) continue;
+
+        validKills.push({
+            tick,
+            round: Number.isFinite(round) ? round : null,
+            attacker,
+            victim,
+            headshot: isHeadshot(event),
+            weapon: String(event.weapon || event.weapon_name || "")
+        });
+    }
+
+    validKills.sort((a, b) => a.tick - b.tick);
+
+    // Отдельные убийства и хэдшоты.
+    for (const kill of validKills) {
+        highlights.push({
+            id: `kill-${kill.tick}-${highlights.length}`,
+            type: kill.headshot ? "headshot" : "kill",
+            title: kill.headshot ? "Убийство в голову" : "Убийство",
+            description: `${kill.attacker} устранил игрока ${kill.victim}`,
+            player: kill.attacker,
+            victim: kill.victim,
+            round: kill.round,
+            tick: kill.tick,
+            timeSeconds: kill.tick / 64,
+            score: kill.headshot ? 3 : 1
+        });
+    }
+
+    // Серии убийств одного игрока в пределах 10 секунд одного раунда.
+    const byPlayer = new Map();
+
+    for (const kill of validKills) {
+        const key = `${kill.attacker.toLowerCase()}|${kill.round ?? "unknown"}`;
+
+        if (!byPlayer.has(key)) byPlayer.set(key, []);
+        byPlayer.get(key).push(kill);
+    }
+
+    for (const kills of byPlayer.values()) {
+        let group = [];
+
+        function saveGroup() {
+            if (group.length < 2) return;
+
+            const count = group.length;
+            const first = group[0];
+            const last = group[group.length - 1];
+
+            if (count >= 2) {
+                const label = count >= 5
+                    ? "5K — пять убийств"
+                    : count === 4
+                        ? "4K — четыре убийства"
+                        : count === 3
+                            ? "3K — три убийства"
+                            : "2K — два убийства";
+
+                highlights.push({
+                    id: `multi-${first.tick}-${last.tick}`,
+                    type: "multikill",
+                    title: label,
+                    description: `${first.attacker}: ${count} убийства за одну серию`,
+                    player: first.attacker,
+                    round: first.round,
+                    tick: first.tick,
+                    endTick: last.tick,
+                    timeSeconds: first.tick / 64,
+                    score: 5 + count * 3
+                });
+            }
+        }
+
+        for (const kill of kills) {
+            const previous = group[group.length - 1];
+
+            const sameRound = !previous ||
+                previous.round === kill.round;
+
+            const closeInTime = !previous ||
+                kill.tick - previous.tick <= 10 * 64;
+
+            if (!sameRound || !closeInTime) {
+                saveGroup();
+                group = [];
+            }
+
+            group.push(kill);
+        }
+
+        saveGroup();
+    }
+
+    // Первое убийство каждого раунда.
+    const firstKillsByRound = new Map();
+
+    for (const kill of validKills) {
+        const key = kill.round ?? `unknown-${kill.tick}`;
+
+        if (!firstKillsByRound.has(key)) {
+            firstKillsByRound.set(key, kill);
+        }
+    }
+
+    for (const kill of firstKillsByRound.values()) {
+        highlights.push({
+            id: `first-${kill.tick}`,
+            type: "firstkill",
+            title: "Первое убийство раунда",
+            description: `${kill.attacker} первым открыл счёт в раунде`,
+            player: kill.attacker,
+            victim: kill.victim,
+            round: kill.round,
+            tick: kill.tick,
+            timeSeconds: kill.tick / 64,
+            score: 4
+        });
+    }
+
+    // Убираем повторяющиеся записи одного типа с одинаковым тиком.
+    const unique = new Map();
+
+    for (const item of highlights) {
+        const key = `${item.type}|${item.tick}|${item.player || ""}`;
+        const old = unique.get(key);
+
+        if (!old || item.score > old.score) unique.set(key, item);
+    }
+
+    return Array.from(unique.values())
+        .sort((a, b) => b.score - a.score || a.tick - b.tick)
+        .slice(0, 100);
+}
+
 function analyzeDemoFile(filePath) {
     const header = parseHeader(filePath) || {};
 
-    const rawPlayers = asRows(
-        parsePlayerInfo(filePath)
+    const rawPlayers = asRows(parsePlayerInfo(filePath));
+
+    const deaths = safeParseEvent(
+        filePath,
+        "player_death",
+        [],
+        ["total_rounds_played"]
     );
 
-    const deaths = asRows(
-        parseEvent(
-            filePath,
-            "player_death",
-            [],
-            ["total_rounds_played"]
-        )
-    );
-
-    const hurts = asRows(
-        parseEvent(
-            filePath,
-            "player_hurt",
-            [],
-            ["total_rounds_played"]
-        )
+    const hurts = safeParseEvent(
+        filePath,
+        "player_hurt",
+        [],
+        ["total_rounds_played"]
     );
 
     const playersByName = new Map();
@@ -423,12 +547,8 @@ function analyzeDemoFile(filePath) {
 
         playersByName.set(name, {
             name,
-            steamid: player.steamid
-                ? String(player.steamid)
-                : null,
-            teamNumber: player.team_number ??
-                player.team_num ??
-                null,
+            steamid: player.steamid ? String(player.steamid) : null,
+            teamNumber: player.team_number ?? player.team_num ?? null,
             kills: 0,
             deaths: 0,
             assists: 0,
@@ -440,9 +560,7 @@ function analyzeDemoFile(filePath) {
     function getOrAdd(nameValue) {
         const name = String(nameValue || "").trim();
 
-        if (!name || name === "world") {
-            return null;
-        }
+        if (!name || name.toLowerCase() === "world") return null;
 
         if (!playersByName.has(name)) {
             playersByName.set(name, {
@@ -461,34 +579,15 @@ function analyzeDemoFile(filePath) {
     }
 
     for (const event of deaths) {
-        const victim = getOrAdd(
-            event.user_name || event.user
-        );
+        const victim = getOrAdd(event.user_name || event.user);
+        const attacker = getOrAdd(event.attacker_name || event.attacker);
+        const assister = getOrAdd(event.assister_name || event.assister);
 
-        const attacker = getOrAdd(
-            event.attacker_name || event.attacker
-        );
+        if (victim) victim.deaths++;
 
-        const assister = getOrAdd(
-            event.assister_name || event.assister
-        );
-
-        if (victim) {
-            victim.deaths++;
-        }
-
-        if (attacker && victim &&
-            attacker.name !== victim.name) {
-
+        if (attacker && victim && attacker.name !== victim.name) {
             attacker.kills++;
-
-            if (
-                event.headshot === true ||
-                event.headshot === 1 ||
-                event.headshot === "true"
-            ) {
-                attacker.headshotKills++;
-            }
+            if (isHeadshot(event)) attacker.headshotKills++;
         }
 
         if (
@@ -502,10 +601,7 @@ function analyzeDemoFile(filePath) {
     }
 
     for (const event of hurts) {
-        const attacker = getOrAdd(
-            event.attacker_name || event.attacker
-        );
-
+        const attacker = getOrAdd(event.attacker_name || event.attacker);
         if (!attacker) continue;
 
         attacker.damage += eventNumber(
@@ -518,19 +614,11 @@ function analyzeDemoFile(filePath) {
     const players = Array.from(playersByName.values())
         .map(player => {
             const kd = player.deaths > 0
-                ? Number(
-                    (player.kills / player.deaths).toFixed(2)
-                )
+                ? Number((player.kills / player.deaths).toFixed(2))
                 : player.kills;
 
             const hsPercent = player.kills > 0
-                ? Number(
-                    (
-                        player.headshotKills /
-                        player.kills *
-                        100
-                    ).toFixed(1)
-                )
+                ? Number((player.headshotKills / player.kills * 100).toFixed(1))
                 : 0;
 
             return {
@@ -541,16 +629,15 @@ function analyzeDemoFile(filePath) {
             };
         })
         .sort((a, b) =>
-            b.kills - a.kills ||
-            b.damage - a.damage
+            b.kills - a.kills || b.damage - a.damage
         );
 
     const roundValues = [
         ...deaths.map(event => event.total_rounds_played),
         ...hurts.map(event => event.total_rounds_played)
-    ]
-        .map(Number)
-        .filter(Number.isFinite);
+    ].map(Number).filter(Number.isFinite);
+
+    const highlights = buildHighlights(deaths);
 
     return {
         map: header.map_name || header.map || "Неизвестно",
@@ -568,7 +655,16 @@ function analyzeDemoFile(filePath) {
             damageEvents: hurts.length
         },
 
-        note: "Статистика рассчитана по событиям player_death и player_hurt. Некоторые значения могут отсутствовать в отдельных демках."
+        highlights,
+
+        highlightSummary: {
+            total: highlights.length,
+            multikills: highlights.filter(item => item.type === "multikill").length,
+            headshots: highlights.filter(item => item.type === "headshot").length,
+            firstKills: highlights.filter(item => item.type === "firstkill").length
+        },
+
+        note: "Статистика и лучшие моменты рассчитаны по событиям загруженной демки. Таймкоды используют тик демки; точность времени зависит от частоты тиков и формата записи."
     };
 }
 
@@ -595,16 +691,11 @@ app.post("/api/demo/upload", (req, res) => {
     demoUpload.single("demo")(req, res, async error => {
         if (error) {
             const status = error instanceof multer.MulterError
-                ? (
-                    error.code === "LIMIT_FILE_SIZE"
-                        ? 413
-                        : 400
-                )
+                ? (error.code === "LIMIT_FILE_SIZE" ? 413 : 400)
                 : 400;
 
             return res.status(status).json({
-                error: error.message ||
-                    "Не удалось загрузить демо."
+                error: error.message || "Не удалось загрузить демо."
             });
         }
 
@@ -617,28 +708,19 @@ app.post("/api/demo/upload", (req, res) => {
         const uploadedPath = req.file.path;
         const originalName = path.basename(req.file.originalname);
         const replayId = crypto.randomUUID();
-        const replayPath = path.join(
-            DEMO_TEMP_DIR,
-            `${replayId}.dem`
-        );
+        const replayPath = path.join(DEMO_TEMP_DIR, `${replayId}.dem`);
 
         let replaySaved = false;
 
         try {
-            // Подготавливаем обычный .dem для анализатора и браузера.
             if (originalName.toLowerCase().endsWith(".dem.zst")) {
-                await decompressZstdFile(
-                    uploadedPath,
-                    replayPath
-                );
+                await decompressZstdFile(uploadedPath, replayPath);
             } else {
-                await fs.promises.copyFile(
-                    uploadedPath,
-                    replayPath
-                );
+                await fs.promises.copyFile(uploadedPath, replayPath);
             }
 
-            // Сохраняем прежний анализ статистики.
+            // ВАЖНО: анализ выполняется на сервере сразу по всему файлу.
+            // Запускать или просматривать 3D-повтор для этого не требуется.
             const result = analyzeDemoFile(replayPath);
             const replayStat = await fs.promises.stat(replayPath);
 
@@ -650,15 +732,12 @@ app.post("/api/demo/upload", (req, res) => {
 
             cleanupExpiredReplaySessions();
 
-            // Ограничиваем количество временных демок и их общий размер.
             while (
                 replaySessions.size >= MAX_REPLAY_SESSIONS ||
                 getReplayStorageSize() + replayStat.size > MAX_REPLAY_STORAGE_SIZE
             ) {
                 const oldestSessionId = replaySessions.keys().next().value;
-
                 if (!oldestSessionId) break;
-
                 deleteReplaySession(oldestSessionId);
             }
 
@@ -675,17 +754,12 @@ app.post("/api/demo/upload", (req, res) => {
                 fileName: originalName,
                 replayId,
                 replayUrl: `/api/demo/replay/${replayId}`,
-                replayExpiresInSeconds: Math.floor(
-                    REPLAY_SESSION_TTL_MS / 1000
-                ),
+                replayExpiresInSeconds: Math.floor(REPLAY_SESSION_TTL_MS / 1000),
                 ...result
             });
 
         } catch (parseError) {
-            console.error(
-                "Ошибка обработки демо:",
-                parseError
-            );
+            console.error("Ошибка обработки демо:", parseError);
 
             return res.status(422).json({
                 error: "Не удалось обработать демо. Проверь, что файл корректный и поддерживается анализатором.",
@@ -696,10 +770,7 @@ app.post("/api/demo/upload", (req, res) => {
 
         } finally {
             fs.promises.unlink(uploadedPath).catch(() => {});
-
-            if (!replaySaved) {
-                fs.promises.unlink(replayPath).catch(() => {});
-            }
+            if (!replaySaved) fs.promises.unlink(replayPath).catch(() => {});
         }
     });
 });
@@ -711,9 +782,7 @@ app.get("/api/demo/replay/:id", (req, res) => {
     const sessionId = String(req.params.id || "");
 
     if (!/^[0-9a-f-]{36}$/i.test(sessionId)) {
-        return res.status(400).json({
-            error: "Неверный идентификатор демо."
-        });
+        return res.status(400).json({ error: "Неверный идентификатор демо." });
     }
 
     const session = replaySessions.get(sessionId);
@@ -725,22 +794,15 @@ app.get("/api/demo/replay/:id", (req, res) => {
     }
 
     res.setHeader("Content-Type", "application/octet-stream");
-    res.setHeader(
-        "Content-Disposition",
-        'inline; filename="demoscope.dem"'
-    );
+    res.setHeader("Content-Disposition", 'inline; filename="demoscope.dem"');
     res.setHeader("Cache-Control", "no-store");
     res.setHeader("X-Content-Type-Options", "nosniff");
 
     res.sendFile(session.path, sendError => {
-        // После передачи файла удаляем временную копию.
         deleteReplaySession(sessionId);
 
         if (sendError) {
-            console.error(
-                "Ошибка передачи демо в браузер:",
-                sendError.message
-            );
+            console.error("Ошибка передачи демо:", sendError.message);
 
             if (!res.headersSent) {
                 res.status(500).json({
@@ -763,20 +825,14 @@ app.get("/api/player/:nickname", async (req, res) => {
         let lifetime = null;
 
         try {
-            lifetime = await faceit(
-                `/players/${player.player_id}/stats/cs2`
-            );
+            lifetime = await faceit(`/players/${player.player_id}/stats/cs2`);
         } catch {
             try {
-                lifetime = await faceit(
-                    `/players/${player.player_id}/stats/csgo`
-                );
+                lifetime = await faceit(`/players/${player.player_id}/stats/csgo`);
             } catch {}
         }
 
-        const game = player.games?.cs2 ||
-            player.games?.csgo ||
-            {};
+        const game = player.games?.cs2 || player.games?.csgo || {};
 
         if (TRACKING_ENABLED) {
             try {
@@ -786,10 +842,7 @@ app.get("/api/player/:nickname", async (req, res) => {
                     game.faceit_elo
                 );
             } catch (error) {
-                console.error(
-                    "Не удалось сохранить Elo:",
-                    error.message
-                );
+                console.error("Не удалось сохранить Elo:", error.message);
             }
         }
 
@@ -806,9 +859,7 @@ app.get("/api/player/:nickname", async (req, res) => {
         });
 
     } catch (error) {
-        res.status(500).json({
-            error: error.message
-        });
+        res.status(500).json({ error: error.message });
     }
 });
 
@@ -832,24 +883,17 @@ app.get("/api/player/:nickname/analytics", async (req, res) => {
         let rawStats = [];
 
         try {
-            rawStats = await getPages(
-                `/players/${id}/games/cs2/stats?`
-            );
+            rawStats = await getPages(`/players/${id}/games/cs2/stats?`);
         } catch {
-            rawStats = await getPages(
-                `/players/${id}/games/csgo/stats?`
-            ).catch(() => []);
+            rawStats = await getPages(`/players/${id}/games/csgo/stats?`)
+                .catch(() => []);
         }
 
         const stats = rawStats.map(normalizeMatch);
 
         const statsMap = new Map(
-            stats
-                .filter(item => item.matchId)
-                .map(item => [
-                    String(item.matchId),
-                    item
-                ])
+            stats.filter(item => item.matchId)
+                .map(item => [String(item.matchId), item])
         );
 
         const matches = history.map(match => {
@@ -860,11 +904,7 @@ app.get("/api/player/:nickname/analytics", async (req, res) => {
             let myTeam = null;
 
             for (const [name, team] of Object.entries(teams)) {
-                if (
-                    (team.players || []).some(
-                        person => person.player_id === id
-                    )
-                ) {
+                if ((team.players || []).some(person => person.player_id === id)) {
                     myTeam = name;
                 }
             }
@@ -872,37 +912,19 @@ app.get("/api/player/:nickname/analytics", async (req, res) => {
             const winner = match.results?.winner;
             let result = "unknown";
 
-            if (winner && myTeam) {
-                result = winner === myTeam
-                    ? "win"
-                    : "loss";
-            }
+            if (winner && myTeam) result = winner === myTeam ? "win" : "loss";
 
-            const players = Object.values(teams).flatMap(
-                team => team.players || []
-            );
+            const players = Object.values(teams).flatMap(team => team.players || []);
+            const me = players.find(person => person.player_id === id);
 
-            const me = players.find(
-                person => person.player_id === id
-            );
-
-            let date = Number(
-                match.finished_at ||
-                match.started_at ||
-                0
-            );
-
-            if (date && date < 1e12) {
-                date *= 1000;
-            }
+            let date = Number(match.finished_at || match.started_at || 0);
+            if (date && date < 1e12) date *= 1000;
 
             return {
                 id: matchId,
                 date,
                 result,
-                map: personal?.map ||
-                    match.voting?.map?.pick?.[0] ||
-                    "—",
+                map: personal?.map || match.voting?.map?.pick?.[0] || "—",
                 elo: me?.faceit_elo ?? null,
                 score: match.results?.score || {},
                 stats: personal || null
@@ -925,59 +947,32 @@ app.get("/api/player/:nickname/analytics", async (req, res) => {
             }
 
             const item = mapStats[map];
-
             item.matches++;
 
-            if (match.result === "1") {
-                item.wins++;
-            }
-
-            if (match.kd !== null) {
-                item.kd.push(match.kd);
-            }
-
-            if (match.adr !== null) {
-                item.adr.push(match.adr);
-            }
+            if (match.result === "1") item.wins++;
+            if (match.kd !== null) item.kd.push(match.kd);
+            if (match.adr !== null) item.adr.push(match.adr);
         }
 
         const maps = Object.values(mapStats).map(item => ({
             map: item.map,
             matches: item.matches,
-
-            winRate: item.matches
-                ? Math.round(
-                    item.wins / item.matches * 100
-                )
-                : 0,
-
+            winRate: item.matches ? Math.round(item.wins / item.matches * 100) : 0,
             kd: item.kd.length
-                ? item.kd.reduce((a, b) => a + b, 0) /
-                    item.kd.length
+                ? item.kd.reduce((a, b) => a + b, 0) / item.kd.length
                 : null,
-
             adr: item.adr.length
-                ? item.adr.reduce((a, b) => a + b, 0) /
-                    item.adr.length
+                ? item.adr.reduce((a, b) => a + b, 0) / item.adr.length
                 : null
         }));
 
-        const weekAgo = Date.now() -
-            7 * 24 * 60 * 60 * 1000;
+        const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
 
         const bestMatch = stats
-            .filter(match =>
-                match.date &&
-                match.date >= weekAgo
-            )
-            .sort((a, b) =>
-                (b.kd || 0) - (a.kd || 0)
-            )[0] || null;
+            .filter(match => match.date && match.date >= weekAgo)
+            .sort((a, b) => (b.kd || 0) - (a.kd || 0))[0] || null;
 
-        const game = player.games?.cs2 ||
-            player.games?.csgo ||
-            {};
-
+        const game = player.games?.cs2 || player.games?.csgo || {};
         let eloPoints = [];
 
         let eloTracking = {
@@ -986,17 +981,9 @@ app.get("/api/player/:nickname/analytics", async (req, res) => {
             points: 0
         };
 
-        if (
-            TRACKING_ENABLED &&
-            Number.isFinite(Number(game.faceit_elo))
-        ) {
+        if (TRACKING_ENABLED && Number.isFinite(Number(game.faceit_elo))) {
             try {
-                await saveEloSnapshot(
-                    id,
-                    player.nickname,
-                    game.faceit_elo
-                );
-
+                await saveEloSnapshot(id, player.nickname, game.faceit_elo);
                 eloPoints = await getEloSnapshots(id);
 
                 eloTracking = {
@@ -1006,10 +993,7 @@ app.get("/api/player/:nickname/analytics", async (req, res) => {
                 };
 
             } catch (error) {
-                console.error(
-                    "Ошибка истории Elo:",
-                    error.message
-                );
+                console.error("Ошибка истории Elo:", error.message);
 
                 eloTracking = {
                     enabled: true,
@@ -1029,14 +1013,12 @@ app.get("/api/player/:nickname/analytics", async (req, res) => {
                 elo: game.faceit_elo,
                 level: game.skill_level
             },
-
             matches,
             matchStats: stats,
             maps,
             bestMatch,
             eloPoints,
             eloTracking,
-
             diagnostics: {
                 historyCount: history.length,
                 statsCount: stats.length
@@ -1045,8 +1027,7 @@ app.get("/api/player/:nickname/analytics", async (req, res) => {
 
     } catch (error) {
         res.status(500).json({
-            error: error.message ||
-                "Ошибка загрузки аналитики."
+            error: error.message || "Ошибка загрузки аналитики."
         });
     }
 });
@@ -1062,12 +1043,7 @@ app.post("/api/cron/sync", async (req, res) => {
         });
     }
 
-    if (
-        !safeSecretEquals(
-            req.get("x-sync-secret"),
-            SYNC_SECRET
-        )
-    ) {
+    if (!safeSecretEquals(req.get("x-sync-secret"), SYNC_SECRET)) {
         return res.status(401).json({
             error: "Недействительный секрет синхронизации."
         });
@@ -1088,20 +1064,13 @@ app.post("/api/cron/sync", async (req, res) => {
         let checked = 0;
         let failed = 0;
 
-        for (
-            const tracked of Array.isArray(players)
-                ? players
-                : []
-        ) {
+        for (const tracked of Array.isArray(players) ? players : []) {
             try {
                 const player = await faceit(
                     `/players/${encodeURIComponent(tracked.player_id)}`
                 );
 
-                const game = player.games?.cs2 ||
-                    player.games?.csgo ||
-                    {};
-
+                const game = player.games?.cs2 || player.games?.csgo || {};
                 const elo = Number(game.faceit_elo);
 
                 if (Number.isFinite(elo) && elo >= 0) {
@@ -1110,13 +1079,11 @@ app.post("/api/cron/sync", async (req, res) => {
                         player.nickname || tracked.nickname,
                         elo
                     );
-
                     checked++;
                 }
 
             } catch (error) {
                 failed++;
-
                 console.error(
                     `Ошибка синхронизации ${tracked.nickname}:`,
                     error.message
@@ -1126,23 +1093,17 @@ app.post("/api/cron/sync", async (req, res) => {
 
         res.json({
             ok: true,
-            selected: Array.isArray(players)
-                ? players.length
-                : 0,
+            selected: Array.isArray(players) ? players.length : 0,
             checked,
             failed,
             note: "Сохранены только новые значения Elo."
         });
 
     } catch (error) {
-        console.error(
-            "Ошибка пакетной синхронизации:",
-            error.message
-        );
+        console.error("Ошибка пакетной синхронизации:", error.message);
 
         res.status(500).json({
-            error: error.message ||
-                "Ошибка синхронизации."
+            error: error.message || "Ошибка синхронизации."
         });
     }
 });
@@ -1152,9 +1113,7 @@ app.post("/api/cron/sync", async (req, res) => {
 // ================================
 
 app.get("*", (req, res) => {
-    res.sendFile(
-        path.join(__dirname, "index.html")
-    );
+    res.sendFile(path.join(__dirname, "index.html"));
 });
 
 // ================================
@@ -1162,23 +1121,10 @@ app.get("*", (req, res) => {
 // ================================
 
 app.listen(PORT, () => {
-    console.log(
-        `DemoScope запущен на порту ${PORT}`
-    );
-
-    console.log(
-        `Supabase: ${TRACKING_ENABLED ? "подключен" : "не настроен"}`
-    );
-
-    console.log(
-        "Анализ демок CS2: подключен"
-    );
-
-    console.log(
-        "Распаковка Zstandard: подключена"
-    );
-
-    console.log(
-        "Временное хранение демок: подключено"
-    );
+    console.log(`DemoScope запущен на порту ${PORT}`);
+    console.log(`Supabase: ${TRACKING_ENABLED ? "подключен" : "не настроен"}`);
+    console.log("Анализ демок CS2: подключен");
+    console.log("Автоматический поиск лучших моментов: подключен");
+    console.log("Распаковка Zstandard: подключена");
+    console.log("Временное хранение демок: подключено");
 });
