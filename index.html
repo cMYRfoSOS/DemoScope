@@ -57,7 +57,7 @@ th{color:#999}.win{color:#5bd69a}.loss{color:#ff6868}
 .replay-stage{width:100%;height:600px;overflow:hidden;position:relative;background:#090b10;border:1px solid #353640;border-radius:12px;margin-top:18px}
 #replay3d{width:100%;height:100%}
 #replay3d canvas{width:100%;height:100%;display:block}
-.replay-overlay{position:absolute;left:15px;top:14px;background:rgba(0,0,0,.8);border:1px solid #444;border-radius:8px;padding:10px 14px;font-size:13px;pointer-events:none;z-index:2;line-height:1.6}
+.replay-overlay{position:absolute;left:15px;top:14px;background:rgba(0,0,0,.8);border:1px solid #444;border-radius:8px;padding:10px 14px;font-size:13px;pointer-events:none;z-index:2;line-height:1.6;max-width:calc(100% - 30px)}
 .replay-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:17px}
 .replay-controls button{padding:12px 18px}.replay-controls select{padding:11px}
 .replay-camera-controls{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px;padding:15px;background:#22232a;border:1px solid #34353e;border-radius:10px}
@@ -68,6 +68,8 @@ th{color:#999}.win{color:#5bd69a}.loss{color:#ff6868}
 .replay-note{color:#999;font-size:13px;line-height:1.6;margin-top:16px}
 .player-table{min-width:550px}.team-t{color:#ff9a70}.team-ct{color:#70aaff}
 .player-row{cursor:pointer}.player-row:hover{background:#292a32}.player-row.selected{background:#3a2923}
+.debug-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:15px}
+.debug-actions button{font-size:12px;padding:10px 14px}
 @media(max-width:700px){
 .grid{grid-template-columns:repeat(2,1fr)}
 .map-list{grid-template-columns:repeat(2,1fr)}
@@ -228,12 +230,16 @@ th,td{padding:9px 5px}
         </table>
     </div>
 
+    <div class="debug-actions">
+        <button onclick="copyReplayDiagnostics()">Скопировать диагностику координат</button>
+    </div>
+
     <p class="replay-note">
         В списке и на карте учитываются только игроки команд T и CT;
         наблюдатели исключены. Оранжевые маркеры — T, синие — CT.
         Сейчас используется радар Mirage, а не точная объёмная модель зданий.
-        Диагностика сверху показывает, сколько игроков удалось получить
-        и сколько из них попало в границы радара.
+        Диагностика показывает координаты игроков, положение на радаре
+        и количество игроков за его границами.
     </p>
 </section>
 
@@ -337,6 +343,7 @@ let lastMouseY = 0;
 
 let animationFrameId = null;
 let replayLoadGeneration = 0;
+let lastReplayDiagnostics = null;
 
 const $ = id => document.getElementById(id);
 
@@ -869,6 +876,7 @@ async function loadReplay(replayUrl, mapName) {
         timelineDragging = false;
         latestReplayPlayers = [];
         selectedReplayPlayer = "";
+        lastReplayDiagnostics = null;
 
         replayCameraMode = "orbit";
         $("cameraMode").value = "orbit";
@@ -1040,63 +1048,101 @@ function parseNumber(value) {
     return Number.isFinite(n) ? n : null;
 }
 
-/*
-   НОВАЯ ФУНКЦИЯ ПОЛУЧЕНИЯ КООРДИНАТ.
-   Проверяет несколько вариантов расположения полей.
-*/
+/* ЧТЕНИЕ ВЕКТОРА ИЗ РАЗНЫХ ФОРМАТОВ */
 
-function getPawnPosition(pawn) {
-    if (!pawn) return null;
+function readVector(value) {
+    if (value === undefined || value === null) return null;
 
-    const fields = [
-        "m_vecAbsOrigin",
-        "CBodyComponent.m_vecAbsOrigin",
-        "CBodyComponent.m_pSceneNode.m_vecAbsOrigin",
-        "CBodyComponent.m_skeletonInstance.m_vecOrigin",
-        "m_vecOrigin"
-    ];
-
-    function readVector(value) {
-        if (!value) return null;
-
-        if (typeof value === "string") {
-            try {
-                value = JSON.parse(value);
-            } catch {
-                return null;
-            }
-        }
-
-        const x = parseNumber(value.x ?? value.X ?? value[0]);
-        const y = parseNumber(value.y ?? value.Y ?? value[1]);
-        const z = parseNumber(value.z ?? value.Z ?? value[2]);
-
-        if (x === null || y === null || z === null) {
+    if (typeof value === "string") {
+        try {
+            value = JSON.parse(value);
+        } catch {
             return null;
         }
+    }
 
-        if (
-            Math.abs(x) > 10000 ||
-            Math.abs(y) > 10000 ||
-            Math.abs(z) > 10000
-        ) {
-            return null;
-        }
+    if (ArrayBuffer.isView(value)) {
+        value = Array.from(value);
+    }
+
+    if (Array.isArray(value)) {
+        if (value.length < 3) return null;
+
+        const x = parseNumber(value[0]);
+        const y = parseNumber(value[1]);
+        const z = parseNumber(value[2]);
+
+        if (x === null || y === null || z === null) return null;
 
         return { x, y, z };
     }
 
-    for (const field of fields) {
+    if (typeof value !== "object") return null;
+
+    const x = parseNumber(
+        value.x ?? value.X ?? value.m_x ?? value[0]
+    );
+
+    const y = parseNumber(
+        value.y ?? value.Y ?? value.m_y ?? value[1]
+    );
+
+    const z = parseNumber(
+        value.z ?? value.Z ?? value.m_z ?? value[2]
+    );
+
+    if (x === null || y === null || z === null) return null;
+
+    if (
+        Math.abs(x) > 10000 ||
+        Math.abs(y) > 10000 ||
+        Math.abs(z) > 10000
+    ) {
+        return null;
+    }
+
+    return { x, y, z };
+}
+
+/*
+   ПОЛУЧЕНИЕ КООРДИНАТ ИГРОКА.
+
+   Сначала проверяем документированное поле:
+   CBodyComponent.m_skeletonInstance.m_vecOrigin
+
+   Затем проверяем альтернативные поля и координаты,
+   которые хранятся через cell и vec.
+*/
+
+function getPawnPosition(pawn, diagnostics = null) {
+    if (!pawn) return null;
+
+    const vectorFields = [
+        "CBodyComponent.m_skeletonInstance.m_vecOrigin",
+        "CBodyComponent.m_pSceneNode.m_vecAbsOrigin",
+        "CBodyComponent.m_vecAbsOrigin",
+        "m_vecAbsOrigin",
+        "m_vecOrigin"
+    ];
+
+    for (const field of vectorFields) {
         const value = safeGet(pawn, field);
         const position = readVector(value);
 
-        if (position) return position;
+        if (position) {
+            if (diagnostics) {
+                diagnostics.positionSource = field;
+                diagnostics.rawVector = value;
+            }
+
+            return position;
+        }
     }
 
     const prefixes = [
-        "CBodyComponent.",
-        "CBodyComponent.m_pSceneNode.",
         "CBodyComponent.m_skeletonInstance.",
+        "CBodyComponent.m_pSceneNode.",
+        "CBodyComponent.",
         ""
     ];
 
@@ -1110,11 +1156,31 @@ function getPawnPosition(pawn) {
         const vz = parseNumber(safeGet(pawn, prefix + "m_vecZ"));
 
         if ([cx, cy, cz, vx, vy, vz].every(v => v !== null)) {
-            return {
+            const position = {
                 x: cx * 512 + vx,
                 y: cy * 512 + vy,
                 z: cz * 512 + vz
             };
+
+            if (diagnostics) {
+                diagnostics.positionSource = prefix + "cell/vec";
+                diagnostics.cell = { x: cx, y: cy, z: cz };
+                diagnostics.offset = { x: vx, y: vy, z: vz };
+            }
+
+            return position;
+        }
+    }
+
+    if (diagnostics) {
+        diagnostics.positionSource = "Координаты не найдены";
+
+        try {
+            diagnostics.availableFields = Array.from(
+                pawn.fieldNames?.() || []
+            );
+        } catch {
+            diagnostics.availableFields = [];
         }
     }
 
@@ -1197,9 +1263,11 @@ function getReplayPlayers() {
     }
 
     const result = new Map();
+    const debugPlayers = [];
 
     let pawnFound = 0;
     let positionFound = 0;
+    let teamPlayers = 0;
 
     for (const controller of controllers) {
         const nameValue = safeGet(controller, "m_iszPlayerName");
@@ -1210,16 +1278,20 @@ function getReplayPlayers() {
 
         if (team !== 2 && team !== 3) continue;
 
+        teamPlayers++;
+
         const name = String(nameValue).trim();
 
         if (!name) continue;
 
+        const handle = safeGet(controller, "m_hPlayerPawn");
         const pawn = getPawnFromController(demo, controller);
 
         if (pawn) pawnFound++;
 
+        const positionInfo = {};
         const position = pawn
-            ? getPawnPosition(pawn)
+            ? getPawnPosition(pawn, positionInfo)
             : null;
 
         if (position) positionFound++;
@@ -1238,6 +1310,18 @@ function getReplayPlayers() {
             viewAngles: viewAnglesByName.get(name) || null
         };
 
+        debugPlayers.push({
+            name,
+            team: team === 2 ? "T" : "CT",
+            handle: String(handle),
+            pawnFound: Boolean(pawn),
+            position,
+            positionSource: positionInfo.positionSource || "Нет",
+            cell: positionInfo.cell || null,
+            offset: positionInfo.offset || null,
+            availableFields: positionInfo.availableFields || []
+        });
+
         const key = name.toLowerCase();
         const previous = result.get(key);
 
@@ -1249,14 +1333,84 @@ function getReplayPlayers() {
         }
     }
 
-    console.log("[DemoScope] Диагностика игроков:", {
-        controllers: controllers.length,
-        pawnsFound: pawnFound,
-        positionsFound: positionFound,
-        examples: Array.from(result.values()).slice(0, 3)
-    });
+    const players = Array.from(result.values());
 
-    return Array.from(result.values());
+    lastReplayDiagnostics = {
+        tick: replayPlayer.getCurrentTick(),
+        controllerCount: controllers.length,
+        teamPlayers,
+        pawnsFound,
+        positionsFound,
+        players: debugPlayers
+    };
+
+    console.log("[DemoScope] Диагностика игроков:", lastReplayDiagnostics);
+
+    return players;
+}
+
+/* КОПИРОВАНИЕ ДИАГНОСТИКИ */
+
+async function copyReplayDiagnostics() {
+    if (!lastReplayDiagnostics) {
+        alert("Сначала загрузи демку, чтобы получить диагностику.");
+        return;
+    }
+
+    const report = {
+        ...lastReplayDiagnostics,
+        radar: {
+            radarSize: RADAR_SIZE,
+            worldMinX: MIRAGE_POS_X,
+            worldMaxY: MIRAGE_POS_Y,
+            scale: MIRAGE_SCALE,
+            sceneUnitsPerPixel: SCENE_UNITS_PER_PIXEL
+        },
+        mappedPlayers: latestReplayPlayers.map(player => {
+            const mapped = getPlayerScenePosition(player);
+
+            return {
+                name: player.name,
+                team: player.team === 2 ? "T" : "CT",
+                worldPosition: player.position,
+                radarPixel: mapped
+                    ? {
+                        x: mapped.pixelX,
+                        y: mapped.pixelY
+                    }
+                    : null,
+                insideRadar: mapped
+                    ? mapped.pixelX >= 0 &&
+                      mapped.pixelX <= RADAR_SIZE &&
+                      mapped.pixelY >= 0 &&
+                      mapped.pixelY <= RADAR_SIZE
+                    : false
+            };
+        })
+    };
+
+    const textReport = JSON.stringify(report, null, 2);
+
+    try {
+        await navigator.clipboard.writeText(textReport);
+        $("playerDebug").textContent = "Диагностика скопирована!";
+    } catch (error) {
+        const area = document.createElement("textarea");
+        area.value = textReport;
+        area.style.position = "fixed";
+        area.style.opacity = "0";
+        document.body.appendChild(area);
+        area.select();
+
+        try {
+            document.execCommand("copy");
+            $("playerDebug").textContent = "Диагностика скопирована!";
+        } catch {
+            alert("Не удалось скопировать. Проверь разрешения браузера.");
+        }
+
+        area.remove();
+    }
 }
 
 /* ОБНОВЛЕНИЕ REPLAY */
@@ -1731,6 +1885,9 @@ function update3DPlayers(players) {
     }
 
     let insideMapCount = 0;
+    let outsideMapCount = 0;
+
+    const mappedExamples = [];
 
     for (const player of valid) {
         let visual = playerMeshes.get(player.name);
@@ -1745,13 +1902,37 @@ function update3DPlayers(players) {
         if (!pos) continue;
 
         const inside =
-            Math.abs(pos.x) <= MAP_SIZE / 2 + 5 &&
-            Math.abs(pos.z) <= MAP_SIZE / 2 + 5;
+            pos.pixelX >= 0 &&
+            pos.pixelX <= RADAR_SIZE &&
+            pos.pixelY >= 0 &&
+            pos.pixelY <= RADAR_SIZE;
 
-        if (inside) insideMapCount++;
+        if (inside) {
+            insideMapCount++;
+        } else {
+            outsideMapCount++;
+        }
+
+        mappedExamples.push({
+            name: player.name,
+            worldX: player.position.x,
+            worldY: player.position.y,
+            radarX: Math.round(pos.pixelX),
+            radarY: Math.round(pos.pixelY),
+            inside
+        });
+
+        /*
+          Не размещаем маркеры далеко за пределами карты.
+          Если координаты неправильные, это будет видно
+          в диагностике, а не в виде точек над картой.
+        */
+
+        visual.group.visible = inside;
+
+        if (!inside) continue;
 
         visual.group.position.set(pos.x, pos.y, pos.z);
-        visual.group.visible = true;
 
         if (
             player.viewAngles &&
@@ -1785,7 +1966,13 @@ function update3DPlayers(players) {
         : "";
 
     $("playerDebug").textContent =
-        `Игроки T/CT: ${players.length} | с координатами: ${valid.length} | на радаре: ${insideMapCount}${sampleText}`;
+        `Игроки: ${players.length} | координаты: ${valid.length} | на радаре: ${insideMapCount} | вне радара: ${outsideMapCount}${sampleText}`;
+
+    if (lastReplayDiagnostics) {
+        lastReplayDiagnostics.mappedExamples = mappedExamples;
+        lastReplayDiagnostics.insideMapCount = insideMapCount;
+        lastReplayDiagnostics.outsideMapCount = outsideMapCount;
+    }
 
     updateReplayCamera(valid);
 }
