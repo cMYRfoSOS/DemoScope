@@ -4,8 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DemoScope — FACEIT Analytics</title>
-<script src="https://cdn.jsdelivr.net/npm/@deademx/cs2@5.0.0/dist/deadem-cs2.min.js"></script>
+
+<script
+    src="https://cdn.jsdelivr.net/npm/@deademx/cs2@5.0.0/dist/deadem-cs2.min.js"
+    onerror="this.onerror=null;this.src='https://unpkg.com/@deademx/cs2@5.0.0/dist/deadem-cs2.min.js'">
+</script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
+
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#101114;color:#f2f2f2;font-family:Arial,sans-serif}
@@ -79,6 +84,7 @@ th,td{padding:9px 5px}.demo-summary{grid-template-columns:1fr}
 }
 </style>
 </head>
+
 <body>
 <header>
     <div class="logo">DEMO<span>SCOPE</span></div>
@@ -86,6 +92,7 @@ th,td{padding:9px 5px}.demo-summary{grid-template-columns:1fr}
 </header>
 
 <main class="container">
+
 <section class="hero">
     <h1>Анализируй свою игру</h1>
     <p class="muted">FACEIT, Elo, матчи и анализ демок CS2</p>
@@ -107,6 +114,7 @@ th,td{padding:9px 5px}.demo-summary{grid-template-columns:1fr}
         <button id="demoUploadBtn" onclick="uploadDemo()">Анализировать демо</button>
     </div>
     <div id="demoStatus" class="demo-status"></div>
+
     <div id="demoResults" class="hidden">
         <div class="demo-summary">
             <div class="demo-stat"><small>Карта</small><strong id="demoMap">—</strong></div>
@@ -116,7 +124,9 @@ th,td{padding:9px 5px}.demo-summary{grid-template-columns:1fr}
         <h3>Статистика игроков</h3>
         <div class="demo-table-wrap">
             <table class="demo-table">
-                <thead><tr><th>#</th><th>Игрок</th><th>Убийства</th><th>Смерти</th><th>Ассисты</th><th>K/D</th><th>Урон</th><th>HS%</th></tr></thead>
+                <thead>
+                    <tr><th>#</th><th>Игрок</th><th>Убийства</th><th>Смерти</th><th>Ассисты</th><th>K/D</th><th>Урон</th><th>HS%</th></tr>
+                </thead>
                 <tbody id="demoPlayers"><tr><td colspan="8" class="empty">Здесь появится статистика</td></tr></tbody>
             </table>
         </div>
@@ -126,9 +136,13 @@ th,td{padding:9px 5px}.demo-summary{grid-template-columns:1fr}
 
 <section id="replayPanel" class="panel replay-panel hidden">
     <div class="replay-header">
-        <div><h3>3D-просмотр демо CS2</h3><div class="replay-badge">DEMOSCOPE 3D REPLAY</div></div>
+        <div>
+            <h3>3D-просмотр демо CS2</h3>
+            <div class="replay-badge">DEMOSCOPE 3D REPLAY</div>
+        </div>
         <span id="replayMap" class="level">—</span>
     </div>
+
     <div class="replay-stage">
         <div id="replay3d"></div>
         <div class="replay-overlay">
@@ -139,6 +153,7 @@ th,td{padding:9px 5px}.demo-summary{grid-template-columns:1fr}
             <div id="playerDebug">Игроки: ожидание данных</div>
         </div>
     </div>
+
     <div class="replay-camera-controls">
         <label>Режим камеры
             <select id="cameraMode" onchange="changeCameraMode()">
@@ -152,25 +167,37 @@ th,td{padding:9px 5px}.demo-summary{grid-template-columns:1fr}
             </select>
         </label>
     </div>
+
     <div class="replay-controls">
         <button onclick="stepReplay(-1)">◀</button>
         <button id="playButton" onclick="playReplay()">▶ Воспроизвести</button>
         <button onclick="pauseReplay()">⏸ Пауза</button>
         <button onclick="stepReplay(1)">▶</button>
         <select id="replaySpeed">
-            <option value="0.25">0.25x</option><option value="0.5">0.5x</option>
-            <option value="1" selected>1x</option><option value="2">2x</option><option value="4">4x</option>
+            <option value="0.25">0.25x</option>
+            <option value="0.5">0.5x</option>
+            <option value="1" selected>1x</option>
+            <option value="2">2x</option>
+            <option value="4">4x</option>
         </select>
     </div>
+
     <input type="range" id="replayTimeline" class="replay-timeline" min="0" max="1000" value="0" oninput="previewReplayPosition()" onchange="seekReplay()">
-    <div class="replay-info"><span id="replayCurrent">0:00</span><span id="replayDuration">0:00</span></div>
+    <div class="replay-info">
+        <span id="replayCurrent">0:00</span>
+        <span id="replayDuration">0:00</span>
+    </div>
+
     <h3 style="margin-top:25px">Игроки в текущем моменте</h3>
     <div class="demo-table-wrap">
         <table class="player-table">
-            <thead><tr><th>Игрок</th><th>Команда</th><th>Здоровье</th><th>X</th><th>Y</th><th>Z</th><th>Yaw</th></tr></thead>
+            <thead>
+                <tr><th>Игрок</th><th>Команда</th><th>Здоровье</th><th>X</th><th>Y</th><th>Z</th><th>Yaw</th></tr>
+            </thead>
             <tbody id="replayPlayers"><tr><td colspan="7" class="empty">Загрузи демку</td></tr></tbody>
         </table>
     </div>
+
     <p class="replay-note">
         В списке и на карте учитываются только игроки команд T и CT; наблюдатели исключены.
         Оранжевые маркеры — T, синие — CT. Сейчас используется радар Mirage, а не точная
@@ -180,18 +207,26 @@ th,td{padding:9px 5px}.demo-summary{grid-template-columns:1fr}
 </section>
 
 <div id="results" class="hidden">
+
     <section class="panel profile">
         <img id="avatar" class="avatar" src="" alt="">
-        <div><h2 id="playerName">Игрок</h2><div class="muted" id="country"></div><div class="level" id="level"></div></div>
+        <div>
+            <h2 id="playerName">Игрок</h2>
+            <div class="muted" id="country"></div>
+            <div class="level" id="level"></div>
+        </div>
     </section>
+
     <section class="grid">
         <div class="metric"><small>Текущий Elo</small><strong id="elo">—</strong></div>
         <div class="metric"><small>Уровень FACEIT</small><strong id="skill">—</strong></div>
         <div class="metric"><small>Матчи в истории</small><strong id="matches">—</strong></div>
         <div class="metric"><small>Победы</small><strong id="winrate">—</strong></div>
     </section>
+
     <section class="panel">
-        <div class="section-title"><h3>График Elo</h3>
+        <div class="section-title">
+            <h3>График Elo</h3>
             <select id="eloRange" onchange="drawElo()">
                 <option value="30">Последние 30 матчей</option>
                 <option value="100">Последние 100 матчей</option>
@@ -201,13 +236,30 @@ th,td{padding:9px 5px}.demo-summary{grid-template-columns:1fr}
         <div class="chart-wrap"><canvas id="eloChart"></canvas></div>
         <p class="muted" id="eloNote">Загружаем историю Elo...</p>
     </section>
-    <section class="panel"><h3>Лучшая игра за неделю</h3><div id="bestMatch" class="empty">Нет доступных данных за неделю</div></section>
-    <section class="panel"><h3>Статистика по картам</h3><div id="maps" class="map-list"><div class="empty">Нет данных по картам</div></div></section>
-    <section class="panel"><h3>История матчей</h3><div style="overflow-x:auto">
-        <table><thead><tr><th>Дата</th><th>Результат</th><th>Карта</th><th>K/D</th><th>ADR</th><th>Elo</th></tr></thead>
-        <tbody id="history"><tr><td colspan="6" class="empty">Матчи не найдены</td></tr></tbody></table>
-    </div></section>
+
+    <section class="panel">
+        <h3>Лучшая игра за неделю</h3>
+        <div id="bestMatch" class="empty">Нет доступных данных за неделю</div>
+    </section>
+
+    <section class="panel">
+        <h3>Статистика по картам</h3>
+        <div id="maps" class="map-list"><div class="empty">Нет данных по картам</div></div>
+    </section>
+
+    <section class="panel">
+        <h3>История матчей</h3>
+        <div style="overflow-x:auto">
+            <table>
+                <thead>
+                    <tr><th>Дата</th><th>Результат</th><th>Карта</th><th>K/D</th><th>ADR</th><th>Elo</th></tr>
+                </thead>
+                <tbody id="history"><tr><td colspan="6" class="empty">Матчи не найдены</td></tr></tbody>
+            </table>
+        </div>
+    </section>
 </div>
+
 </main>
 
 <script>
@@ -220,6 +272,7 @@ let cameraTheta=0,cameraPhi=0.16,cameraRadius=220;
 let dragActive=false,lastMouseX=0,lastMouseY=0;
 
 const $=id=>document.getElementById(id);
+
 const MIRAGE_RADAR_URL="https://raw.githubusercontent.com/MurkyYT/cs2-map-icons/main/images/radars/de_mirage_radar_psd.png";
 const MIRAGE_POS_X=-3230;
 const MIRAGE_POS_Y=1713;
@@ -229,25 +282,39 @@ const SCENE_UNITS_PER_PIXEL=0.15;
 const MAP_SIZE=RADAR_SIZE*SCENE_UNITS_PER_PIXEL;
 
 function escapeHTML(value){
-    return String(value).replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
+    return String(value).replace(/[&<>"']/g,char=>({
+        "&":"&amp;",
+        "<":"&lt;",
+        ">":"&gt;",
+        '"':"&quot;",
+        "'":"&#39;"
+    }[char]));
 }
-function showStatus(message){$("status").textContent=message}
+
+function showStatus(message){
+    $("status").textContent=message;
+}
+
 function formatDate(value){
     if(!value)return "—";
     const date=new Date(value);
     return Number.isNaN(date.getTime())?"—":date.toLocaleDateString("ru-RU");
 }
+
 function number(value,digits=2){
     if(value===null||value===undefined||value==="")return "—";
     const n=Number(value);
     return Number.isFinite(n)?n.toFixed(digits):"—";
 }
+
 function formatTime(seconds){
     seconds=Math.max(0,Math.floor(seconds||0));
     return `${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,"0")}`;
 }
+
 function cleanNickname(value){
     value=value.trim();
+
     try{
         if(value.startsWith("http")){
             const url=new URL(value);
@@ -255,183 +322,344 @@ function cleanNickname(value){
             return parts[parts.length-1]||"";
         }
     }catch{}
+
     return value.replace(/^@/,"");
 }
 
 // FACEIT
 async function searchPlayer(){
     const nickname=cleanNickname($("nickname").value);
-    if(!nickname){showStatus("Введи ник FACEIT или ссылку на профиль.");return}
+
+    if(!nickname){
+        showStatus("Введи ник FACEIT или ссылку на профиль.");
+        return;
+    }
+
     $("searchBtn").disabled=true;
     $("results").classList.add("hidden");
     showStatus("Загружаем статистику FACEIT...");
+
     try{
         const response=await fetch(`/api/player/${encodeURIComponent(nickname)}/analytics`);
         const data=await response.json();
+
         if(!response.ok)throw new Error(data.error||"Не удалось загрузить профиль.");
+
         currentData=data;
         $("results").classList.remove("hidden");
+
         render(data);
         requestAnimationFrame(drawElo);
         showStatus("");
+
     }catch(error){
-        currentData=null;showStatus("Ошибка: "+error.message);
-    }finally{$("searchBtn").disabled=false}
+        currentData=null;
+        showStatus("Ошибка: "+error.message);
+
+    }finally{
+        $("searchBtn").disabled=false;
+    }
 }
+
 function render(data){
     const p=data.player||{};
+
     $("playerName").textContent=p.nickname||"Игрок";
     $("country").textContent=p.country?"Страна: "+p.country.toUpperCase():"";
     $("level").textContent=p.level?"FACEIT Level "+p.level:"Уровень неизвестен";
-    $("elo").textContent=p.elo??"—";$("skill").textContent=p.level??"—";
-    if(p.avatar)$("avatar").src=p.avatar;else $("avatar").removeAttribute("src");
+
+    $("elo").textContent=p.elo??"—";
+    $("skill").textContent=p.level??"—";
+
+    if(p.avatar)$("avatar").src=p.avatar;
+    else $("avatar").removeAttribute("src");
+
     const matches=data.matches||[];
     const wins=matches.filter(m=>m.result==="win").length;
     const known=matches.filter(m=>m.result==="win"||m.result==="loss").length;
+
     $("matches").textContent=matches.length;
     $("winrate").textContent=known?Math.round(wins/known*100)+"%":"—";
-    renderBest(data.bestMatch);renderMaps(data.maps||[]);
-    renderHistory(matches,data.matchStats||[]);drawElo();
+
+    renderBest(data.bestMatch);
+    renderMaps(data.maps||[]);
+    renderHistory(matches,data.matchStats||[]);
+    drawElo();
 }
+
 function renderBest(best){
     const box=$("bestMatch");
-    if(!best){box.textContent="Нет доступных данных за неделю.";return}
+
+    if(!best){
+        box.textContent="Нет доступных данных за неделю.";
+        return;
+    }
+
     box.innerHTML=`<div class="grid">
     <div class="metric"><small>Карта</small><strong>${escapeHTML(best.map||"—")}</strong></div>
     <div class="metric"><small>K/D</small><strong>${number(best.kd)}</strong></div>
     <div class="metric"><small>Убийства</small><strong>${best.kills??"—"}</strong></div>
-    <div class="metric"><small>ADR</small><strong>${number(best.adr,1)}</strong></div></div>`;
+    <div class="metric"><small>ADR</small><strong>${number(best.adr,1)}</strong></div>
+    </div>`;
 }
+
 function renderMaps(maps){
     const box=$("maps");
-    if(!maps.length){box.innerHTML='<div class="empty">Статистика по картам пока недоступна.</div>';return}
-    box.innerHTML=maps.map(m=>`<div class="map-item"><strong>${escapeHTML(m.map)}</strong>
-    <div>Матчи: ${m.matches}</div><div>Победы: ${m.winRate}%</div>
-    <div>K/D: ${number(m.kd)}</div><div>ADR: ${number(m.adr,1)}</div></div>`).join("");
+
+    if(!maps.length){
+        box.innerHTML='<div class="empty">Статистика по картам пока недоступна.</div>';
+        return;
+    }
+
+    box.innerHTML=maps.map(m=>`
+        <div class="map-item">
+            <strong>${escapeHTML(m.map)}</strong>
+            <div>Матчи: ${m.matches}</div>
+            <div>Победы: ${m.winRate}%</div>
+            <div>K/D: ${number(m.kd)}</div>
+            <div>ADR: ${number(m.adr,1)}</div>
+        </div>
+    `).join("");
 }
+
 function renderHistory(matches,stats){
     const body=$("history");
-    if(!matches.length){body.innerHTML='<tr><td colspan="6" class="empty">История матчей недоступна.</td></tr>';return}
+
+    if(!matches.length){
+        body.innerHTML='<tr><td colspan="6" class="empty">История матчей недоступна.</td></tr>';
+        return;
+    }
+
     const statMap=new Map(stats.filter(s=>s.matchId).map(s=>[String(s.matchId),s]));
+
     body.innerHTML=[...matches].reverse().slice(0,100).map(m=>{
         const s=statMap.get(String(m.id))||m.stats||{};
         const result=m.result==="win"?"Победа":m.result==="loss"?"Поражение":"—";
         const cls=m.result==="win"?"win":m.result==="loss"?"loss":"";
-        return `<tr><td>${formatDate(m.date)}</td><td class="${cls}">${result}</td>
-        <td>${escapeHTML(m.map||"—")}</td><td>${number(s.kd)}</td>
-        <td>${number(s.adr,1)}</td><td>${m.elo??"—"}</td></tr>`;
+
+        return `<tr>
+            <td>${formatDate(m.date)}</td>
+            <td class="${cls}">${result}</td>
+            <td>${escapeHTML(m.map||"—")}</td>
+            <td>${number(s.kd)}</td>
+            <td>${number(s.adr,1)}</td>
+            <td>${m.elo??"—"}</td>
+        </tr>`;
     }).join("");
 }
 
 // ELO
 function drawElo(){
     if(!currentData)return;
-    const canvas=$("eloChart"),rect=canvas.getBoundingClientRect();
+
+    const canvas=$("eloChart");
+    const rect=canvas.getBoundingClientRect();
+
     if(rect.width<=0||rect.height<=0)return;
+
     const dpr=window.devicePixelRatio||1;
-    canvas.width=Math.round(rect.width*dpr);canvas.height=Math.round(rect.height*dpr);
-    const ctx=canvas.getContext("2d");ctx.setTransform(dpr,0,0,dpr,0,0);
-    const width=rect.width,height=rect.height;
+
+    canvas.width=Math.round(rect.width*dpr);
+    canvas.height=Math.round(rect.height*dpr);
+
+    const ctx=canvas.getContext("2d");
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+
+    const width=rect.width;
+    const height=rect.height;
+
     ctx.clearRect(0,0,width,height);
+
     const limit=Number($("eloRange").value);
+
     const matchPoints=(currentData.matches||[])
         .filter(m=>m.elo!==null&&m.elo!==undefined&&Number.isFinite(Number(m.elo)))
-        .map(m=>({date:Number(m.date)||0,elo:Number(m.elo)})).sort((a,b)=>a.date-b.date);
+        .map(m=>({date:Number(m.date)||0,elo:Number(m.elo)}))
+        .sort((a,b)=>a.date-b.date);
+
     const savedPoints=(currentData.eloPoints||[])
         .filter(p=>p.elo!==null&&p.elo!==undefined&&Number.isFinite(Number(p.elo)))
-        .map(p=>({date:Number(p.date),elo:Number(p.elo)})).sort((a,b)=>a.date-b.date);
+        .map(p=>({date:Number(p.date),elo:Number(p.elo)}))
+        .sort((a,b)=>a.date-b.date);
+
     let points=savedPoints.length?savedPoints:matchPoints;
     points=points.slice(-limit);
+
     if(points.length<2){
         $("eloNote").textContent="Недостаточно данных для построения графика Elo.";
-        ctx.fillStyle="#999";ctx.font="14px Arial";ctx.textAlign="center";
-        ctx.fillText("Недостаточно данных",width/2,height/2);return;
+        ctx.fillStyle="#999";
+        ctx.font="14px Arial";
+        ctx.textAlign="center";
+        ctx.fillText("Недостаточно данных",width/2,height/2);
+        return;
     }
+
     const values=points.map(p=>p.elo);
-    const min=Math.min(...values)-30,max=Math.max(...values)+30;
+    const min=Math.min(...values)-30;
+    const max=Math.max(...values)+30;
+
     const left=48,right=15,top=18,bottom=28;
-    const chartW=width-left-right,chartH=height-top-bottom;
+    const chartW=width-left-right;
+    const chartH=height-top-bottom;
+
     const x=i=>left+i/(points.length-1)*chartW;
     const y=v=>top+(max-v)/(max-min)*chartH;
-    ctx.strokeStyle="#303139";ctx.lineWidth=1;
-    ctx.fillStyle="#999";ctx.font="11px Arial";ctx.textAlign="right";
+
+    ctx.strokeStyle="#303139";
+    ctx.lineWidth=1;
+    ctx.fillStyle="#999";
+    ctx.font="11px Arial";
+    ctx.textAlign="right";
+
     for(let i=0;i<5;i++){
-        const value=min+(max-min)*i/4,py=y(value);
-        ctx.beginPath();ctx.moveTo(left,py);ctx.lineTo(width-right,py);ctx.stroke();
+        const value=min+(max-min)*i/4;
+        const py=y(value);
+
+        ctx.beginPath();
+        ctx.moveTo(left,py);
+        ctx.lineTo(width-right,py);
+        ctx.stroke();
+
         ctx.fillText(Math.round(value),left-8,py+4);
     }
-    ctx.strokeStyle="#ff7138";ctx.lineWidth=2.5;ctx.beginPath();
-    points.forEach((p,i)=>i?ctx.lineTo(x(i),y(p.elo)):ctx.moveTo(x(i),y(p.elo)));
+
+    ctx.strokeStyle="#ff7138";
+    ctx.lineWidth=2.5;
+    ctx.beginPath();
+
+    points.forEach((p,i)=>{
+        if(i)ctx.lineTo(x(i),y(p.elo));
+        else ctx.moveTo(x(i),y(p.elo));
+    });
+
     ctx.stroke();
     ctx.fillStyle="#ff7138";
-    points.forEach((p,i)=>{ctx.beginPath();ctx.arc(x(i),y(p.elo),2.5,0,Math.PI*2);ctx.fill()});
+
+    points.forEach((p,i)=>{
+        ctx.beginPath();
+        ctx.arc(x(i),y(p.elo),2.5,0,Math.PI*2);
+        ctx.fill();
+    });
+
     $("eloNote").textContent=`Показано точек: ${points.length}. Последний Elo: ${values[values.length-1]}.`;
 }
 
 // DEMO UPLOAD
 async function uploadDemo(){
     const file=$("demoFile").files[0];
-    if(!file){$("demoStatus").textContent="Сначала выбери файл демки.";return}
+
+    if(!file){
+        $("demoStatus").textContent="Сначала выбери файл демки.";
+        return;
+    }
+
     $("demoUploadBtn").disabled=true;
     $("demoStatus").textContent="Загружаем демку на сервер...";
     $("demoResults").classList.add("hidden");
     $("replayPanel").classList.add("hidden");
+
     try{
-        const form=new FormData();form.append("demo",file);
-        const response=await fetch("/api/demo/upload",{method:"POST",body:form});
+        const form=new FormData();
+        form.append("demo",file);
+
+        const response=await fetch("/api/demo/upload",{
+            method:"POST",
+            body:form
+        });
+
         const data=await response.json();
-        if(!response.ok)throw new Error(data.error||"Не удалось обработать демку.");
+
+        if(!response.ok){
+            throw new Error(data.error||"Не удалось обработать демку.");
+        }
+
         $("demoResults").classList.remove("hidden");
         $("demoMap").textContent=data.map||"Неизвестно";
         $("demoPlayerCount").textContent=data.playerCount??"—";
         $("demoEventCount").textContent=data.eventCount??"—";
+
         renderDemoStats(data.players||[]);
         $("demoNote").textContent=data.note||"";
         $("demoStatus").textContent="Демка обработана. Подготавливаем просмотр...";
+
         const replayUrl=data.replayUrl||data.downloadUrl;
-        if(!replayUrl)throw new Error("Сервер не вернул ссылку на файл демки.");
+
+        if(!replayUrl){
+            throw new Error("Сервер не вернул ссылку на файл демки.");
+        }
+
         await loadReplay(replayUrl,data.map||"CS2");
+
     }catch(error){
         console.error("DemoScope upload error:",error);
         $("demoStatus").textContent="Ошибка: "+error.message;
-    }finally{$("demoUploadBtn").disabled=false}
-}
-function renderDemoStats(players){
-    const body=$("demoPlayers");
-    if(!players.length){body.innerHTML='<tr><td colspan="8" class="empty">Статистика игроков недоступна.</td></tr>';return}
-    body.innerHTML=players.map((p,i)=>`<tr>
-        <td>${i+1}</td><td class="demo-player">${escapeHTML(p.name||p.nickname||"—")}</td>
-        <td>${p.kills??"—"}</td><td>${p.deaths??"—"}</td><td>${p.assists??"—"}</td>
-        <td>${number(p.kd)}</td><td>${p.damage??"—"}</td><td>${p.hsPercent??"—"}</td>
-    </tr>`).join("");
+
+    }finally{
+        $("demoUploadBtn").disabled=false;
+    }
 }
 
-// REPLAY LOAD — ИСПРАВЛЕННЫЙ ЭКСПОРТ PLAYER
+function renderDemoStats(players){
+    const body=$("demoPlayers");
+
+    if(!players.length){
+        body.innerHTML='<tr><td colspan="8" class="empty">Статистика игроков недоступна.</td></tr>';
+        return;
+    }
+
+    body.innerHTML=players.map((p,i)=>`
+        <tr>
+            <td>${i+1}</td>
+            <td class="demo-player">${escapeHTML(p.name||p.nickname||"—")}</td>
+            <td>${p.kills??"—"}</td>
+            <td>${p.deaths??"—"}</td>
+            <td>${p.assists??"—"}</td>
+            <td>${number(p.kd)}</td>
+            <td>${p.damage??"—"}</td>
+            <td>${p.hsPercent??"—"}</td>
+        </tr>
+    `).join("");
+}
+
+// REPLAY LOAD — ИСПРАВЛЕННЫЙ ЭКСПОРТ PLAYER ДЛЯ CS2 5.0.0
 async function loadReplay(replayUrl,mapName){
-    // В браузере библиотека экспортирует классы через window.deademCs2.
-    const library=window.deademCs2;
+
+    // В версии 5.0.0 правильный путь к библиотеке:
+    // window.deadem.cs2
+    const library=window.deadem?.cs2;
+
+    console.log("DemoScope: проверка библиотеки CS2:",{
+        deadem:window.deadem,
+        cs2:window.deadem?.cs2,
+        Player:window.deadem?.cs2?.Player
+    });
 
     if(!library){
         throw new Error(
-            "Библиотека CS2 не загрузилась. Проверь подключение к CDN и перезагрузи страницу."
+            "Библиотека CS2 не найдена в window.deadem.cs2. " +
+            "Проверь загрузку CDN и обнови страницу через Ctrl + F5."
         );
     }
 
     const PlayerClass=library.Player;
 
     if(typeof PlayerClass!=="function"){
-        console.error("Экспорт библиотеки deademCs2:",library);
+        console.error("Экспорт библиотеки CS2:",library);
+
         throw new Error(
-            "В window.deademCs2 не найден класс Player. Проверь версию библиотеки."
+            "В window.deadem.cs2 не найден класс Player. " +
+            "Проверь версию библиотеки."
         );
     }
 
-    $("demoStatus").textContent="Получаем распакованную демку с сервера...";
+    $("demoStatus").textContent="Получаем демку с сервера...";
 
     const response=await fetch(replayUrl);
 
     if(!response.ok){
-        throw new Error("Сервер не смог передать файл демки в браузер. HTTP "+response.status);
+        throw new Error(
+            "Сервер не смог передать файл демки в браузер. HTTP "+response.status
+        );
     }
 
     const replayBlob=await response.blob();
@@ -440,7 +668,8 @@ async function loadReplay(replayUrl,mapName){
         throw new Error("Сервер вернул пустой файл демки.");
     }
 
-    $("demoStatus").textContent="Индексируем демку в браузере. Это может занять некоторое время...";
+    $("demoStatus").textContent=
+        "Индексируем демку в браузере. Это может занять некоторое время...";
 
     const player=new PlayerClass();
 
@@ -464,15 +693,16 @@ async function loadReplay(replayUrl,mapName){
 
         $("replayMap").textContent=mapName||"CS2";
         $("replayTimeline").value=0;
-        timelineDragging=false;
 
+        timelineDragging=false;
         latestReplayPlayers=[];
         selectedReplayPlayer="";
 
         replayCameraMode="orbit";
         $("cameraMode").value="orbit";
 
-        $("replayPlayerSelect").innerHTML='<option value="">Загрузка игроков...</option>';
+        $("replayPlayerSelect").innerHTML=
+            '<option value="">Загрузка игроков...</option>';
 
         $("replayPanel").classList.remove("hidden");
 
@@ -486,10 +716,16 @@ async function loadReplay(replayUrl,mapName){
         resize3D();
         updateReplayState();
 
-        $("demoStatus").textContent="Демо загружено. Можно запускать воспроизведение.";
-        $("replayPanel").scrollIntoView({behavior:"smooth",block:"start"});
+        $("demoStatus").textContent=
+            "Демо загружено. Можно запускать воспроизведение.";
+
+        $("replayPanel").scrollIntoView({
+            behavior:"smooth",
+            block:"start"
+        });
 
     }catch(error){
+
         try{
             await player.dispose();
         }catch(disposeError){
@@ -547,7 +783,9 @@ async function seekReplay(){
     if(!replayPlayer)return;
 
     const progress=Number($("replayTimeline").value)/1000;
-    const tick=Math.round(replayFirstTick+(replayLastTick-replayFirstTick)*progress);
+    const tick=Math.round(
+        replayFirstTick+(replayLastTick-replayFirstTick)*progress
+    );
 
     timelineDragging=false;
     pauseReplay();
@@ -564,9 +802,12 @@ function previewReplayPosition(){
     if(!replayPlayer)return;
 
     const progress=Number($("replayTimeline").value)/1000;
-    const tick=Math.round(replayFirstTick+(replayLastTick-replayFirstTick)*progress);
+    const tick=Math.round(
+        replayFirstTick+(replayLastTick-replayFirstTick)*progress
+    );
 
-    $("replayCurrent").textContent=formatTime((tick-replayFirstTick)/64);
+    $("replayCurrent").textContent=
+        formatTime((tick-replayFirstTick)/64);
 }
 
 async function stepReplay(direction){
@@ -580,7 +821,9 @@ async function stepReplay(direction){
         if(direction>0){
             replayPlayer.nextTick();
         }else{
-            await replayPlayer.seekToTick(Math.max(replayFirstTick,current-1));
+            await replayPlayer.seekToTick(
+                Math.max(replayFirstTick,current-1)
+            );
         }
 
         updateReplayState();
@@ -592,7 +835,11 @@ async function stepReplay(direction){
 
 // ПОЛУЧЕНИЕ КООРДИНАТ ИГРОКОВ
 function safeGet(entity,field){
-    try{return entity?.getField(field)}catch{return undefined}
+    try{
+        return entity?.getField(field);
+    }catch{
+        return undefined;
+    }
 }
 
 function parseNumber(value){
@@ -744,13 +991,11 @@ function getPawnFromController(demo,controller){
 
     try{
         const pawn=demo.getEntityByHandle(handle);
-
         if(pawn)return pawn;
     }catch(error){}
 
     try{
         const pawn=demo.getEntity(handle);
-
         if(pawn)return pawn;
     }catch(error){}
 
@@ -822,9 +1067,11 @@ function getReplayPlayers(){
 
         const pawn=getPawnFromController(demo,controller);
 
-        const healthValue=safeGet(pawn,"m_iHealth")??safeGet(controller,"m_iPawnHealth");
-        const health=Number(healthValue);
+        const healthValue=
+            safeGet(pawn,"m_iHealth")??
+            safeGet(controller,"m_iPawnHealth");
 
+        const health=Number(healthValue);
         const position=pawn?getPawnPosition(pawn):null;
 
         const candidate={
@@ -851,10 +1098,14 @@ function updateReplayState(){
 
     const currentTick=replayPlayer.getCurrentTick();
     const totalTicks=replayLastTick-replayFirstTick;
-    const progress=totalTicks>0?(currentTick-replayFirstTick)/totalTicks:0;
+
+    const progress=totalTicks>0
+        ?(currentTick-replayFirstTick)/totalTicks
+        :0;
 
     if(!timelineDragging){
-        $("replayTimeline").value=Math.max(0,Math.min(1000,Math.round(progress*1000)));
+        $("replayTimeline").value=
+            Math.max(0,Math.min(1000,Math.round(progress*1000)));
     }
 
     const seconds=(currentTick-replayFirstTick)/64;
@@ -877,16 +1128,24 @@ function updateReplayState(){
 function updateReplayPlayerSelector(players){
     const select=$("replayPlayerSelect");
 
-    const names=players.map(p=>p.name).filter(Boolean).sort((a,b)=>a.localeCompare(b));
-    const old=Array.from(select.options).map(o=>o.value).filter(Boolean);
+    const names=players
+        .map(p=>p.name)
+        .filter(Boolean)
+        .sort((a,b)=>a.localeCompare(b));
+
+    const old=Array.from(select.options)
+        .map(o=>o.value)
+        .filter(Boolean);
 
     if(names.length!==old.length||!names.every((n,i)=>n===old[i])){
-        select.innerHTML=`<option value="">Выбери игрока</option>`+
+        select.innerHTML=
+            `<option value="">Выбери игрока</option>`+
             names.map(n=>`<option value="${escapeHTML(n)}">${escapeHTML(n)}</option>`).join("");
     }
 
     if(selectedReplayPlayer&&names.includes(selectedReplayPlayer)){
         select.value=selectedReplayPlayer;
+
     }else if(names.length){
         selectedReplayPlayer=names[0];
         select.value=selectedReplayPlayer;
@@ -924,9 +1183,9 @@ function changeCameraMode(){
         threeCamera.updateProjectionMatrix();
 
         updateCamera();
+
     }else{
         $("cameraStatus").textContent="Камера: от лица игрока";
-
         updateReplayCamera(latestReplayPlayers);
     }
 }
@@ -951,8 +1210,14 @@ function renderReplayPlayers(players){
         const selected=p.name===selectedReplayPlayer?"selected":"";
 
         return `<tr class="player-row ${selected}" onclick="choosePlayerFromTable('${escapeHTML(p.name)}')">
-        <td class="${cls}">${escapeHTML(p.name)}</td><td class="${cls}">${team}</td>
-        <td>${p.health??"—"}</td><td>${x}</td><td>${y}</td><td>${z}</td><td>${yaw}</td></tr>`;
+            <td class="${cls}">${escapeHTML(p.name)}</td>
+            <td class="${cls}">${team}</td>
+            <td>${p.health??"—"}</td>
+            <td>${x}</td>
+            <td>${y}</td>
+            <td>${z}</td>
+            <td>${yaw}</td>
+        </tr>`;
     }).join("");
 }
 
@@ -1138,7 +1403,6 @@ function buildMirageRadar(){
         undefined,
         error=>{
             console.error("Ошибка загрузки радара:",error);
-
             $("mapStatus").textContent="Карта: ошибка загрузки радара";
         }
     );
@@ -1224,6 +1488,7 @@ function update3DPlayers(players){
             visual.arrow.position.set(0,.8,0);
             visual.arrow.setDirection(direction);
             visual.arrow.visible=true;
+
         }else{
             visual.arrow.visible=false;
         }
@@ -1299,7 +1564,6 @@ function createPlayerVisual(player){
     );
 
     marker.position.y=.35;
-
     group.add(marker);
 
     const label=createPlayerNameLabel(
@@ -1308,7 +1572,6 @@ function createPlayerVisual(player){
     );
 
     label.position.y=3.2;
-
     group.add(label);
 
     const arrow=new THREE.ArrowHelper(
@@ -1324,7 +1587,6 @@ function createPlayerVisual(player){
     arrow.cone.material.depthTest=false;
 
     group.add(arrow);
-
     threeScene.add(group);
 
     return{group,marker,label,arrow};
@@ -1334,7 +1596,9 @@ function createPlayerVisual(player){
 function updateReplayCamera(players){
     if(!threeCamera||replayCameraMode!=="follow")return;
 
-    let player=players.find(p=>p.name===selectedReplayPlayer&&p.position);
+    let player=players.find(p=>
+        p.name===selectedReplayPlayer&&p.position
+    );
 
     if(!player)player=players.find(p=>p.position);
 
@@ -1363,7 +1627,12 @@ function updateReplayCamera(players){
 
     const eyeHeight=1.7;
 
-    threeCamera.position.set(pos.x,pos.y+eyeHeight,pos.z);
+    threeCamera.position.set(
+        pos.x,
+        pos.y+eyeHeight,
+        pos.z
+    );
+
     threeCamera.up.set(0,1,0);
 
     threeCamera.lookAt(
@@ -1398,7 +1667,6 @@ function addCameraControls(container){
         if(replayCameraMode==="follow")return;
 
         dragActive=true;
-
         lastMouseX=event.clientX;
         lastMouseY=event.clientY;
 
@@ -1434,6 +1702,7 @@ function addCameraControls(container){
         );
 
         updateCamera();
+
     },{passive:false});
 }
 
@@ -1441,7 +1710,6 @@ function animate3D(){
     if(!threeRenderer||!threeScene||!threeCamera)return;
 
     requestAnimationFrame(animate3D);
-
     threeRenderer.render(threeScene,threeCamera);
 }
 
@@ -1476,7 +1744,6 @@ $("nickname").addEventListener("keydown",event=>{
 
 window.addEventListener("resize",()=>{
     if(currentData)drawElo();
-
     resize3D();
 });
 </script>
