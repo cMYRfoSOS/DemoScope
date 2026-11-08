@@ -117,7 +117,7 @@ th,td{padding:9px 5px}
 
     <div class="demo-upload">
         <label class="demo-file">
-            <input type="file" id="demoFile" accept=".dem,.dem.zst">
+            <input type="file" id="demoFile" accept=".dem,.zst">
         </label>
         <button id="demoUploadBtn" onclick="uploadDemo()">Анализировать демо</button>
     </div>
@@ -305,9 +305,7 @@ th,td{padding:9px 5px}
 <script>
 "use strict";
 
-/* =====================================================
-   ОСНОВНЫЕ ПЕРЕМЕННЫЕ
-===================================================== */
+/* ОСНОВНЫЕ ПЕРЕМЕННЫЕ */
 
 let currentData = null;
 let replayPlayer = null;
@@ -337,10 +335,7 @@ let dragActive = false;
 let lastMouseX = 0;
 let lastMouseY = 0;
 
-/* Новый идентификатор цикла анимации */
 let animationFrameId = null;
-
-/* Защита от повторной загрузки */
 let replayLoadGeneration = 0;
 
 const $ = id => document.getElementById(id);
@@ -356,9 +351,7 @@ const RADAR_SIZE = 1024;
 const SCENE_UNITS_PER_PIXEL = 0.15;
 const MAP_SIZE = RADAR_SIZE * SCENE_UNITS_PER_PIXEL;
 
-/* =====================================================
-   ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
-===================================================== */
+/* ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ */
 
 function escapeHTML(value) {
     return String(value).replace(/[&<>"']/g, char => ({
@@ -376,9 +369,7 @@ function showStatus(message) {
 
 function formatDate(value) {
     if (!value) return "—";
-
     const date = new Date(value);
-
     return Number.isNaN(date.getTime())
         ? "—"
         : date.toLocaleDateString("ru-RU");
@@ -390,15 +381,11 @@ function number(value, digits = 2) {
     }
 
     const n = Number(value);
-
-    return Number.isFinite(n)
-        ? n.toFixed(digits)
-        : "—";
+    return Number.isFinite(n) ? n.toFixed(digits) : "—";
 }
 
 function formatTime(seconds) {
     seconds = Math.max(0, Math.floor(seconds || 0));
-
     return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
 }
 
@@ -409,7 +396,6 @@ function cleanNickname(value) {
         if (value.startsWith("http")) {
             const url = new URL(value);
             const parts = url.pathname.split("/").filter(Boolean);
-
             return parts[parts.length - 1] || "";
         }
     } catch {}
@@ -431,9 +417,7 @@ function stopAnimationLoop() {
     }
 }
 
-/* =====================================================
-   FACEIT
-===================================================== */
+/* FACEIT */
 
 async function searchPlayer() {
     const nickname = cleanNickname($("nickname").value);
@@ -445,7 +429,6 @@ async function searchPlayer() {
 
     $("searchBtn").disabled = true;
     $("results").classList.add("hidden");
-
     showStatus("Загружаем статистику FACEIT...");
 
     try {
@@ -460,11 +443,9 @@ async function searchPlayer() {
         }
 
         currentData = data;
-
         $("results").classList.remove("hidden");
 
         render(data);
-
         requestAnimationFrame(drawElo);
 
         showStatus("");
@@ -501,7 +482,6 @@ function render(data) {
     }
 
     const matches = data.matches || [];
-
     const wins = matches.filter(m => m.result === "win").length;
 
     const known = matches.filter(
@@ -614,9 +594,7 @@ function renderHistory(matches, stats) {
     }).join("");
 }
 
-/* =====================================================
-   ELO
-===================================================== */
+/* ELO */
 
 function drawElo() {
     if (!currentData) return;
@@ -667,7 +645,6 @@ function drawElo() {
         .sort((a, b) => a.date - b.date);
 
     let points = savedPoints.length ? savedPoints : matchPoints;
-
     points = points.slice(-limit);
 
     if (points.length < 2) {
@@ -678,7 +655,6 @@ function drawElo() {
         ctx.font = "14px Arial";
         ctx.textAlign = "center";
         ctx.fillText("Недостаточно данных", width / 2, height / 2);
-
         return;
     }
 
@@ -721,15 +697,11 @@ function drawElo() {
     ctx.beginPath();
 
     points.forEach((p, i) => {
-        if (i) {
-            ctx.lineTo(x(i), y(p.elo));
-        } else {
-            ctx.moveTo(x(i), y(p.elo));
-        }
+        if (i) ctx.lineTo(x(i), y(p.elo));
+        else ctx.moveTo(x(i), y(p.elo));
     });
 
     ctx.stroke();
-
     ctx.fillStyle = "#ff7138";
 
     points.forEach((p, i) => {
@@ -742,9 +714,7 @@ function drawElo() {
         `Показано точек: ${points.length}. Последний Elo: ${values[values.length - 1]}.`;
 }
 
-/* =====================================================
-   DEMO UPLOAD
-===================================================== */
+/* ЗАГРУЗКА ДЕМКИ */
 
 async function uploadDemo() {
     const file = $("demoFile").files[0];
@@ -755,7 +725,6 @@ async function uploadDemo() {
     }
 
     $("demoUploadBtn").disabled = true;
-
     $("demoStatus").textContent = "Загружаем демку на сервер...";
 
     $("demoResults").classList.add("hidden");
@@ -768,7 +737,6 @@ async function uploadDemo() {
 
     try {
         const form = new FormData();
-
         form.append("demo", file);
 
         const response = await fetch("/api/demo/upload", {
@@ -805,6 +773,7 @@ async function uploadDemo() {
 
     } catch (error) {
         $("demoStatus").textContent = "Ошибка: " + error.message;
+        console.error("Ошибка загрузки демки:", error);
 
     } finally {
         $("demoUploadBtn").disabled = false;
@@ -834,18 +803,10 @@ function renderDemoStats(players) {
     `).join("");
 }
 
-/* =====================================================
-   REPLAY LOAD
-===================================================== */
+/* ЗАГРУЗКА REPLAY */
 
 async function loadReplay(replayUrl, mapName) {
     const generation = replayLoadGeneration;
-
-    /*
-       Исправлено получение Player.
-       Проверяем реальный экспорт библиотеки,
-       а не просто наличие window.cs2.
-    */
 
     const PlayerClass = window.deadem?.cs2?.Player;
 
@@ -882,7 +843,6 @@ async function loadReplay(replayUrl, mapName) {
             try {
                 await player.dispose();
             } catch {}
-
             return;
         }
 
@@ -904,11 +864,9 @@ async function loadReplay(replayUrl, mapName) {
         await player.seekToTick(replayFirstTick);
 
         $("replayMap").textContent = mapName || "CS2";
-
         $("replayTimeline").value = 0;
 
         timelineDragging = false;
-
         latestReplayPlayers = [];
         selectedReplayPlayer = "";
 
@@ -953,9 +911,7 @@ async function loadReplay(replayUrl, mapName) {
     }
 }
 
-/* =====================================================
-   ВОСПРОИЗВЕДЕНИЕ
-===================================================== */
+/* ВОСПРОИЗВЕДЕНИЕ */
 
 function playReplay() {
     if (!replayPlayer || replayPlaying) return;
@@ -963,33 +919,30 @@ function playReplay() {
     const speed = Number($("replaySpeed").value) || 1;
 
     replayPlaying = true;
-
     $("playButton").textContent = "▶ Идёт воспроизведение";
 
     stopReplayTimer();
-
     replayUpdateTimer = setInterval(updateReplayState, 100);
 
-    /*
-       Promise.resolve защищает от ошибки,
-       если play() возвращает не Promise.
-    */
-
-    Promise.resolve(replayPlayer.play(speed))
-        .catch(error => {
-            if (error?.reason !== "paused") {
-                console.error("Ошибка воспроизведения:", error);
-            }
-        })
-        .finally(() => {
-            replayPlaying = false;
-
-            stopReplayTimer();
-
-            $("playButton").textContent = "▶ Воспроизвести";
-
-            updateReplayState();
-        });
+    try {
+        Promise.resolve(replayPlayer.play(speed))
+            .catch(error => {
+                if (error?.reason !== "paused") {
+                    console.error("Ошибка воспроизведения:", error);
+                }
+            })
+            .finally(() => {
+                replayPlaying = false;
+                stopReplayTimer();
+                $("playButton").textContent = "▶ Воспроизвести";
+                updateReplayState();
+            });
+    } catch (error) {
+        replayPlaying = false;
+        stopReplayTimer();
+        $("playButton").textContent = "▶ Воспроизвести";
+        console.error("Ошибка запуска воспроизведения:", error);
+    }
 }
 
 function pauseReplay() {
@@ -1002,7 +955,6 @@ function pauseReplay() {
     }
 
     replayPlaying = false;
-
     stopReplayTimer();
 
     $("playButton").textContent = "▶ Воспроизвести";
@@ -1021,14 +973,11 @@ async function seekReplay() {
     );
 
     timelineDragging = false;
-
     pauseReplay();
 
     try {
         await replayPlayer.seekToTick(tick);
-
         updateReplayState();
-
     } catch (error) {
         $("demoStatus").textContent =
             "Ошибка перемотки: " + error.message;
@@ -1072,9 +1021,7 @@ async function stepReplay(direction) {
     }
 }
 
-/* =====================================================
-   ПОЛУЧЕНИЕ ДАННЫХ ИГРОКОВ
-===================================================== */
+/* ПОЛУЧЕНИЕ ДАННЫХ ИГРОКОВ */
 
 function safeGet(entity, field) {
     try {
@@ -1090,21 +1037,35 @@ function parseNumber(value) {
     }
 
     const n = Number(value);
-
     return Number.isFinite(n) ? n : null;
 }
+
+/*
+   НОВАЯ ФУНКЦИЯ ПОЛУЧЕНИЯ КООРДИНАТ.
+   Проверяет несколько вариантов расположения полей.
+*/
 
 function getPawnPosition(pawn) {
     if (!pawn) return null;
 
-    const vectorFields = [
+    const fields = [
         "m_vecAbsOrigin",
+        "CBodyComponent.m_vecAbsOrigin",
+        "CBodyComponent.m_pSceneNode.m_vecAbsOrigin",
         "CBodyComponent.m_skeletonInstance.m_vecOrigin",
         "m_vecOrigin"
     ];
 
-    function vectorToPosition(value) {
+    function readVector(value) {
         if (!value) return null;
+
+        if (typeof value === "string") {
+            try {
+                value = JSON.parse(value);
+            } catch {
+                return null;
+            }
+        }
 
         const x = parseNumber(value.x ?? value.X ?? value[0]);
         const y = parseNumber(value.y ?? value.Y ?? value[1]);
@@ -1114,57 +1075,53 @@ function getPawnPosition(pawn) {
             return null;
         }
 
+        if (
+            Math.abs(x) > 10000 ||
+            Math.abs(y) > 10000 ||
+            Math.abs(z) > 10000
+        ) {
+            return null;
+        }
+
         return { x, y, z };
     }
 
-    function plausible(position) {
-        return position &&
-            position.x > -5000 && position.x < 3000 &&
-            position.y > -2500 && position.y < 3000 &&
-            position.z > -1500 && position.z < 3000;
+    for (const field of fields) {
+        const value = safeGet(pawn, field);
+        const position = readVector(value);
+
+        if (position) return position;
     }
 
-    for (const field of vectorFields) {
-        const position = vectorToPosition(safeGet(pawn, field));
+    const prefixes = [
+        "CBodyComponent.",
+        "CBodyComponent.m_pSceneNode.",
+        "CBodyComponent.m_skeletonInstance.",
+        ""
+    ];
 
-        if (plausible(position)) {
-            return position;
-        }
-    }
+    for (const prefix of prefixes) {
+        const cx = parseNumber(safeGet(pawn, prefix + "m_cellX"));
+        const cy = parseNumber(safeGet(pawn, prefix + "m_cellY"));
+        const cz = parseNumber(safeGet(pawn, prefix + "m_cellZ"));
 
-    const prefix =
-        "CBodyComponent.m_skeletonInstance.m_vecOrigin";
+        const vx = parseNumber(safeGet(pawn, prefix + "m_vecX"));
+        const vy = parseNumber(safeGet(pawn, prefix + "m_vecY"));
+        const vz = parseNumber(safeGet(pawn, prefix + "m_vecZ"));
 
-    const CELL_SIZE = 512;
-
-    function read(name) {
-        return parseNumber(
-            safeGet(pawn, `${prefix}.${name}`)
-        );
-    }
-
-    const cx = read("m_cellX");
-    const cy = read("m_cellY");
-    const cz = read("m_cellZ");
-
-    const vx = read("m_vecX");
-    const vy = read("m_vecY");
-    const vz = read("m_vecZ");
-
-    if ([cx, cy, cz, vx, vy, vz].every(v => v !== null)) {
-        const position = {
-            x: cx * CELL_SIZE + vx,
-            y: cy * CELL_SIZE + vy,
-            z: cz * CELL_SIZE + vz
-        };
-
-        if (plausible(position)) {
-            return position;
+        if ([cx, cy, cz, vx, vy, vz].every(v => v !== null)) {
+            return {
+                x: cx * 512 + vx,
+                y: cy * 512 + vy,
+                z: cz * 512 + vz
+            };
         }
     }
 
     return null;
 }
+
+/* ПОЛУЧЕНИЕ PAWN */
 
 function getPawnFromController(demo, controller) {
     const handle = safeGet(controller, "m_hPlayerPawn");
@@ -1175,18 +1132,15 @@ function getPawnFromController(demo, controller) {
 
     try {
         const pawn = demo.getEntityByHandle(handle);
-
         if (pawn) return pawn;
-    } catch {}
-
-    try {
-        const pawn = demo.getEntity(handle);
-
-        if (pawn) return pawn;
-    } catch {}
+    } catch (error) {
+        console.warn("getEntityByHandle:", error);
+    }
 
     return null;
 }
+
+/* ПОЛУЧЕНИЕ ИГРОКОВ И ДИАГНОСТИКА */
 
 function getReplayPlayers() {
     if (!replayPlayer) return [];
@@ -1209,17 +1163,13 @@ function getReplayPlayers() {
 
             if (!controller) continue;
 
-            const name = safeGet(
-                controller,
-                "m_iszPlayerName"
-            );
-
+            const name = safeGet(controller, "m_iszPlayerName");
             const angles = command?.state?.base?.viewangles;
 
             if (!name || !angles) continue;
 
             const pitch = Number(
-                angles.x ?? angles.pitch ?? angles[0]
+                angles.x ?? angles.pitch ?? angles[0] ?? 0
             );
 
             const yaw = Number(
@@ -1233,12 +1183,8 @@ function getReplayPlayers() {
                 });
             }
         }
-
     } catch (error) {
-        console.warn(
-            "Не удалось получить направления взгляда:",
-            error
-        );
+        console.warn("Ошибка получения углов:", error);
     }
 
     let controllers = [];
@@ -1246,33 +1192,21 @@ function getReplayPlayers() {
     try {
         controllers =
             demo.getEntitiesByClassName("CCSPlayerController") || [];
-
     } catch (error) {
-        console.error(
-            "Ошибка получения контроллеров:",
-            error
-        );
+        console.error("Ошибка получения контроллеров:", error);
     }
 
-    /*
-       Убираем повторения по имени.
-       Не обрезаем массив через slice(0,10):
-       это могло скрывать реальных игроков.
-    */
+    const result = new Map();
 
-    const uniquePlayers = new Map();
+    let pawnFound = 0;
+    let positionFound = 0;
 
     for (const controller of controllers) {
-        const nameValue = safeGet(
-            controller,
-            "m_iszPlayerName"
-        );
+        const nameValue = safeGet(controller, "m_iszPlayerName");
 
         if (!nameValue) continue;
 
-        const team = Number(
-            safeGet(controller, "m_iTeamNum")
-        );
+        const team = Number(safeGet(controller, "m_iTeamNum"));
 
         if (team !== 2 && team !== 3) continue;
 
@@ -1280,10 +1214,15 @@ function getReplayPlayers() {
 
         if (!name) continue;
 
-        const pawn = getPawnFromController(
-            demo,
-            controller
-        );
+        const pawn = getPawnFromController(demo, controller);
+
+        if (pawn) pawnFound++;
+
+        const position = pawn
+            ? getPawnPosition(pawn)
+            : null;
+
+        if (position) positionFound++;
 
         const healthValue =
             safeGet(pawn, "m_iHealth") ??
@@ -1291,11 +1230,7 @@ function getReplayPlayers() {
 
         const health = Number(healthValue);
 
-        const position = pawn
-            ? getPawnPosition(pawn)
-            : null;
-
-        const candidate = {
+        const player = {
             name,
             team,
             health: Number.isFinite(health) ? health : null,
@@ -1303,30 +1238,33 @@ function getReplayPlayers() {
             viewAngles: viewAnglesByName.get(name) || null
         };
 
-        const key = name.toLocaleLowerCase();
-
-        const previous = uniquePlayers.get(key);
+        const key = name.toLowerCase();
+        const previous = result.get(key);
 
         if (
             !previous ||
-            (!previous.position && candidate.position)
+            (!previous.position && player.position)
         ) {
-            uniquePlayers.set(key, candidate);
+            result.set(key, player);
         }
     }
 
-    return Array.from(uniquePlayers.values());
+    console.log("[DemoScope] Диагностика игроков:", {
+        controllers: controllers.length,
+        pawnsFound: pawnFound,
+        positionsFound: positionFound,
+        examples: Array.from(result.values()).slice(0, 3)
+    });
+
+    return Array.from(result.values());
 }
 
-/* =====================================================
-   ОБНОВЛЕНИЕ СОСТОЯНИЯ REPLAY
-===================================================== */
+/* ОБНОВЛЕНИЕ REPLAY */
 
 function updateReplayState() {
     if (!replayPlayer) return;
 
     const currentTick = replayPlayer.getCurrentTick();
-
     const totalTicks = replayLastTick - replayFirstTick;
 
     const progress = totalTicks > 0
@@ -1344,10 +1282,7 @@ function updateReplayState() {
     const duration = totalTicks / 64;
 
     $("replayTick").textContent = "Тик: " + currentTick;
-
-    $("replayTime").textContent =
-        "Время: " + formatTime(seconds);
-
+    $("replayTime").textContent = "Время: " + formatTime(seconds);
     $("replayCurrent").textContent = formatTime(seconds);
     $("replayDuration").textContent = formatTime(duration);
 
@@ -1360,9 +1295,7 @@ function updateReplayState() {
     update3DPlayers(players);
 }
 
-/* =====================================================
-   СПИСОК ИГРОКОВ
-===================================================== */
+/* СПИСОК ИГРОКОВ */
 
 function updateReplayPlayerSelector(players) {
     const select = $("replayPlayerSelect");
@@ -1411,9 +1344,7 @@ function updateReplayPlayerSelector(players) {
 
 function selectReplayPlayer() {
     selectedReplayPlayer = $("replayPlayerSelect").value;
-
     renderReplayPlayers(latestReplayPlayers);
-
     updateReplayCamera(latestReplayPlayers);
 }
 
@@ -1430,9 +1361,7 @@ function changeCameraMode() {
         replayCameraMode === "follow" &&
         !selectedReplayPlayer
     ) {
-        const first = latestReplayPlayers.find(
-            p => p.position
-        );
+        const first = latestReplayPlayers.find(p => p.position);
 
         if (first) {
             selectedReplayPlayer = first.name;
@@ -1441,20 +1370,16 @@ function changeCameraMode() {
     }
 
     if (replayCameraMode === "orbit") {
-        $("cameraStatus").textContent =
-            "Камера: общий вид";
+        $("cameraStatus").textContent = "Камера: общий вид";
 
         threeCamera.up.set(0, 0, -1);
         threeCamera.fov = 45;
-
         threeCamera.updateProjectionMatrix();
 
         updateCamera();
 
     } else {
-        $("cameraStatus").textContent =
-            "Камера: от лица игрока";
-
+        $("cameraStatus").textContent = "Камера: от лица игрока";
         updateReplayCamera(latestReplayPlayers);
     }
 }
@@ -1475,32 +1400,18 @@ function renderReplayPlayers(players) {
                 ? "team-ct"
                 : "";
 
-        const team = p.team === 2
-            ? "T"
-            : p.team === 3
-                ? "CT"
-                : "—";
+        const team = p.team === 2 ? "T" : "CT";
 
-        const x = p.position
-            ? number(p.position.x, 0)
-            : "—";
-
-        const y = p.position
-            ? number(p.position.y, 0)
-            : "—";
-
-        const z = p.position
-            ? number(p.position.z, 0)
-            : "—";
+        const x = p.position ? number(p.position.x, 0) : "—";
+        const y = p.position ? number(p.position.y, 0) : "—";
+        const z = p.position ? number(p.position.z, 0) : "—";
 
         const yaw = p.viewAngles
             ? number(p.viewAngles.yaw, 1) + "°"
             : "—";
 
         const selected =
-            p.name === selectedReplayPlayer
-                ? "selected"
-                : "";
+            p.name === selectedReplayPlayer ? "selected" : "";
 
         return `
             <tr class="player-row ${selected}"
@@ -1519,17 +1430,12 @@ function renderReplayPlayers(players) {
 
 function choosePlayerFromTable(name) {
     selectedReplayPlayer = name;
-
     $("replayPlayerSelect").value = name;
-
     renderReplayPlayers(latestReplayPlayers);
-
     updateReplayCamera(latestReplayPlayers);
 }
 
-/* =====================================================
-   THREE.JS — ИНИЦИАЛИЗАЦИЯ
-===================================================== */
+/* THREE.JS */
 
 function init3DScene() {
     const container = $("replay3d");
@@ -1540,18 +1446,11 @@ function init3DScene() {
         return;
     }
 
-    /*
-       Останавливаем предыдущую анимацию.
-       Это предотвращает накопление циклов RAF.
-    */
-
     stopAnimationLoop();
 
     if (threeRenderer) {
         threeRenderer.dispose();
-
         threeRenderer.domElement.remove();
-
         threeRenderer = null;
     }
 
@@ -1560,7 +1459,6 @@ function init3DScene() {
     }
 
     threeScene = new THREE.Scene();
-
     threeScene.background = new THREE.Color(0x090b10);
 
     playerMeshes.clear();
@@ -1589,20 +1487,14 @@ function init3DScene() {
     );
 
     container.innerHTML = "";
-
     container.appendChild(threeRenderer.domElement);
 
     threeScene.add(
         new THREE.AmbientLight(0xffffff, 1.8)
     );
 
-    const light = new THREE.DirectionalLight(
-        0xffffff,
-        1.3
-    );
-
+    const light = new THREE.DirectionalLight(0xffffff, 1.3);
     light.position.set(30, 100, 40);
-
     threeScene.add(light);
 
     buildMirageRadar();
@@ -1614,19 +1506,13 @@ function init3DScene() {
     replayCameraMode = $("cameraMode").value;
 
     updateCamera();
-
     addCameraControls(container);
-
     animate3D();
 }
 
-/* Очистка старой сцены */
-
 function disposeThreeScene(scene) {
     scene.traverse(object => {
-        if (object.geometry) {
-            object.geometry.dispose();
-        }
+        if (object.geometry) object.geometry.dispose();
 
         if (object.material) {
             const materials = Array.isArray(object.material)
@@ -1634,10 +1520,7 @@ function disposeThreeScene(scene) {
                 : [object.material];
 
             for (const material of materials) {
-                if (material.map) {
-                    material.map.dispose();
-                }
-
+                if (material.map) material.map.dispose();
                 material.dispose();
             }
         }
@@ -1646,9 +1529,7 @@ function disposeThreeScene(scene) {
     scene.clear();
 }
 
-/* =====================================================
-   РАДАР MIRAGE
-===================================================== */
+/* РАДАР MIRAGE */
 
 function radarPointToScene(px, py) {
     return {
@@ -1679,7 +1560,6 @@ function addZoneMarker(name, x, y, color) {
 
     ring.rotation.x = -Math.PI / 2;
     ring.position.set(p.x, 0.22, p.z);
-
     replayMapGroup.add(ring);
 
     const center = new THREE.Mesh(
@@ -1694,7 +1574,6 @@ function addZoneMarker(name, x, y, color) {
 
     center.rotation.x = -Math.PI / 2;
     center.position.set(p.x, 0.2, p.z);
-
     replayMapGroup.add(center);
 
     addMapLabel(name, p.x, p.z, color);
@@ -1719,7 +1598,6 @@ function addMapLabel(text, x, z, color) {
     ctx.font = "bold 48px Arial";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-
     ctx.fillText(text, 256, 64);
 
     const texture = new THREE.CanvasTexture(canvas);
@@ -1754,7 +1632,6 @@ function buildMirageRadar() {
     replayMapGroup.add(ground);
 
     const loader = new THREE.TextureLoader();
-
     loader.setCrossOrigin("anonymous");
 
     const currentGroup = replayMapGroup;
@@ -1764,11 +1641,6 @@ function buildMirageRadar() {
         MIRAGE_RADAR_URL,
 
         texture => {
-            /*
-               Не применяем текстуру к старой сцене,
-               если пользователь уже загрузил другую демку.
-            */
-
             if (
                 replayMapGroup !== currentGroup ||
                 threeRenderer !== currentRenderer
@@ -1783,9 +1655,7 @@ function buildMirageRadar() {
                 threeRenderer.capabilities.getMaxAnisotropy();
 
             ground.material.map = texture;
-
             ground.material.color.set(0xffffff);
-
             ground.material.needsUpdate = true;
 
             $("mapStatus").textContent =
@@ -1795,10 +1665,7 @@ function buildMirageRadar() {
         undefined,
 
         error => {
-            console.error(
-                "Ошибка загрузки радара:",
-                error
-            );
+            console.error("Ошибка загрузки радара:", error);
 
             $("mapStatus").textContent =
                 "Карта: ошибка загрузки радара";
@@ -1816,9 +1683,7 @@ function buildMirageRadar() {
         "Карта: загружается радар Mirage...";
 }
 
-/* =====================================================
-   ПЕРЕВОД ИГРОВЫХ КООРДИНАТ В КООРДИНАТЫ РАДАРА
-===================================================== */
+/* ПЕРЕВОД КООРДИНАТ */
 
 function getPlayerScenePosition(player) {
     if (!player || !player.position) return null;
@@ -1849,9 +1714,7 @@ function getPlayerScenePosition(player) {
     };
 }
 
-/* =====================================================
-   ОБНОВЛЕНИЕ ИГРОКОВ НА КАРТЕ
-===================================================== */
+/* ОБНОВЛЕНИЕ ИГРОКОВ НА КАРТЕ */
 
 function update3DPlayers(players) {
     if (!threeScene) return;
@@ -1874,7 +1737,6 @@ function update3DPlayers(players) {
 
         if (!visual) {
             visual = createPlayerVisual(player);
-
             playerMeshes.set(player.name, visual);
         }
 
@@ -1886,24 +1748,16 @@ function update3DPlayers(players) {
             Math.abs(pos.x) <= MAP_SIZE / 2 + 5 &&
             Math.abs(pos.z) <= MAP_SIZE / 2 + 5;
 
-        if (inside) {
-            insideMapCount++;
-        }
+        if (inside) insideMapCount++;
 
-        visual.group.position.set(
-            pos.x,
-            pos.y,
-            pos.z
-        );
-
+        visual.group.position.set(pos.x, pos.y, pos.z);
         visual.group.visible = true;
 
         if (
             player.viewAngles &&
             Number.isFinite(player.viewAngles.yaw)
         ) {
-            const yaw =
-                player.viewAngles.yaw * Math.PI / 180;
+            const yaw = player.viewAngles.yaw * Math.PI / 180;
 
             const direction = new THREE.Vector3(
                 Math.cos(yaw),
@@ -1912,9 +1766,7 @@ function update3DPlayers(players) {
             ).normalize();
 
             visual.arrow.position.set(0, 0.8, 0);
-
             visual.arrow.setDirection(direction);
-
             visual.arrow.visible = true;
 
         } else {
@@ -1938,9 +1790,7 @@ function update3DPlayers(players) {
     updateReplayCamera(valid);
 }
 
-/* =====================================================
-   ВНЕШНИЙ ВИД ИГРОКОВ
-===================================================== */
+/* ВНЕШНИЙ ВИД ИГРОКОВ */
 
 function createPlayerNameLabel(name, color) {
     const canvas = document.createElement("canvas");
@@ -1994,12 +1844,7 @@ function createPlayerVisual(player) {
     const group = new THREE.Group();
 
     const marker = new THREE.Mesh(
-        new THREE.CylinderGeometry(
-            0.8,
-            0.8,
-            0.55,
-            20
-        ),
+        new THREE.CylinderGeometry(0.8, 0.8, 0.55, 20),
         new THREE.MeshStandardMaterial({
             color,
             emissive: color,
@@ -2008,7 +1853,6 @@ function createPlayerVisual(player) {
     );
 
     marker.position.y = 0.35;
-
     group.add(marker);
 
     const label = createPlayerNameLabel(
@@ -2017,7 +1861,6 @@ function createPlayerVisual(player) {
     );
 
     label.position.y = 3.2;
-
     group.add(label);
 
     const arrow = new THREE.ArrowHelper(
@@ -2033,33 +1876,18 @@ function createPlayerVisual(player) {
     arrow.cone.material.depthTest = false;
 
     group.add(arrow);
-
     threeScene.add(group);
 
-    return {
-        group,
-        marker,
-        label,
-        arrow
-    };
+    return { group, marker, label, arrow };
 }
 
-/* =====================================================
-   КАМЕРА ОТ ЛИЦА ИГРОКА
-===================================================== */
+/* КАМЕРА ОТ ЛИЦА ИГРОКА */
 
 function updateReplayCamera(players) {
-    if (
-        !threeCamera ||
-        replayCameraMode !== "follow"
-    ) {
-        return;
-    }
+    if (!threeCamera || replayCameraMode !== "follow") return;
 
     let player = players.find(
-        p =>
-            p.name === selectedReplayPlayer &&
-            p.position
+        p => p.name === selectedReplayPlayer && p.position
     );
 
     if (!player) {
@@ -2082,11 +1910,8 @@ function updateReplayCamera(players) {
         return;
     }
 
-    const yaw =
-        player.viewAngles.yaw * Math.PI / 180;
-
-    const pitch =
-        player.viewAngles.pitch * Math.PI / 180;
+    const yaw = player.viewAngles.yaw * Math.PI / 180;
+    const pitch = player.viewAngles.pitch * Math.PI / 180;
 
     const direction = new THREE.Vector3(
         Math.cos(yaw) * Math.cos(pitch),
@@ -2111,33 +1936,23 @@ function updateReplayCamera(players) {
     );
 
     threeCamera.fov = 75;
-
     threeCamera.updateProjectionMatrix();
 
     $("cameraStatus").textContent =
         "Камера: " + player.name;
 }
 
-/* =====================================================
-   ОБЩАЯ КАМЕРА
-===================================================== */
+/* ОБЩАЯ КАМЕРА */
 
 function updateCamera() {
-    if (
-        !threeCamera ||
-        replayCameraMode === "follow"
-    ) {
-        return;
-    }
+    if (!threeCamera || replayCameraMode === "follow") return;
 
     const x =
         cameraRadius *
         Math.sin(cameraPhi) *
         Math.cos(cameraTheta);
 
-    const y =
-        cameraRadius *
-        Math.cos(cameraPhi);
+    const y = cameraRadius * Math.cos(cameraPhi);
 
     const z =
         cameraRadius *
@@ -2145,15 +1960,11 @@ function updateCamera() {
         Math.sin(cameraTheta);
 
     threeCamera.position.set(x, y, z);
-
     threeCamera.up.set(0, 0, -1);
-
     threeCamera.lookAt(0, 0, 0);
 }
 
-/* =====================================================
-   УПРАВЛЕНИЕ КАМЕРОЙ МЫШКОЙ
-===================================================== */
+/* УПРАВЛЕНИЕ КАМЕРОЙ */
 
 function addCameraControls(container) {
     const canvas = threeRenderer.domElement;
@@ -2162,7 +1973,6 @@ function addCameraControls(container) {
         if (replayCameraMode === "follow") return;
 
         dragActive = true;
-
         lastMouseX = event.clientX;
         lastMouseY = event.clientY;
 
@@ -2178,12 +1988,7 @@ function addCameraControls(container) {
     });
 
     canvas.addEventListener("pointermove", event => {
-        if (
-            !dragActive ||
-            replayCameraMode === "follow"
-        ) {
-            return;
-        }
+        if (!dragActive || replayCameraMode === "follow") return;
 
         const dx = event.clientX - lastMouseX;
         const dy = event.clientY - lastMouseY;
@@ -2216,53 +2021,30 @@ function addCameraControls(container) {
     }, { passive: false });
 }
 
-/* =====================================================
-   ЦИКЛ THREE.JS
-===================================================== */
+/* ЦИКЛ THREE.JS */
 
 function animate3D() {
-    if (
-        !threeRenderer ||
-        !threeScene ||
-        !threeCamera
-    ) {
+    if (!threeRenderer || !threeScene || !threeCamera) {
         animationFrameId = null;
         return;
     }
 
-    /*
-       Сохраняем только один активный RAF.
-       Старые циклы отменяются при повторной инициализации.
-    */
+    threeRenderer.render(threeScene, threeCamera);
 
-    threeRenderer.render(
-        threeScene,
-        threeCamera
-    );
-
-    animationFrameId =
-        requestAnimationFrame(animate3D);
+    animationFrameId = requestAnimationFrame(animate3D);
 }
 
-/* =====================================================
-   ИЗМЕНЕНИЕ РАЗМЕРА
-===================================================== */
+/* ИЗМЕНЕНИЕ РАЗМЕРА */
 
 function resize3D() {
     if (!threeRenderer || !threeCamera) return;
 
     const container = $("replay3d");
 
-    if (
-        !container.clientWidth ||
-        !container.clientHeight
-    ) {
-        return;
-    }
+    if (!container.clientWidth || !container.clientHeight) return;
 
     threeCamera.aspect =
-        container.clientWidth /
-        container.clientHeight;
+        container.clientWidth / container.clientHeight;
 
     threeCamera.updateProjectionMatrix();
 
@@ -2272,9 +2054,7 @@ function resize3D() {
     );
 }
 
-/* =====================================================
-   EVENTS
-===================================================== */
+/* СОБЫТИЯ */
 
 $("replayTimeline").addEventListener(
     "pointerdown",
@@ -2293,23 +2073,16 @@ $("replayTimeline").addEventListener(
 $("nickname").addEventListener(
     "keydown",
     event => {
-        if (event.key === "Enter") {
-            searchPlayer();
-        }
+        if (event.key === "Enter") searchPlayer();
     }
 );
 
 window.addEventListener("resize", () => {
-    if (currentData) {
-        drawElo();
-    }
-
+    if (currentData) drawElo();
     resize3D();
 });
 
-/* =====================================================
-   ЗАЩИТА ПРИ ЗАКРЫТИИ СТРАНИЦЫ
-===================================================== */
+/* ЗАКРЫТИЕ СТРАНИЦЫ */
 
 window.addEventListener("beforeunload", () => {
     stopAnimationLoop();
