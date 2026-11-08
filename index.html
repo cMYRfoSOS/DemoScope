@@ -1335,12 +1335,21 @@ function getReplayPlayers() {
 
     const players = Array.from(result.values());
 
+    /*
+       ИСПРАВЛЕНИЕ:
+       Раньше здесь использовались несуществующие переменные
+       pawnsFound и positionsFound.
+
+       Правильные переменные объявлены выше:
+       pawnFound и positionFound.
+    */
+
     lastReplayDiagnostics = {
         tick: replayPlayer.getCurrentTick(),
         controllerCount: controllers.length,
-        teamPlayers,
-        pawnsFound,
-        positionsFound,
+        teamPlayers: teamPlayers,
+        pawnsFound: pawnFound,
+        positionsFound: positionFound,
         players: debugPlayers
     };
 
