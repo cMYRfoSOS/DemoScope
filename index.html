@@ -86,6 +86,25 @@ th{color:#999}.win{color:#5bd69a}.loss{color:#ff6868}
 .trail-actions button:hover{background:#454650}
 .trail-counter{font-size:12px;color:#999;margin-top:10px}
 
+/* ЛУЧШИЕ МОМЕНТЫ */
+.highlights-panel{margin-top:22px;padding:18px;background:#22232a;border:1px solid #34353e;border-radius:10px}
+.highlights-header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.highlights-header h3{margin:0}
+.highlight-count{color:#ff9a70;font-size:13px;font-weight:bold}
+.highlight-filters{display:flex;gap:10px;flex-wrap:wrap;margin:15px 0}
+.highlight-filters select{flex:1;min-width:180px;padding:11px}
+.highlight-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.highlight-card{display:flex;align-items:center;gap:13px;padding:14px;background:#191a20;border:1px solid #383941;border-radius:9px;cursor:pointer;transition:border-color .15s,background .15s;text-align:left;color:#eee;width:100%;font-weight:normal}
+.highlight-card:hover{background:#292a32;border-color:#ff7138}
+.highlight-icon{width:43px;height:43px;min-width:43px;display:flex;align-items:center;justify-content:center;background:#34251f;border-radius:9px;font-size:20px}
+.highlight-content{flex:1;min-width:0}
+.highlight-title{font-weight:bold;font-size:14px;margin-bottom:6px;color:#fff}
+.highlight-description{font-size:12px;color:#aaa;line-height:1.4;overflow-wrap:anywhere}
+.highlight-meta{display:flex;gap:10px;flex-wrap:wrap;margin-top:7px;font-size:11px;color:#ff9a70}
+.highlight-jump{font-size:12px;color:#ff7138;white-space:nowrap}
+.highlight-empty{grid-column:1/-1;text-align:center;padding:25px;color:#999;line-height:1.6}
+.highlight-notice{font-size:12px;color:#92939b;margin-top:12px;line-height:1.5}
+
 @media(max-width:700px){
 .grid{grid-template-columns:repeat(2,1fr)}.map-list{grid-template-columns:repeat(2,1fr)}
 h1{font-size:29px}.search{flex-direction:column}
@@ -96,6 +115,9 @@ th,td{padding:9px 5px}.demo-summary{grid-template-columns:1fr}
 .replay-camera-controls{flex-direction:column;align-items:stretch}
 .replay-camera-controls label{justify-content:space-between}
 .trail-players{grid-template-columns:1fr}
+.highlight-list{grid-template-columns:1fr}
+.highlight-filters{flex-direction:column}
+.highlight-filters select{width:100%}
 }
 </style>
 </head>
@@ -140,6 +162,33 @@ th,td{padding:9px 5px}.demo-summary{grid-template-columns:1fr}
                 <tbody id="demoPlayers"><tr><td colspan="8" class="empty">Здесь появится статистика</td></tr></tbody>
             </table>
         </div>
+
+        <!-- ЛУЧШИЕ МОМЕНТЫ МАТЧА -->
+        <section class="highlights-panel">
+            <div class="highlights-header">
+                <h3>Лучшие моменты матча</h3>
+                <span id="highlightCount" class="highlight-count">0 моментов</span>
+            </div>
+            <div class="highlight-filters">
+                <select id="highlightTypeFilter">
+                    <option value="all">Все моменты</option>
+                    <option value="multikill">Мультикиллы</option>
+                    <option value="headshot">Хэдшоты</option>
+                    <option value="firstkill">Первые убийства</option>
+                    <option value="kill">Обычные убийства</option>
+                </select>
+                <select id="highlightPlayerFilter">
+                    <option value="all">Все игроки</option>
+                </select>
+            </div>
+            <div id="highlightList" class="highlight-list">
+                <div class="highlight-empty">Моменты появятся после анализа демки.</div>
+            </div>
+            <div class="highlight-notice">
+                Нажми на момент, чтобы остановить повтор и перейти к соответствующему тику.
+            </div>
+        </section>
+
         <p class="demo-note" id="demoNote"></p>
     </div>
 </section>
@@ -174,7 +223,6 @@ th,td{padding:9px 5px}.demo-summary{grid-template-columns:1fr}
         </label>
     </div>
 
-    <!-- НОВЫЙ БЛОК ТРАЕКТОРИЙ -->
     <div class="trails-panel">
         <div class="trails-header">
             <h3>Траектории игроков</h3>
@@ -272,6 +320,9 @@ let trailEnabled=new Map();
 let lastTrailSampleTick=-1;
 let currentReplayTick=0;
 let trailsMasterEnabled=true;
+
+/* ЛУЧШИЕ МОМЕНТЫ */
+let demoHighlights=[];
 
 const $=id=>document.getElementById(id);
 const MIRAGE_RADAR_URL="https://raw.githubusercontent.com/MurkyYT/cs2-map-icons/main/images/radars/de_mirage_radar_psd.png";
@@ -450,6 +501,7 @@ async function uploadDemo(){
     }catch(error){$("demoStatus").textContent="Ошибка анализа: "+error.message}
     finally{button.disabled=false;button.textContent="Анализировать демо"}
 }
+
 function renderDemo(data){
     const players=Array.isArray(data.players)?[...data.players]:[];
     players.sort((a,b)=>Number(b.kills||0)-Number(a.kills||0));
@@ -457,13 +509,180 @@ function renderDemo(data){
     $("demoPlayerCount").textContent=players.length;
     const events=data.events||{};
     $("demoEventCount").textContent=Object.values(events).reduce((s,v)=>s+(Number(v)||0),0);
+
     const body=$("demoPlayers");
-    if(!players.length){body.innerHTML='<tr><td colspan="8" class="empty">Сервер не вернул статистику игроков.</td></tr>';return}
-    body.innerHTML=players.map((p,i)=>`<tr><td>${i+1}</td><td class="demo-player">${escapeHTML(p.name||"Неизвестный игрок")}</td>
-    <td>${Number(p.kills||0)}</td><td>${Number(p.deaths||0)}</td><td>${Number(p.assists||0)}</td>
-    <td>${number(p.kd)}</td><td>${Number(p.damage||0)}</td><td>${number(p.hsPercent,1)}%</td></tr>`).join("");
+
+    if(!players.length){
+        body.innerHTML='<tr><td colspan="8" class="empty">Сервер не вернул статистику игроков.</td></tr>';
+    }else{
+        body.innerHTML=players.map((p,i)=>`<tr><td>${i+1}</td><td class="demo-player">${escapeHTML(p.name||"Неизвестный игрок")}</td>
+        <td>${Number(p.kills||0)}</td><td>${Number(p.deaths||0)}</td><td>${Number(p.assists||0)}</td>
+        <td>${number(p.kd)}</td><td>${Number(p.damage||0)}</td><td>${number(p.hsPercent,1)}%</td></tr>`).join("");
+    }
+
     $("demoNote").textContent=data.note||"";
+
+    // Отображаем моменты даже если статистика игроков не пришла.
+    renderHighlights(data.highlights||[]);
 }
+
+// =====================================
+// ЛУЧШИЕ МОМЕНТЫ МАТЧА
+// =====================================
+
+function getHighlightTypeName(type){
+    const names={
+        multikill:"Мультикилл",
+        headshot:"Хэдшот",
+        firstkill:"Первое убийство",
+        kill:"Убийство"
+    };
+    return names[type]||"Момент";
+}
+
+function getHighlightIcon(type,title){
+    if(type==="multikill")return "🔥";
+    if(type==="headshot")return "🎯";
+    if(type==="firstkill")return "⚡";
+    if(String(title||"").includes("5K"))return "🔥";
+    return "💥";
+}
+
+function renderHighlights(highlights){
+    demoHighlights=Array.isArray(highlights)
+        ?highlights.filter(item=>item&&Number.isFinite(Number(item.tick)))
+        :[];
+
+    const playerFilter=$("highlightPlayerFilter");
+    const oldPlayer=playerFilter.value||"all";
+
+    const players=[...new Set(
+        demoHighlights.map(item=>String(item.player||"").trim()).filter(Boolean)
+    )].sort((a,b)=>a.localeCompare(b));
+
+    playerFilter.innerHTML='<option value="all">Все игроки</option>'+
+        players.map(name=>`<option value="${escapeHTML(name)}">${escapeHTML(name)}</option>`).join("");
+
+    if(players.includes(oldPlayer))playerFilter.value=oldPlayer;
+    else playerFilter.value="all";
+
+    $("highlightCount").textContent=`${demoHighlights.length} моментов`;
+
+    if(!demoHighlights.length){
+        $("highlightList").innerHTML=
+            '<div class="highlight-empty">Сервер не вернул интересные моменты. Проверь, что анализатор демо обработал события убийств.</div>';
+        return;
+    }
+
+    filterHighlights();
+}
+
+function filterHighlights(){
+    const type=$("highlightTypeFilter").value;
+    const player=$("highlightPlayerFilter").value;
+
+    let filtered=demoHighlights.filter(item=>{
+        const typeMatch=type==="all"||item.type===type;
+        const playerMatch=player==="all"||String(item.player||"")===player;
+        return typeMatch&&playerMatch;
+    });
+
+    filtered.sort((a,b)=>{
+        const scoreB=Number(b.score)||0;
+        const scoreA=Number(a.score)||0;
+        return scoreB-scoreA||Number(a.tick)-Number(b.tick);
+    });
+
+    $("highlightCount").textContent=
+        `${filtered.length} из ${demoHighlights.length}`;
+
+    if(!filtered.length){
+        $("highlightList").innerHTML=
+            '<div class="highlight-empty">По выбранным фильтрам моментов нет.</div>';
+        return;
+    }
+
+    $("highlightList").innerHTML=filtered.map(item=>{
+        const tick=Number(item.tick);
+        const round=item.round!==null&&item.round!==undefined
+            ?`Раунд ${escapeHTML(item.round)}`
+            :"Раунд неизвестен";
+
+        const description=escapeHTML(item.description||"Интересный момент матча");
+        const title=escapeHTML(item.title||getHighlightTypeName(item.type));
+        const playerName=escapeHTML(item.player||"Неизвестный игрок");
+        const typeName=getHighlightTypeName(item.type);
+        const time=formatTime(tick/64);
+        const icon=getHighlightIcon(item.type,item.title);
+
+        return `
+            <button type="button" class="highlight-card" data-highlight-tick="${tick}">
+                <div class="highlight-icon">${icon}</div>
+                <div class="highlight-content">
+                    <div class="highlight-title">${title}</div>
+                    <div class="highlight-description">${description}</div>
+                    <div class="highlight-meta">
+                        <span>${playerName}</span>
+                        <span>${round}</span>
+                        <span>${typeName}</span>
+                        <span>${time}</span>
+                    </div>
+                </div>
+                <span class="highlight-jump">Перейти ↗</span>
+            </button>
+        `;
+    }).join("");
+}
+
+async function jumpToHighlight(tick){
+    if(!replayPlayer){
+        $("demoStatus").textContent="Сначала дождись загрузки повтора.";
+        return;
+    }
+
+    const numericTick=Number(tick);
+
+    if(!Number.isFinite(numericTick)){
+        $("demoStatus").textContent="У этого момента некорректный тик.";
+        return;
+    }
+
+    const target=Math.max(
+        replayFirstTick,
+        Math.min(replayLastTick,Math.round(numericTick))
+    );
+
+    try{
+        pauseReplay();
+
+        $("demoStatus").textContent=`Переходим к тику ${target}...`;
+
+        await replayPlayer.seekToTick(target);
+
+        timelineDragging=false;
+        currentReplayTick=target;
+        updateReplayState();
+
+        $("demoStatus").textContent=`Открыт момент на тике ${target}.`;
+
+        $("replayPanel").scrollIntoView({
+            behavior:"smooth",
+            block:"start"
+        });
+    }catch(error){
+        console.error("Ошибка перехода к моменту:",error);
+        $("demoStatus").textContent="Не удалось перейти к моменту: "+error.message;
+    }
+}
+
+$("highlightTypeFilter").addEventListener("change",filterHighlights);
+$("highlightPlayerFilter").addEventListener("change",filterHighlights);
+
+$("highlightList").addEventListener("click",event=>{
+    const card=event.target.closest("[data-highlight-tick]");
+    if(!card)return;
+    jumpToHighlight(card.dataset.highlightTick);
+});
 
 // REPLAY
 async function startReplayFromUrl(replayUrl,mapName){
@@ -719,7 +938,6 @@ function updateReplayState(){
     renderReplayPlayers(players);
     update3DPlayers(players);
 
-    // Записываем текущие позиции игроков в историю маршрутов.
     recordPlayerTrailSamples(players,currentTick);
     renderPlayerTrails(currentTick);
 }
@@ -836,7 +1054,6 @@ function clearAllTrailData(){
 function recordPlayerTrailSamples(players,tick){
     if(!Number.isFinite(tick))return;
 
-    // Не записываем несколько одинаковых состояний на одном тике.
     if(lastTrailSampleTick===tick)return;
     lastTrailSampleTick=tick;
 
@@ -855,7 +1072,6 @@ function recordPlayerTrailSamples(players,tick){
         const samples=playerTrails.get(name);
         const last=samples[samples.length-1];
 
-        // Не добавляем почти одинаковые соседние точки.
         if(last&&last.tick===tick)continue;
 
         const sample={
@@ -866,8 +1082,6 @@ function recordPlayerTrailSamples(players,tick){
             team:player.team
         };
 
-        // При обычном воспроизведении тики идут вперёд.
-        // Если пользователь перемотал демку назад, вставляем точку по порядку.
         if(!last||tick>last.tick){
             samples.push(sample);
         }else{
@@ -876,7 +1090,6 @@ function recordPlayerTrailSamples(players,tick){
             samples.splice(index,0,sample);
         }
 
-        // Защита от чрезмерного расхода памяти на очень длинных демках.
         if(samples.length>15000)samples.splice(0,samples.length-15000);
     }
 
@@ -932,7 +1145,6 @@ function renderPlayerTrails(currentTick){
             continue;
         }
 
-        // Берём только точки, которые игрок уже прошёл к текущему тику.
         const visibleSamples=samples.filter(sample=>sample.tick<=currentTick);
         totalPoints+=visibleSamples.length;
 
@@ -1008,7 +1220,6 @@ function clearAllTrails(){
     renderPlayerTrails(currentReplayTick);
 }
 
-// Обработка переключателей отдельных игроков.
 $("trailPlayers").addEventListener("change",event=>{
     const input=event.target.closest("[data-trail-name]");
     if(!input)return;
@@ -1199,7 +1410,6 @@ function buildMirageRadar(){
     $("mapStatus").textContent="Карта: загружается радар Mirage...";
 }
 
-// ПЕРЕВОД ИГРОВЫХ КООРДИНАТ В КООРДИНАТЫ РАДАРА
 function getPlayerScenePosition(player){
     if(!player||!player.position)return null;
 
