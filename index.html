@@ -67,6 +67,25 @@ th{color:#999}.win{color:#5bd69a}.loss{color:#ff6868}
 .replay-note{color:#999;font-size:13px;line-height:1.6;margin-top:16px}
 .player-table{min-width:550px}.team-t{color:#ff9a70}.team-ct{color:#70aaff}
 .player-row{cursor:pointer}.player-row:hover{background:#292a32}.player-row.selected{background:#3a2923}
+
+/* ТРАЕКТОРИИ ИГРОКОВ */
+.trails-panel{margin-top:18px;padding:17px;background:#22232a;border:1px solid #34353e;border-radius:10px}
+.trails-header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.trails-header h3{margin:0}
+.trails-master{display:flex;align-items:center;gap:9px;color:#ddd;font-size:13px;cursor:pointer}
+.trails-master input,.trail-player input{accent-color:#ff7138;width:17px;height:17px;cursor:pointer}
+.trails-description{font-size:13px;color:#92939b;line-height:1.5;margin:10px 0 14px}
+.trail-players{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.trail-player{display:flex;align-items:center;gap:9px;padding:10px 12px;background:#191a20;border:1px solid #34353e;border-radius:8px;color:#ddd;font-size:13px;cursor:pointer;min-width:0}
+.trail-player span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.trail-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.trail-t{background:#ff7138}.trail-ct{background:#438cff}
+.trail-empty{color:#888;font-size:13px;padding:10px 0}
+.trail-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px}
+.trail-actions button{padding:9px 13px;font-size:12px;background:#34353e;color:#eee}
+.trail-actions button:hover{background:#454650}
+.trail-counter{font-size:12px;color:#999;margin-top:10px}
+
 @media(max-width:700px){
 .grid{grid-template-columns:repeat(2,1fr)}.map-list{grid-template-columns:repeat(2,1fr)}
 h1{font-size:29px}.search{flex-direction:column}
@@ -76,6 +95,7 @@ th,td{padding:9px 5px}.demo-summary{grid-template-columns:1fr}
 .replay-stage{height:430px}
 .replay-camera-controls{flex-direction:column;align-items:stretch}
 .replay-camera-controls label{justify-content:space-between}
+.trail-players{grid-template-columns:1fr}
 }
 </style>
 </head>
@@ -139,6 +159,7 @@ th,td{padding:9px 5px}.demo-summary{grid-template-columns:1fr}
             <div id="playerDebug">Игроки: ожидание данных</div>
         </div>
     </div>
+
     <div class="replay-camera-controls">
         <label>Режим камеры
             <select id="cameraMode" onchange="changeCameraMode()">
@@ -152,6 +173,31 @@ th,td{padding:9px 5px}.demo-summary{grid-template-columns:1fr}
             </select>
         </label>
     </div>
+
+    <!-- НОВЫЙ БЛОК ТРАЕКТОРИЙ -->
+    <div class="trails-panel">
+        <div class="trails-header">
+            <h3>Траектории игроков</h3>
+            <label class="trails-master">
+                <input type="checkbox" id="trailsMaster" checked>
+                Показывать все линии
+            </label>
+        </div>
+        <p class="trails-description">
+            Линии показывают маршруты игроков во время просмотра демки.
+            Можно скрывать и показывать маршрут каждого игрока отдельно.
+        </p>
+        <div id="trailPlayers" class="trail-players">
+            <div class="trail-empty">Игроки появятся после загрузки демки.</div>
+        </div>
+        <div class="trail-actions">
+            <button onclick="setAllTrails(true)">Показать все</button>
+            <button onclick="setAllTrails(false)">Скрыть все</button>
+            <button onclick="clearAllTrails()">Очистить траектории</button>
+        </div>
+        <div id="trailCounter" class="trail-counter">Записано точек: 0</div>
+    </div>
+
     <div class="replay-controls">
         <button onclick="stepReplay(-1)">◀</button>
         <button id="playButton" onclick="playReplay()">▶ Воспроизвести</button>
@@ -164,6 +210,7 @@ th,td{padding:9px 5px}.demo-summary{grid-template-columns:1fr}
     </div>
     <input type="range" id="replayTimeline" class="replay-timeline" min="0" max="1000" value="0" oninput="previewReplayPosition()" onchange="seekReplay()">
     <div class="replay-info"><span id="replayCurrent">0:00</span><span id="replayDuration">0:00</span></div>
+
     <h3 style="margin-top:25px">Игроки в текущем моменте</h3>
     <div class="demo-table-wrap">
         <table class="player-table">
@@ -173,8 +220,8 @@ th,td{padding:9px 5px}.demo-summary{grid-template-columns:1fr}
     </div>
     <p class="replay-note">
         В списке и на карте учитываются только игроки команд T и CT; наблюдатели исключены.
-        Оранжевые маркеры — T, синие — CT. Сейчас используется радар Mirage, а не точная
-        объёмная модель зданий. Диагностика сверху показывает пример перевода координат.
+        Оранжевые маркеры — T, синие — CT. Линии маршрутов записываются во время воспроизведения.
+        Чтобы собрать траектории за весь матч, нужно проиграть демку полностью.
     </p>
 </section>
 
@@ -217,6 +264,14 @@ let playerMeshes=new Map(),replayMapGroup=null;
 let replayCameraMode="orbit",selectedReplayPlayer="",latestReplayPlayers=[];
 let cameraTheta=0,cameraPhi=0.16,cameraRadius=220;
 let dragActive=false,lastMouseX=0,lastMouseY=0;
+
+/* ДАННЫЕ ТРАЕКТОРИЙ */
+let playerTrails=new Map();
+let trailLines=new Map();
+let trailEnabled=new Map();
+let lastTrailSampleTick=-1;
+let currentReplayTick=0;
+let trailsMasterEnabled=true;
 
 const $=id=>document.getElementById(id);
 const MIRAGE_RADAR_URL="https://raw.githubusercontent.com/MurkyYT/cs2-map-icons/main/images/radars/de_mirage_radar_psd.png";
@@ -427,6 +482,10 @@ async function startReplayFromUrl(replayUrl,mapName){
         if(!Number.isFinite(replayFirstTick)||!Number.isFinite(replayLastTick)||replayLastTick<=replayFirstTick)
             throw new Error("Не удалось определить начало и конец демки.");
         await player.seekToTick(replayFirstTick);
+
+        clearAllTrailData();
+        $("demoStatus").textContent="Подготовили демку. Система будет записывать траектории при просмотре.";
+
         $("replayMap").textContent=mapName||"CS2";
         $("replayTimeline").value=0;timelineDragging=false;
         latestReplayPlayers=[];selectedReplayPlayer="";
@@ -510,8 +569,6 @@ function getPawnPosition(pawn){
         }
     }
 
-    // Source 2 хранит координаты как номер ячейки и локальное смещение.
-    // Переводим их в мировые координаты CS2.
     const cx=read("m_cellX");
     const cy=read("m_cellY");
     const cz=read("m_cellZ");
@@ -529,7 +586,6 @@ function getPawnPosition(pawn){
         };
     }
 
-    // Запасной вариант: если библиотека вернула готовый мировой вектор.
     function vectorToPosition(value){
         if(!value)return null;
         const x=parse(value.x??value.X??value[0]);
@@ -602,8 +658,6 @@ function getReplayPlayers(){
         console.error("Ошибка получения контроллеров:",error);
     }
 
-    // В демке могут присутствовать наблюдатели и служебные контроллеры.
-    // Для матча CS2 оставляем только T (2) и CT (3).
     const uniquePlayers=new Map();
     for(const controller of controllers){
         const nameValue=safeGet(controller,"m_iszPlayerName");
@@ -629,7 +683,6 @@ function getReplayPlayers(){
 
         const key=name.toLocaleLowerCase();
         const previous=uniquePlayers.get(key);
-        // Если имя повторилось, сохраняем запись с более полными данными.
         if(!previous || (!previous.position&&candidate.position)){
             uniquePlayers.set(key,candidate);
         }
@@ -642,6 +695,8 @@ function updateReplayState(){
     if(!replayPlayer)return;
 
     const currentTick=replayPlayer.getCurrentTick();
+    currentReplayTick=currentTick;
+
     const totalTicks=replayLastTick-replayFirstTick;
     const progress=totalTicks>0?(currentTick-replayFirstTick)/totalTicks:0;
 
@@ -663,8 +718,13 @@ function updateReplayState(){
     updateReplayPlayerSelector(players);
     renderReplayPlayers(players);
     update3DPlayers(players);
+
+    // Записываем текущие позиции игроков в историю маршрутов.
+    recordPlayerTrailSamples(players,currentTick);
+    renderPlayerTrails(currentTick);
 }
 
+// ВЫБОР ИГРОКОВ
 function updateReplayPlayerSelector(players){
     const select=$("replayPlayerSelect");
     const names=players.map(p=>p.name).filter(Boolean).sort((a,b)=>a.localeCompare(b));
@@ -686,6 +746,8 @@ function updateReplayPlayerSelector(players){
         select.innerHTML='<option value="">Игроки не найдены</option>';
         selectedReplayPlayer="";
     }
+
+    updateTrailPlayerList(players);
 }
 
 function selectReplayPlayer(){
@@ -747,6 +809,219 @@ function choosePlayerFromTable(name){
     renderReplayPlayers(latestReplayPlayers);
     updateReplayCamera(latestReplayPlayers);
 }
+
+// =====================================
+// СИСТЕМА ЗАПИСИ И ОТОБРАЖЕНИЯ МАРШРУТОВ
+// =====================================
+
+function clearAllTrailData(){
+    for(const line of trailLines.values()){
+        if(threeScene)threeScene.remove(line);
+        line.geometry?.dispose();
+        line.material?.dispose();
+    }
+
+    trailLines.clear();
+    playerTrails.clear();
+    trailEnabled.clear();
+    lastTrailSampleTick=-1;
+    currentReplayTick=0;
+
+    $("trailPlayers").innerHTML='<div class="trail-empty">Игроки появятся после загрузки демки.</div>';
+    $("trailCounter").textContent="Записано точек: 0";
+    $("trailsMaster").checked=true;
+    trailsMasterEnabled=true;
+}
+
+function recordPlayerTrailSamples(players,tick){
+    if(!Number.isFinite(tick))return;
+
+    // Не записываем несколько одинаковых состояний на одном тике.
+    if(lastTrailSampleTick===tick)return;
+    lastTrailSampleTick=tick;
+
+    for(const player of players){
+        if(!player.position)continue;
+
+        const position=getPlayerScenePosition(player);
+        if(!position)continue;
+
+        const name=player.name;
+        if(!playerTrails.has(name)){
+            playerTrails.set(name,[]);
+            if(!trailEnabled.has(name))trailEnabled.set(name,true);
+        }
+
+        const samples=playerTrails.get(name);
+        const last=samples[samples.length-1];
+
+        // Не добавляем почти одинаковые соседние точки.
+        if(last&&last.tick===tick)continue;
+
+        const sample={
+            tick,
+            x:position.x,
+            y:.28,
+            z:position.z,
+            team:player.team
+        };
+
+        // При обычном воспроизведении тики идут вперёд.
+        // Если пользователь перемотал демку назад, вставляем точку по порядку.
+        if(!last||tick>last.tick){
+            samples.push(sample);
+        }else{
+            let index=samples.findIndex(point=>point.tick>tick);
+            if(index===-1)index=samples.length;
+            samples.splice(index,0,sample);
+        }
+
+        // Защита от чрезмерного расхода памяти на очень длинных демках.
+        if(samples.length>15000)samples.splice(0,samples.length-15000);
+    }
+
+    updateTrailCounter();
+}
+
+function updateTrailPlayerList(players){
+    const container=$("trailPlayers");
+    if(!players.length)return;
+
+    const unique=new Map();
+    for(const player of players){
+        if(player.name&&!unique.has(player.name)){
+            unique.set(player.name,player);
+        }
+    }
+
+    const names=Array.from(unique.keys()).sort((a,b)=>a.localeCompare(b));
+    const existing=Array.from(container.querySelectorAll("[data-trail-name]"))
+        .map(element=>element.dataset.trailName);
+
+    if(names.length===existing.length&&names.every((name,index)=>name===existing[index])){
+        return;
+    }
+
+    container.innerHTML=names.map(name=>{
+        const player=unique.get(name);
+        const isT=player.team===2;
+        const colorClass=isT?"trail-t":"trail-ct";
+        const checked=trailEnabled.get(name)!==false?"checked":"";
+
+        return `
+            <label class="trail-player">
+                <input type="checkbox" data-trail-name="${escapeHTML(name)}" ${checked}>
+                <i class="trail-dot ${colorClass}"></i>
+                <span>${escapeHTML(name)}</span>
+            </label>
+        `;
+    }).join("");
+}
+
+function renderPlayerTrails(currentTick){
+    if(!threeScene||!window.THREE)return;
+
+    let totalPoints=0;
+
+    for(const [name,samples] of playerTrails.entries()){
+        const enabled=trailEnabled.get(name)!==false&&trailsMasterEnabled;
+        let line=trailLines.get(name);
+
+        if(!enabled){
+            if(line)line.visible=false;
+            continue;
+        }
+
+        // Берём только точки, которые игрок уже прошёл к текущему тику.
+        const visibleSamples=samples.filter(sample=>sample.tick<=currentTick);
+        totalPoints+=visibleSamples.length;
+
+        if(visibleSamples.length<2){
+            if(line)line.visible=false;
+            continue;
+        }
+
+        const points=visibleSamples.map(sample=>
+            new THREE.Vector3(sample.x,sample.y,sample.z)
+        );
+
+        const team=visibleSamples[visibleSamples.length-1].team;
+        const color=team===2?0xff7138:0x438cff;
+
+        if(line){
+            line.geometry.dispose();
+            line.geometry=new THREE.BufferGeometry().setFromPoints(points);
+            line.material.color.setHex(color);
+            line.visible=true;
+        }else{
+            const geometry=new THREE.BufferGeometry().setFromPoints(points);
+            const material=new THREE.LineBasicMaterial({
+                color,
+                transparent:true,
+                opacity:.9,
+                depthTest:false
+            });
+
+            line=new THREE.Line(geometry,material);
+            line.frustumCulled=false;
+            line.renderOrder=4;
+            threeScene.add(line);
+            trailLines.set(name,line);
+        }
+    }
+
+    $("trailCounter").textContent="Точек маршрута на текущем моменте: "+totalPoints;
+}
+
+function updateTrailCounter(){
+    let total=0;
+    for(const samples of playerTrails.values())total+=samples.length;
+    $("trailCounter").textContent="Всего записано точек маршрутов: "+total;
+}
+
+function setAllTrails(enabled){
+    trailsMasterEnabled=enabled;
+    $("trailsMaster").checked=enabled;
+
+    for(const name of playerTrails.keys()){
+        trailEnabled.set(name,enabled);
+    }
+
+    document.querySelectorAll("[data-trail-name]").forEach(input=>{
+        input.checked=enabled;
+    });
+
+    renderPlayerTrails(currentReplayTick);
+}
+
+function clearAllTrails(){
+    for(const line of trailLines.values()){
+        if(threeScene)threeScene.remove(line);
+        line.geometry?.dispose();
+        line.material?.dispose();
+    }
+
+    trailLines.clear();
+    playerTrails.clear();
+    lastTrailSampleTick=-1;
+    updateTrailCounter();
+    renderPlayerTrails(currentReplayTick);
+}
+
+// Обработка переключателей отдельных игроков.
+$("trailPlayers").addEventListener("change",event=>{
+    const input=event.target.closest("[data-trail-name]");
+    if(!input)return;
+
+    const name=input.dataset.trailName;
+    trailEnabled.set(name,input.checked);
+
+    renderPlayerTrails(currentReplayTick);
+});
+
+$("trailsMaster").addEventListener("change",event=>{
+    setAllTrails(event.target.checked);
+});
 
 // THREE.JS
 function init3DScene(){
@@ -937,8 +1212,6 @@ function getPlayerScenePosition(player){
 
     const p=radarPointToScene(pixelX,pixelY);
 
-    // Игроки ставятся немного выше поверхности радара,
-    // чтобы маркеры не пересекались с самой картой.
     return{
         x:p.x,
         y:0.65,
@@ -976,8 +1249,6 @@ function update3DPlayers(players){
         const pos=getPlayerScenePosition(player);
         if(!pos)continue;
 
-        // Не отбрасываем игроков за пределами радара:
-        // оставляем их координаты настоящими, но считаем отдельно.
         const inside=
             Math.abs(pos.x)<=MAP_SIZE/2+5&&
             Math.abs(pos.z)<=MAP_SIZE/2+5;
