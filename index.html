@@ -6,6 +6,7 @@
 <title>DemoScope — FACEIT Analytics</title>
 <script src="https://cdn.jsdelivr.net/npm/@deademx/cs2@5.0.0/dist/deadem-cs2.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/examples/js/loaders/GLTFLoader.js"></script>
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#101114;color:#f2f2f2;font-family:Arial,sans-serif}
@@ -308,7 +309,7 @@ th,td{padding:9px 5px}.demo-summary{grid-template-columns:1fr}
 let currentData=null,replayPlayer=null,replayPlaying=false;
 let replayFirstTick=0,replayLastTick=0,replayUpdateTimer=null,timelineDragging=false;
 let threeScene=null,threeCamera=null,threeRenderer=null;
-let playerMeshes=new Map(),replayMapGroup=null;
+let playerMeshes=new Map(),replayMapGroup=null,replayMapModel=null;
 let replayCameraMode="orbit",selectedReplayPlayer="",latestReplayPlayers=[];
 let cameraTheta=0,cameraPhi=0.16,cameraRadius=220;
 let dragActive=false,lastMouseX=0,lastMouseY=0;
@@ -325,7 +326,8 @@ let trailsMasterEnabled=true;
 let demoHighlights=[];
 
 const $=id=>document.getElementById(id);
-const MIRAGE_RADAR_URL="https://raw.githubusercontent.com/MurkyYT/cs2-map-icons/main/images/radars/de_mirage_radar_psd.png";
+const MIRAGE_MODEL_URL="/maps_mirage_lite.glb";
+const MIRAGE_MODEL_SOURCE="https://sketchfab.com/3d-models/maps-mirage-lite-8de567de170b4998a7aa2d6a041a6e43";
 const MIRAGE_POS_X=-3230;
 const MIRAGE_POS_Y=1713;
 const MIRAGE_SCALE=5;
@@ -1265,15 +1267,22 @@ function init3DScene(){
     threeRenderer=new THREE.WebGLRenderer({antialias:true});
     threeRenderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
     threeRenderer.setSize(container.clientWidth,container.clientHeight);
+    threeRenderer.outputColorSpace=THREE.SRGBColorSpace;
+    threeRenderer.toneMapping=THREE.ACESFilmicToneMapping;
+    threeRenderer.toneMappingExposure=1.15;
 
     container.innerHTML="";
     container.appendChild(threeRenderer.domElement);
 
-    threeScene.add(new THREE.AmbientLight(0xffffff,1.8));
+    threeScene.add(new THREE.HemisphereLight(0xdde8ff,0x51483e,2.0));
 
-    const light=new THREE.DirectionalLight(0xffffff,1.3);
-    light.position.set(30,100,40);
+    const light=new THREE.DirectionalLight(0xffffff,2.4);
+    light.position.set(80,150,60);
     threeScene.add(light);
+
+    const fillLight=new THREE.DirectionalLight(0x9dbbff,0.8);
+    fillLight.position.set(-100,80,-80);
+    threeScene.add(fillLight);
 
     buildMirageRadar();
 
@@ -1364,50 +1373,84 @@ function addMapLabel(text,x,z,color){
 }
 
 function buildMirageRadar(){
-    if(replayMapGroup)threeScene.remove(replayMapGroup);
+    if(replayMapGroup){
+        threeScene.remove(replayMapGroup);
+        replayMapGroup.traverse(object=>{
+            if(object.geometry)object.geometry.dispose();
+            if(object.material){
+                const materials=Array.isArray(object.material)?object.material:[object.material];
+                materials.forEach(material=>material.dispose());
+            }
+        });
+    }
 
     replayMapGroup=new THREE.Group();
+    replayMapModel=null;
+    threeScene.add(replayMapGroup);
+    $("mapStatus").textContent="Карта: загружается 3D-модель Mirage...";
 
-    const ground=new THREE.Mesh(
-        new THREE.PlaneGeometry(MAP_SIZE,MAP_SIZE),
-        new THREE.MeshBasicMaterial({color:0x777777})
-    );
+    if(!THREE.GLTFLoader){
+        console.error("THREE.GLTFLoader не найден. Проверьте загрузку скрипта GLTFLoader.js");
+        $("mapStatus").textContent="Карта: не загрузился GLTFLoader";
+        return;
+    }
 
-    ground.rotation.x=-Math.PI/2;
-    ground.position.y=0;
-    replayMapGroup.add(ground);
-
-    const loader=new THREE.TextureLoader();
-    loader.setCrossOrigin("anonymous");
-
+    const loader=new THREE.GLTFLoader();
     loader.load(
-        MIRAGE_RADAR_URL,
-        texture=>{
+        MIRAGE_MODEL_URL,
+        gltf=>{
             if(!replayMapGroup)return;
 
-            texture.colorSpace=THREE.SRGBColorSpace;
-            texture.anisotropy=threeRenderer.capabilities.getMaxAnisotropy();
+            const model=gltf.scene;
+            model.updateMatrixWorld(true);
 
-            ground.material.map=texture;
-            ground.material.color.set(0xffffff);
-            ground.material.needsUpdate=true;
+            const bounds=new THREE.Box3().setFromObject(model);
+            const size=bounds.getSize(new THREE.Vector3());
+            const center=bounds.getCenter(new THREE.Vector3());
 
-            $("mapStatus").textContent="Карта: радар Mirage загружен";
+            if(!Number.isFinite(size.x)||size.x<=0){
+                $("mapStatus").textContent="Карта: у модели некорректные размеры";
+                return;
+            }
+
+            // Масштабируем модель под ту же систему координат, что и радар.
+            const scale=MAP_SIZE/size.x;
+            model.scale.setScalar(scale);
+            model.position.x=-center.x*scale;
+            model.position.z=-center.z*scale;
+            model.position.y=-bounds.min.y*scale-0.118;
+
+            model.traverse(object=>{
+                if(!object.isMesh)return;
+                object.castShadow=false;
+                object.receiveShadow=true;
+                if(object.material){
+                    const materials=Array.isArray(object.material)?object.material:[object.material];
+                    materials.forEach(material=>{
+                        material.side=THREE.DoubleSide;
+                        material.needsUpdate=true;
+                    });
+                }
+            });
+
+            replayMapGroup.add(model);
+            replayMapModel=model;
+
+            // Небольшая метка источника модели в консоли для атрибуции.
+            console.info("Mirage 3D model loaded:",MIRAGE_MODEL_SOURCE);
+            $("mapStatus").textContent="Карта: 3D Mirage загружена";
         },
-        undefined,
+        event=>{
+            if(event.total){
+                const percent=Math.round(event.loaded/event.total*100);
+                $("mapStatus").textContent=`Карта: загрузка 3D-модели ${percent}%`;
+            }
+        },
         error=>{
-            console.error("Ошибка загрузки радара:",error);
-            $("mapStatus").textContent="Карта: ошибка загрузки радара";
+            console.error("Ошибка загрузки 3D-модели Mirage:",error);
+            $("mapStatus").textContent="Карта: не удалось загрузить maps_mirage_lite.glb (проверьте файл в GitHub)";
         }
     );
-
-    addZoneMarker("CT SPAWN",.28,.70,0x438cff);
-    addZoneMarker("T SPAWN",.87,.36,0xff7138);
-    addZoneMarker("A SITE",.54,.76,0xffa05c);
-    addZoneMarker("B SITE",.23,.28,0xffa05c);
-
-    threeScene.add(replayMapGroup);
-    $("mapStatus").textContent="Карта: загружается радар Mirage...";
 }
 
 function getPlayerScenePosition(player){
