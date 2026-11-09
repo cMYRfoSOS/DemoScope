@@ -4,9 +4,38 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DemoScope — FACEIT Analytics</title>
+
 <script src="https://cdn.jsdelivr.net/npm/@deademx/cs2@5.0.0/dist/deadem-cs2.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/examples/js/loaders/GLTFLoader.js"></script>
+
+<!-- Правильное подключение Three.js и GLTFLoader через ES-модули -->
+<script type="importmap">
+{
+    "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.152.2/examples/jsm/"
+    }
+}
+</script>
+
+<script type="module">
+try {
+    const THREE_MODULE = await import("three");
+    const { GLTFLoader } = await import(
+        "three/addons/loaders/GLTFLoader.js"
+    );
+
+    window.THREE = {
+        ...THREE_MODULE,
+        GLTFLoader
+    };
+
+    console.info("Three.js и GLTFLoader успешно загружены.");
+} catch (error) {
+    window.__threeLoadError = error;
+    console.error("Ошибка загрузки Three.js:", error);
+}
+</script>
+
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#101114;color:#f2f2f2;font-family:Arial,sans-serif}
@@ -32,13 +61,6 @@ button:hover{background:#ff8a5c}button:disabled{opacity:.5;cursor:wait}
 .section-title{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 .chart-wrap{height:260px;position:relative;width:100%}
 #eloChart{width:100%;height:100%}
-.map-list{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-.map-item{background:#24252c;padding:15px;border-radius:9px}
-.map-item strong{display:block;margin-bottom:8px}
-table{width:100%;border-collapse:collapse;font-size:14px}
-th,td{padding:13px 9px;text-align:left;border-bottom:1px solid #303139}
-th{color:#999}.win{color:#5bd69a}.loss{color:#ff6868}
-.empty{text-align:center;color:#999;padding:25px}
 .status{margin:15px auto;color:#ffb18e}
 .demo-panel{border-color:#493126}
 .demo-description{color:#92939b;line-height:1.6}
@@ -56,7 +78,8 @@ th{color:#999}.win{color:#5bd69a}.loss{color:#ff6868}
 .replay-header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 .replay-badge{color:#ff7138;font-weight:bold;font-size:12px}
 .replay-stage{width:100%;height:600px;overflow:hidden;position:relative;background:#090b10;border:1px solid #353640;border-radius:12px;margin-top:18px}
-#replay3d{width:100%;height:100%}#replay3d canvas{width:100%;height:100%;display:block}
+#replay3d{width:100%;height:100%}
+#replay3d canvas{width:100%;height:100%;display:block}
 .replay-overlay{position:absolute;left:15px;top:14px;background:rgba(0,0,0,.8);border:1px solid #444;border-radius:8px;padding:10px 14px;font-size:13px;pointer-events:none;z-index:2;line-height:1.6}
 .replay-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:17px}
 .replay-controls button{padding:12px 18px}.replay-controls select{padding:11px}
@@ -68,8 +91,6 @@ th{color:#999}.win{color:#5bd69a}.loss{color:#ff6868}
 .replay-note{color:#999;font-size:13px;line-height:1.6;margin-top:16px}
 .player-table{min-width:550px}.team-t{color:#ff9a70}.team-ct{color:#70aaff}
 .player-row{cursor:pointer}.player-row:hover{background:#292a32}.player-row.selected{background:#3a2923}
-
-/* ТРАЕКТОРИИ ИГРОКОВ */
 .trails-panel{margin-top:18px;padding:17px;background:#22232a;border:1px solid #34353e;border-radius:10px}
 .trails-header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 .trails-header h3{margin:0}
@@ -86,8 +107,6 @@ th{color:#999}.win{color:#5bd69a}.loss{color:#ff6868}
 .trail-actions button{padding:9px 13px;font-size:12px;background:#34353e;color:#eee}
 .trail-actions button:hover{background:#454650}
 .trail-counter{font-size:12px;color:#999;margin-top:10px}
-
-/* ЛУЧШИЕ МОМЕНТЫ */
 .highlights-panel{margin-top:22px;padding:18px;background:#22232a;border:1px solid #34353e;border-radius:10px}
 .highlights-header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 .highlights-header h3{margin:0}
@@ -105,13 +124,16 @@ th{color:#999}.win{color:#5bd69a}.loss{color:#ff6868}
 .highlight-jump{font-size:12px;color:#ff7138;white-space:nowrap}
 .highlight-empty{grid-column:1/-1;text-align:center;padding:25px;color:#999;line-height:1.6}
 .highlight-notice{font-size:12px;color:#92939b;margin-top:12px;line-height:1.5}
-
 @media(max-width:700px){
-.grid{grid-template-columns:repeat(2,1fr)}.map-list{grid-template-columns:repeat(2,1fr)}
-h1{font-size:29px}.search{flex-direction:column}
-.profile{align-items:flex-start}table{font-size:12px}
-th,td{padding:9px 5px}.demo-summary{grid-template-columns:1fr}
-.demo-upload{flex-direction:column;align-items:stretch}.demo-file{min-width:0}
+.grid{grid-template-columns:repeat(2,1fr)}
+h1{font-size:29px}
+.search{flex-direction:column}
+.profile{align-items:flex-start}
+table{font-size:12px}
+th,td{padding:9px 5px}
+.demo-summary{grid-template-columns:1fr}
+.demo-upload{flex-direction:column;align-items:stretch}
+.demo-file{min-width:0}
 .replay-stage{height:430px}
 .replay-camera-controls{flex-direction:column;align-items:stretch}
 .replay-camera-controls label{justify-content:space-between}
@@ -164,7 +186,6 @@ th,td{padding:9px 5px}.demo-summary{grid-template-columns:1fr}
             </table>
         </div>
 
-        <!-- ЛУЧШИЕ МОМЕНТЫ МАТЧА -->
         <section class="highlights-panel">
             <div class="highlights-header">
                 <h3>Лучшие моменты матча</h3>
@@ -253,8 +274,11 @@ th,td{padding:9px 5px}.demo-summary{grid-template-columns:1fr}
         <button onclick="pauseReplay()">⏸ Пауза</button>
         <button onclick="stepReplay(1)">▶</button>
         <select id="replaySpeed">
-            <option value="0.25">0.25x</option><option value="0.5">0.5x</option>
-            <option value="1" selected>1x</option><option value="2">2x</option><option value="4">4x</option>
+            <option value="0.25">0.25x</option>
+            <option value="0.5">0.5x</option>
+            <option value="1" selected>1x</option>
+            <option value="2">2x</option>
+            <option value="4">4x</option>
         </select>
     </div>
     <input type="range" id="replayTimeline" class="replay-timeline" min="0" max="1000" value="0" oninput="previewReplayPosition()" onchange="seekReplay()">
@@ -315,15 +339,12 @@ let replayCameraMode="orbit",selectedReplayPlayer="",latestReplayPlayers=[];
 let cameraTheta=0,cameraPhi=0.16,cameraRadius=220;
 let dragActive=false,lastMouseX=0,lastMouseY=0;
 
-/* ДАННЫЕ ТРАЕКТОРИЙ */
 let playerTrails=new Map();
 let trailLines=new Map();
 let trailEnabled=new Map();
 let lastTrailSampleTick=-1;
 let currentReplayTick=0;
 let trailsMasterEnabled=true;
-
-/* ЛУЧШИЕ МОМЕНТЫ */
 let demoHighlights=[];
 
 const $=id=>document.getElementById(id);
@@ -340,8 +361,17 @@ async function waitForThree(){
     const started=Date.now();
 
     while(!window.THREE || !window.THREE.GLTFLoader){
-        if(Date.now()-started>15000){
-            throw new Error("Three.js или GLTFLoader не загрузился за 15 секунд.");
+        if(window.__threeLoadError){
+            throw new Error(
+                "Не удалось загрузить Three.js или GLTFLoader: "+
+                window.__threeLoadError.message
+            );
+        }
+
+        if(Date.now()-started>20000){
+            throw new Error(
+                "Three.js или GLTFLoader не загрузился. Проверь подключение к CDN."
+            );
         }
 
         await new Promise(resolve=>setTimeout(resolve,100));
@@ -378,7 +408,6 @@ function cleanNickname(value){
     return value.replace(/^@/,"");
 }
 
-// FACEIT
 async function searchPlayer(){
     const nickname=cleanNickname($("nickname").value);
     if(!nickname){showStatus("Введи ник FACEIT или ссылку на профиль.");return}
@@ -395,48 +424,79 @@ async function searchPlayer(){
         requestAnimationFrame(drawElo);
         showStatus("");
     }catch(error){
-        currentData=null;showStatus("Ошибка: "+error.message);
-    }finally{$("searchBtn").disabled=false}
+        currentData=null;
+        showStatus("Ошибка: "+error.message);
+    }finally{
+        $("searchBtn").disabled=false;
+    }
 }
+
 function render(data){
     const p=data.player||{};
     $("playerName").textContent=p.nickname||"Игрок";
     $("country").textContent=p.country?"Страна: "+p.country.toUpperCase():"";
     $("level").textContent=p.level?"FACEIT Level "+p.level:"Уровень неизвестен";
-    $("elo").textContent=p.elo??"—";$("skill").textContent=p.level??"—";
-    if(p.avatar)$("avatar").src=p.avatar;else $("avatar").removeAttribute("src");
+    $("elo").textContent=p.elo??"—";
+    $("skill").textContent=p.level??"—";
+
+    if(p.avatar)$("avatar").src=p.avatar;
+    else $("avatar").removeAttribute("src");
+
     const matches=data.matches||[];
     const wins=matches.filter(m=>m.result==="win").length;
     const known=matches.filter(m=>m.result==="win"||m.result==="loss").length;
+
     $("matches").textContent=matches.length;
     $("winrate").textContent=known?Math.round(wins/known*100)+"%":"—";
-    renderBest(data.bestMatch);renderMaps(data.maps||[]);
-    renderHistory(matches,data.matchStats||[]);drawElo();
+
+    renderBest(data.bestMatch);
+    renderMaps(data.maps||[]);
+    renderHistory(matches,data.matchStats||[]);
+    drawElo();
 }
+
 function renderBest(best){
     const box=$("bestMatch");
-    if(!best){box.textContent="Нет доступных данных за неделю.";return}
+    if(!best){
+        box.textContent="Нет доступных данных за неделю.";
+        return;
+    }
+
     box.innerHTML=`<div class="grid">
     <div class="metric"><small>Карта</small><strong>${escapeHTML(best.map||"—")}</strong></div>
     <div class="metric"><small>K/D</small><strong>${number(best.kd)}</strong></div>
     <div class="metric"><small>Убийства</small><strong>${best.kills??"—"}</strong></div>
     <div class="metric"><small>ADR</small><strong>${number(best.adr,1)}</strong></div></div>`;
 }
+
 function renderMaps(maps){
     const box=$("maps");
-    if(!maps.length){box.innerHTML='<div class="empty">Статистика по картам пока недоступна.</div>';return}
+    if(!maps.length){
+        box.innerHTML='<div class="empty">Статистика по картам пока недоступна.</div>';
+        return;
+    }
+
     box.innerHTML=maps.map(m=>`<div class="map-item"><strong>${escapeHTML(m.map)}</strong>
     <div>Матчи: ${m.matches}</div><div>Победы: ${m.winRate}%</div>
     <div>K/D: ${number(m.kd)}</div><div>ADR: ${number(m.adr,1)}</div></div>`).join("");
 }
+
 function renderHistory(matches,stats){
     const body=$("history");
-    if(!matches.length){body.innerHTML='<tr><td colspan="6" class="empty">История матчей недоступна.</td></tr>';return}
-    const statMap=new Map(stats.filter(s=>s.matchId).map(s=>[String(s.matchId),s]));
+    if(!matches.length){
+        body.innerHTML='<tr><td colspan="6" class="empty">История матчей недоступна.</td></tr>';
+        return;
+    }
+
+    const statMap=new Map(
+        stats.filter(s=>s.matchId).map(s=>[String(s.matchId),s])
+    );
+
     body.innerHTML=[...matches].reverse().slice(0,100).map(m=>{
         const s=statMap.get(String(m.id))||m.stats||{};
         const result=m.result==="win"?"Победа":m.result==="loss"?"Поражение":"—";
         const cls=m.result==="win"?"win":m.result==="loss"?"loss":"";
+
         return `<tr><td>${formatDate(m.date)}</td><td class="${cls}">${result}</td>
         <td>${escapeHTML(m.map||"—")}</td><td>${number(s.kd)}</td>
         <td>${number(s.adr,1)}</td><td>${m.elo??"—"}</td></tr>`;
@@ -446,93 +506,201 @@ function renderHistory(matches,stats){
 // ELO
 function drawElo(){
     if(!currentData)return;
-    const canvas=$("eloChart"),rect=canvas.getBoundingClientRect();
+
+    const canvas=$("eloChart");
+    const rect=canvas.getBoundingClientRect();
     if(rect.width<=0||rect.height<=0)return;
+
     const dpr=window.devicePixelRatio||1;
-    canvas.width=Math.round(rect.width*dpr);canvas.height=Math.round(rect.height*dpr);
-    const ctx=canvas.getContext("2d");ctx.setTransform(dpr,0,0,dpr,0,0);
+    canvas.width=Math.round(rect.width*dpr);
+    canvas.height=Math.round(rect.height*dpr);
+
+    const ctx=canvas.getContext("2d");
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+
     const width=rect.width,height=rect.height;
     ctx.clearRect(0,0,width,height);
+
     const limit=Number($("eloRange").value);
+
     const matchPoints=(currentData.matches||[])
         .filter(m=>m.elo!==null&&m.elo!==undefined&&Number.isFinite(Number(m.elo)))
-        .map(m=>({date:Number(m.date)||0,elo:Number(m.elo)})).sort((a,b)=>a.date-b.date);
+        .map(m=>({date:Number(m.date)||0,elo:Number(m.elo)}))
+        .sort((a,b)=>a.date-b.date);
+
     const savedPoints=(currentData.eloPoints||[])
         .filter(p=>p.elo!==null&&p.elo!==undefined&&Number.isFinite(Number(p.elo)))
-        .map(p=>({date:Number(p.date),elo:Number(p.elo)})).sort((a,b)=>a.date-b.date);
+        .map(p=>({date:Number(p.date),elo:Number(p.elo)}))
+        .sort((a,b)=>a.date-b.date);
+
     const usingMatches=matchPoints.length>=2;
     const points=(usingMatches?matchPoints:savedPoints).slice(-limit);
+
     const left=48,right=15,top=20,bottom=30;
     const chartW=width-left-right,chartH=height-top-bottom;
+
     if(!points.length){
-        ctx.fillStyle="#999";ctx.font="14px Arial";ctx.textAlign="center";
+        ctx.fillStyle="#999";
+        ctx.font="14px Arial";
+        ctx.textAlign="center";
         ctx.fillText("Пока нет данных Elo",width/2,height/2);
-        $("eloNote").textContent="История Elo пока не содержит точек.";return;
+        $("eloNote").textContent="История Elo пока не содержит точек.";
+        return;
     }
+
     const values=points.map(p=>p.elo);
     let min=Math.min(...values)-20,max=Math.max(...values)+20;
     if(min===max){min-=20;max+=20}
+
     const getX=i=>points.length===1?left+chartW/2:left+chartW*i/(points.length-1);
     const getY=v=>top+chartH*(max-v)/(max-min);
-    ctx.strokeStyle="#30313a";ctx.lineWidth=1;ctx.fillStyle="#999";
-    ctx.font="11px Arial";ctx.textAlign="right";
+
+    ctx.strokeStyle="#30313a";
+    ctx.lineWidth=1;
+    ctx.fillStyle="#999";
+    ctx.font="11px Arial";
+    ctx.textAlign="right";
+
     for(let i=0;i<5;i++){
-        const y=top+chartH*i/4,value=Math.round(max-(max-min)*i/4);
-        ctx.beginPath();ctx.moveTo(left,y);ctx.lineTo(width-right,y);ctx.stroke();
+        const y=top+chartH*i/4;
+        const value=Math.round(max-(max-min)*i/4);
+        ctx.beginPath();
+        ctx.moveTo(left,y);
+        ctx.lineTo(width-right,y);
+        ctx.stroke();
         ctx.fillText(value,left-8,y+4);
     }
+
     ctx.beginPath();
-    points.forEach((p,i)=>{const x=getX(i),y=getY(p.elo);if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y)});
-    ctx.strokeStyle="#ff7138";ctx.lineWidth=2.5;ctx.stroke();
-    points.forEach((p,i)=>{ctx.beginPath();ctx.arc(getX(i),getY(p.elo),4,0,Math.PI*2);ctx.fillStyle="#ff7138";ctx.fill()});
-    ctx.textAlign="center";ctx.fillStyle="#999";ctx.font="11px Arial";
+    points.forEach((p,i)=>{
+        const x=getX(i),y=getY(p.elo);
+        if(i===0)ctx.moveTo(x,y);
+        else ctx.lineTo(x,y);
+    });
+
+    ctx.strokeStyle="#ff7138";
+    ctx.lineWidth=2.5;
+    ctx.stroke();
+
+    points.forEach((p,i)=>{
+        ctx.beginPath();
+        ctx.arc(getX(i),getY(p.elo),4,0,Math.PI*2);
+        ctx.fillStyle="#ff7138";
+        ctx.fill();
+    });
+
+    ctx.textAlign="center";
+    ctx.fillStyle="#999";
+    ctx.font="11px Arial";
     ctx.fillText(points.length+" точек Elo",width/2,height-5);
-    $("eloNote").textContent=usingMatches?"График построен по значениям Elo из истории матчей FACEIT.":"График построен по сохранённым значениям Elo.";
+
+    $("eloNote").textContent=usingMatches
+        ?"График построен по значениям Elo из истории матчей FACEIT."
+        :"График построен по сохранённым значениям Elo.";
 }
 
 // DEMO
 async function uploadDemo(){
-    const file=$("demoFile").files[0],button=$("demoUploadBtn");
-    $("demoResults").classList.add("hidden");$("replayPanel").classList.add("hidden");
-    if(!file){$("demoStatus").textContent="Сначала выбери файл демо.";return}
-    const fileName=file.name.toLowerCase();
-    if(!fileName.endsWith(".dem")&&!fileName.endsWith(".dem.zst")){
-        $("demoStatus").textContent="Нужен файл .dem или .dem.zst.";return;
+    const file=$("demoFile").files[0];
+    const button=$("demoUploadBtn");
+
+    $("demoResults").classList.add("hidden");
+    $("replayPanel").classList.add("hidden");
+
+    if(!file){
+        $("demoStatus").textContent="Сначала выбери файл демо.";
+        return;
     }
-    if(file.size>200*1024*1024){$("demoStatus").textContent="Файл слишком большой. Максимальный размер — 200 МБ.";return}
+
+    const fileName=file.name.toLowerCase();
+
+    if(!fileName.endsWith(".dem")&&!fileName.endsWith(".dem.zst")){
+        $("demoStatus").textContent="Нужен файл .dem или .dem.zst.";
+        return;
+    }
+
+    if(file.size>200*1024*1024){
+        $("demoStatus").textContent="Файл слишком большой. Максимальный размер — 200 МБ.";
+        return;
+    }
+
     pauseReplay();
-    if(replayPlayer){try{await replayPlayer.dispose()}catch{}replayPlayer=null}
-    const formData=new FormData();formData.append("demo",file);
-    button.disabled=true;button.textContent="Обрабатываем...";
+
+    if(replayPlayer){
+        try{await replayPlayer.dispose()}catch{}
+        replayPlayer=null;
+    }
+
+    const formData=new FormData();
+    formData.append("demo",file);
+
+    button.disabled=true;
+    button.textContent="Обрабатываем...";
     $("demoStatus").textContent="Загружаем демо и анализируем матч...";
+
     try{
-        const response=await fetch("/api/demo/upload",{method:"POST",body:formData});
+        const response=await fetch("/api/demo/upload",{
+            method:"POST",
+            body:formData
+        });
+
         const data=await response.json();
-        if(!response.ok||!data.ok)throw new Error(data.error||"Не удалось обработать демо.");
-        renderDemo(data);$("demoResults").classList.remove("hidden");
-        $("demoStatus").textContent="Статистика готова. Загружаем интерактивный повтор...";
-        if(data.replayUrl)await startReplayFromUrl(data.replayUrl,data.map);
-        else $("demoStatus").textContent="Статистика готова, но сервер не вернул адрес демки.";
-    }catch(error){$("demoStatus").textContent="Ошибка анализа: "+error.message}
-    finally{button.disabled=false;button.textContent="Анализировать демо"}
+
+        if(!response.ok||!data.ok){
+            throw new Error(data.error||"Не удалось обработать демо.");
+        }
+
+        renderDemo(data);
+        $("demoResults").classList.remove("hidden");
+
+        $("demoStatus").textContent=
+            "Статистика готова. Загружаем интерактивный повтор...";
+
+        if(data.replayUrl){
+            await startReplayFromUrl(data.replayUrl,data.map);
+        }else{
+            $("demoStatus").textContent=
+                "Статистика готова, но сервер не вернул адрес демки.";
+        }
+
+    }catch(error){
+        $("demoStatus").textContent="Ошибка анализа: "+error.message;
+    }finally{
+        button.disabled=false;
+        button.textContent="Анализировать демо";
+    }
 }
 
 function renderDemo(data){
     const players=Array.isArray(data.players)?[...data.players]:[];
     players.sort((a,b)=>Number(b.kills||0)-Number(a.kills||0));
+
     $("demoMap").textContent=data.map||"Не определена";
     $("demoPlayerCount").textContent=players.length;
+
     const events=data.events||{};
-    $("demoEventCount").textContent=Object.values(events).reduce((s,v)=>s+(Number(v)||0),0);
+
+    $("demoEventCount").textContent=
+        Object.values(events).reduce((s,v)=>s+(Number(v)||0),0);
 
     const body=$("demoPlayers");
 
     if(!players.length){
-        body.innerHTML='<tr><td colspan="8" class="empty">Сервер не вернул статистику игроков.</td></tr>';
+        body.innerHTML=
+            '<tr><td colspan="8" class="empty">Сервер не вернул статистику игроков.</td></tr>';
     }else{
-        body.innerHTML=players.map((p,i)=>`<tr><td>${i+1}</td><td class="demo-player">${escapeHTML(p.name||"Неизвестный игрок")}</td>
-        <td>${Number(p.kills||0)}</td><td>${Number(p.deaths||0)}</td><td>${Number(p.assists||0)}</td>
-        <td>${number(p.kd)}</td><td>${Number(p.damage||0)}</td><td>${number(p.hsPercent,1)}%</td></tr>`).join("");
+        body.innerHTML=players.map((p,i)=>`
+            <tr>
+                <td>${i+1}</td>
+                <td class="demo-player">${escapeHTML(p.name||"Неизвестный игрок")}</td>
+                <td>${Number(p.kills||0)}</td>
+                <td>${Number(p.deaths||0)}</td>
+                <td>${Number(p.assists||0)}</td>
+                <td>${number(p.kd)}</td>
+                <td>${Number(p.damage||0)}</td>
+                <td>${number(p.hsPercent,1)}%</td>
+            </tr>
+        `).join("");
     }
 
     $("demoNote").textContent=data.note||"";
@@ -573,7 +741,8 @@ function renderHighlights(highlights){
         demoHighlights.map(item=>String(item.player||"").trim()).filter(Boolean)
     )].sort((a,b)=>a.localeCompare(b));
 
-    playerFilter.innerHTML='<option value="all">Все игроки</option>'+
+    playerFilter.innerHTML=
+        '<option value="all">Все игроки</option>'+
         players.map(name=>`<option value="${escapeHTML(name)}">${escapeHTML(name)}</option>`).join("");
 
     if(players.includes(oldPlayer))playerFilter.value=oldPlayer;
@@ -682,9 +851,11 @@ async function jumpToHighlight(tick){
             behavior:"smooth",
             block:"start"
         });
+
     }catch(error){
         console.error("Ошибка перехода к моменту:",error);
-        $("demoStatus").textContent="Не удалось перейти к моменту: "+error.message;
+        $("demoStatus").textContent=
+            "Не удалось перейти к моменту: "+error.message;
     }
 }
 
@@ -859,6 +1030,7 @@ async function seekReplay(){
     if(!replayPlayer)return;
 
     const progress=Number($("replayTimeline").value)/1000;
+
     const tick=Math.round(
         replayFirstTick+
         (replayLastTick-replayFirstTick)*progress
@@ -880,6 +1052,7 @@ function previewReplayPosition(){
     if(!replayPlayer)return;
 
     const progress=Number($("replayTimeline").value)/1000;
+
     const tick=Math.round(
         replayFirstTick+
         (replayLastTick-replayFirstTick)*progress
@@ -906,19 +1079,25 @@ async function stepReplay(direction){
         }
 
         updateReplayState();
+
     }catch(error){
         console.error("Ошибка шага:",error);
     }
 }
 
+// =====================================
 // ПОЛУЧЕНИЕ КООРДИНАТ ИГРОКОВ
+// =====================================
 
 function safeGet(entity,field){
     try{return entity?.getField(field)}catch{return undefined}
 }
 
 function parseNumber(value){
-    if(value===undefined||value===null||value==="")return null;
+    if(value===undefined||value===null||value===""){
+        return null;
+    }
+
     const n=Number(value);
     return Number.isFinite(n)?n:null;
 }
@@ -1047,7 +1226,6 @@ function getReplayPlayers(){
     try{
         controllers=
             demo.getEntitiesByClassName("CCSPlayerController")||[];
-
     }catch(error){
         console.error(
             "Ошибка получения контроллеров:",
@@ -1153,8 +1331,6 @@ function updateReplayState(){
     renderPlayerTrails(currentTick);
 }
 
-// ВЫБОР ИГРОКОВ
-
 function updateReplayPlayerSelector(players){
     const select=$("replayPlayerSelect");
 
@@ -1182,7 +1358,6 @@ function updateReplayPlayerSelector(players){
 
     if(selectedReplayPlayer&&names.includes(selectedReplayPlayer)){
         select.value=selectedReplayPlayer;
-
     }else if(names.length){
         selectedReplayPlayer=names[0];
         select.value=selectedReplayPlayer;
@@ -1191,7 +1366,6 @@ function updateReplayPlayerSelector(players){
     if(!names.length){
         select.innerHTML=
             '<option value="">Игроки не найдены</option>';
-
         selectedReplayPlayer="";
     }
 
@@ -1200,7 +1374,6 @@ function updateReplayPlayerSelector(players){
 
 function selectReplayPlayer(){
     selectedReplayPlayer=$("replayPlayerSelect").value;
-
     renderReplayPlayers(latestReplayPlayers);
     updateReplayCamera(latestReplayPlayers);
 }
@@ -1222,17 +1395,12 @@ function changeCameraMode(){
 
     if(replayCameraMode==="orbit"){
         $("cameraStatus").textContent="Камера: общий вид";
-
         threeCamera.up.set(0,1,0);
         threeCamera.fov=45;
         threeCamera.updateProjectionMatrix();
-
         updateCamera();
-
     }else{
-        $("cameraStatus").textContent=
-            "Камера: от лица игрока";
-
+        $("cameraStatus").textContent="Камера: от лица игрока";
         updateReplayCamera(latestReplayPlayers);
     }
 }
@@ -1247,43 +1415,18 @@ function renderReplayPlayers(players){
     }
 
     body.innerHTML=players.map(p=>{
-        const cls=p.team===2
-            ?"team-t"
-            :p.team===3
-                ?"team-ct"
-                :"";
+        const cls=p.team===2?"team-t":p.team===3?"team-ct":"";
+        const team=p.team===2?"T":p.team===3?"CT":"—";
 
-        const team=p.team===2
-            ?"T"
-            :p.team===3
-                ?"CT"
-                :"—";
+        const x=p.position?number(p.position.x,0):"—";
+        const y=p.position?number(p.position.y,0):"—";
+        const z=p.position?number(p.position.z,0):"—";
+        const yaw=p.viewAngles?number(p.viewAngles.yaw,1)+"°":"—";
 
-        const x=p.position
-            ?number(p.position.x,0)
-            :"—";
-
-        const y=p.position
-            ?number(p.position.y,0)
-            :"—";
-
-        const z=p.position
-            ?number(p.position.z,0)
-            :"—";
-
-        const yaw=p.viewAngles
-            ?number(p.viewAngles.yaw,1)+"°"
-            :"—";
-
-        const selected=p.name===selectedReplayPlayer
-            ?"selected"
-            :"";
+        const selected=p.name===selectedReplayPlayer?"selected":"";
 
         return `
-            <tr
-                class="player-row ${selected}"
-                onclick="choosePlayerFromTable('${escapeHTML(p.name)}')"
-            >
+            <tr class="player-row ${selected}" onclick="choosePlayerFromTable('${escapeHTML(p.name)}')">
                 <td class="${cls}">${escapeHTML(p.name)}</td>
                 <td class="${cls}">${team}</td>
                 <td>${p.health??"—"}</td>
@@ -1298,9 +1441,7 @@ function renderReplayPlayers(players){
 
 function choosePlayerFromTable(name){
     selectedReplayPlayer=name;
-
     $("replayPlayerSelect").value=name;
-
     renderReplayPlayers(latestReplayPlayers);
     updateReplayCamera(latestReplayPlayers);
 }
@@ -1311,10 +1452,7 @@ function choosePlayerFromTable(name){
 
 function clearAllTrailData(){
     for(const line of trailLines.values()){
-        if(threeScene){
-            threeScene.remove(line);
-        }
-
+        if(threeScene)threeScene.remove(line);
         line.geometry?.dispose();
         line.material?.dispose();
     }
@@ -1330,15 +1468,14 @@ function clearAllTrailData(){
         '<div class="trail-empty">Игроки появятся после загрузки демки.</div>';
 
     $("trailCounter").textContent="Записано точек: 0";
-
     $("trailsMaster").checked=true;
     trailsMasterEnabled=true;
 }
 
 function recordPlayerTrailSamples(players,tick){
     if(!Number.isFinite(tick))return;
-
     if(lastTrailSampleTick===tick)return;
+
     lastTrailSampleTick=tick;
 
     for(const player of players){
@@ -1351,10 +1488,7 @@ function recordPlayerTrailSamples(players,tick){
 
         if(!playerTrails.has(name)){
             playerTrails.set(name,[]);
-
-            if(!trailEnabled.has(name)){
-                trailEnabled.set(name,true);
-            }
+            if(!trailEnabled.has(name))trailEnabled.set(name,true);
         }
 
         const samples=playerTrails.get(name);
@@ -1372,16 +1506,9 @@ function recordPlayerTrailSamples(players,tick){
 
         if(!last||tick>last.tick){
             samples.push(sample);
-
         }else{
-            let index=samples.findIndex(
-                point=>point.tick>tick
-            );
-
-            if(index===-1){
-                index=samples.length;
-            }
-
+            let index=samples.findIndex(point=>point.tick>tick);
+            if(index===-1)index=samples.length;
             samples.splice(index,0,sample);
         }
 
@@ -1395,7 +1522,6 @@ function recordPlayerTrailSamples(players,tick){
 
 function updateTrailPlayerList(players){
     const container=$("trailPlayers");
-
     if(!players.length)return;
 
     const unique=new Map();
@@ -1406,8 +1532,7 @@ function updateTrailPlayerList(players){
         }
     }
 
-    const names=Array.from(unique.keys())
-        .sort((a,b)=>a.localeCompare(b));
+    const names=Array.from(unique.keys()).sort((a,b)=>a.localeCompare(b));
 
     const existing=Array.from(
         container.querySelectorAll("[data-trail-name]")
@@ -1423,22 +1548,12 @@ function updateTrailPlayerList(players){
     container.innerHTML=names.map(name=>{
         const player=unique.get(name);
         const isT=player.team===2;
-
-        const colorClass=isT
-            ?"trail-t"
-            :"trail-ct";
-
-        const checked=trailEnabled.get(name)!==false
-            ?"checked"
-            :"";
+        const colorClass=isT?"trail-t":"trail-ct";
+        const checked=trailEnabled.get(name)!==false?"checked":"";
 
         return `
             <label class="trail-player">
-                <input
-                    type="checkbox"
-                    data-trail-name="${escapeHTML(name)}"
-                    ${checked}
-                >
+                <input type="checkbox" data-trail-name="${escapeHTML(name)}" ${checked}>
                 <i class="trail-dot ${colorClass}"></i>
                 <span>${escapeHTML(name)}</span>
             </label>
@@ -1463,10 +1578,7 @@ function renderPlayerTrails(currentTick){
             continue;
         }
 
-        const visibleSamples=samples.filter(
-            sample=>sample.tick<=currentTick
-        );
-
+        const visibleSamples=samples.filter(sample=>sample.tick<=currentTick);
         totalPoints+=visibleSamples.length;
 
         if(visibleSamples.length<2){
@@ -1475,32 +1587,19 @@ function renderPlayerTrails(currentTick){
         }
 
         const points=visibleSamples.map(sample=>
-            new THREE.Vector3(
-                sample.x,
-                sample.y,
-                sample.z
-            )
+            new THREE.Vector3(sample.x,sample.y,sample.z)
         );
 
-        const team=
-            visibleSamples[visibleSamples.length-1].team;
-
-        const color=team===2
-            ?0xff7138
-            :0x438cff;
+        const team=visibleSamples[visibleSamples.length-1].team;
+        const color=team===2?0xff7138:0x438cff;
 
         if(line){
             line.geometry.dispose();
-
-            line.geometry=
-                new THREE.BufferGeometry().setFromPoints(points);
-
+            line.geometry=new THREE.BufferGeometry().setFromPoints(points);
             line.material.color.setHex(color);
             line.visible=true;
-
         }else{
-            const geometry=
-                new THREE.BufferGeometry().setFromPoints(points);
+            const geometry=new THREE.BufferGeometry().setFromPoints(points);
 
             const material=new THREE.LineBasicMaterial({
                 color,
@@ -1510,7 +1609,6 @@ function renderPlayerTrails(currentTick){
             });
 
             line=new THREE.Line(geometry,material);
-
             line.frustumCulled=false;
             line.renderOrder=4;
 
@@ -1525,10 +1623,7 @@ function renderPlayerTrails(currentTick){
 
 function updateTrailCounter(){
     let total=0;
-
-    for(const samples of playerTrails.values()){
-        total+=samples.length;
-    }
+    for(const samples of playerTrails.values())total+=samples.length;
 
     $("trailCounter").textContent=
         "Всего записано точек маршрутов: "+total;
@@ -1542,27 +1637,22 @@ function setAllTrails(enabled){
         trailEnabled.set(name,enabled);
     }
 
-    document.querySelectorAll("[data-trail-name]")
-        .forEach(input=>{
-            input.checked=enabled;
-        });
+    document.querySelectorAll("[data-trail-name]").forEach(input=>{
+        input.checked=enabled;
+    });
 
     renderPlayerTrails(currentReplayTick);
 }
 
 function clearAllTrails(){
     for(const line of trailLines.values()){
-        if(threeScene){
-            threeScene.remove(line);
-        }
-
+        if(threeScene)threeScene.remove(line);
         line.geometry?.dispose();
         line.material?.dispose();
     }
 
     trailLines.clear();
     playerTrails.clear();
-
     lastTrailSampleTick=-1;
 
     updateTrailCounter();
@@ -1575,7 +1665,6 @@ $("trailPlayers").addEventListener("change",event=>{
 
     const name=input.dataset.trailName;
     trailEnabled.set(name,input.checked);
-
     renderPlayerTrails(currentReplayTick);
 });
 
@@ -1603,11 +1692,7 @@ function init3DScene(){
 
     if(threeRenderer){
         threeRenderer.dispose();
-
-        if(threeRenderer.domElement){
-            threeRenderer.domElement.remove();
-        }
-
+        if(threeRenderer.domElement)threeRenderer.domElement.remove();
         threeRenderer=null;
     }
 
@@ -1628,15 +1713,8 @@ function init3DScene(){
         alpha:false
     });
 
-    threeRenderer.setPixelRatio(
-        Math.min(window.devicePixelRatio||1,2)
-    );
-
-    threeRenderer.setSize(
-        container.clientWidth,
-        container.clientHeight
-    );
-
+    threeRenderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+    threeRenderer.setSize(container.clientWidth,container.clientHeight);
     threeRenderer.outputColorSpace=THREE.SRGBColorSpace;
     threeRenderer.toneMapping=THREE.ACESFilmicToneMapping;
     threeRenderer.toneMappingExposure=1.15;
@@ -1644,12 +1722,7 @@ function init3DScene(){
     container.innerHTML="";
     container.appendChild(threeRenderer.domElement);
 
-    const hemiLight=new THREE.HemisphereLight(
-        0xffffff,
-        0x41404a,
-        2.1
-    );
-
+    const hemiLight=new THREE.HemisphereLight(0xffffff,0x41404a,2.1);
     threeScene.add(hemiLight);
 
     const keyLight=new THREE.DirectionalLight(0xffffff,2.4);
@@ -1691,24 +1764,19 @@ function radarPointToScene(px,py){
 }
 
 function radarFractionToScene(x,y){
-    return radarPointToScene(
-        x*RADAR_SIZE,
-        y*RADAR_SIZE
-    );
+    return radarPointToScene(x*RADAR_SIZE,y*RADAR_SIZE);
 }
 
-// Находим основную верхнюю поверхность пола по наибольшей площади
-// горизонтальных треугольников в меше Pavement.
 function findDominantWalkableHeight(mesh){
-    if(!mesh || !mesh.geometry)return null;
+    if(!mesh||!mesh.geometry)return null;
 
     const geometry=mesh.geometry;
     const position=geometry.attributes.position;
 
-    if(!position || position.count<3)return null;
+    if(!position||position.count<3)return null;
 
     const index=geometry.index;
-    const vertexCount=index ? index.count : position.count;
+    const vertexCount=index?index.count:position.count;
     const levels=new Map();
 
     const a=new THREE.Vector3();
@@ -1719,9 +1787,9 @@ function findDominantWalkableHeight(mesh){
     const normal=new THREE.Vector3();
 
     for(let i=0;i+2<vertexCount;i+=3){
-        const ia=index ? index.getX(i) : i;
-        const ib=index ? index.getX(i+1) : i+1;
-        const ic=index ? index.getX(i+2) : i+2;
+        const ia=index?index.getX(i):i;
+        const ib=index?index.getX(i+1):i+1;
+        const ic=index?index.getX(i+2):i+2;
 
         a.fromBufferAttribute(position,ia).applyMatrix4(mesh.matrixWorld);
         b.fromBufferAttribute(position,ib).applyMatrix4(mesh.matrixWorld);
@@ -1742,6 +1810,7 @@ function findDominantWalkableHeight(mesh){
         const key=Math.round(height*4)/4;
 
         let entry=levels.get(key);
+
         if(!entry){
             entry={area:0,weightedHeight:0};
             levels.set(key,entry);
@@ -1754,12 +1823,13 @@ function findDominantWalkableHeight(mesh){
     let best=null;
 
     for(const [height,entry] of levels){
-        if(!best || entry.area>best.area){
+        if(!best||entry.area>best.area){
             best={height,...entry};
         }
     }
 
-    if(!best || best.area<=0)return null;
+    if(!best||best.area<=0)return null;
+
     return best.weightedHeight/best.area;
 }
 
@@ -1768,7 +1838,7 @@ function findDominantWalkableHeight(mesh){
 // =====================================
 
 function buildMirageModel(){
-    if(!threeScene || !replayMapGroup)return;
+    if(!threeScene||!replayMapGroup)return;
 
     replayMapGroup.clear();
     replayMapModel=null;
@@ -1777,13 +1847,12 @@ function buildMirageModel(){
         "Карта: ищем игровую поверхность Mirage...";
 
     if(!THREE.GLTFLoader){
-        console.error("THREE.GLTFLoader не найден. Проверь загрузку GLTFLoader.js");
+        console.error("THREE.GLTFLoader не найден.");
         $("mapStatus").textContent="Карта: не загрузился GLTFLoader";
         return;
     }
 
     const loader=new THREE.GLTFLoader();
-
     const targetGroup=replayMapGroup;
     const targetScene=threeScene;
 
@@ -1792,7 +1861,7 @@ function buildMirageModel(){
 
         gltf=>{
             if(
-                replayMapGroup!==targetGroup ||
+                replayMapGroup!==targetGroup||
                 threeScene!==targetScene
             ){
                 return;
@@ -1804,10 +1873,7 @@ function buildMirageModel(){
             const fullBounds=new THREE.Box3().setFromObject(model);
             const fullSize=fullBounds.getSize(new THREE.Vector3());
 
-            if(
-                !Number.isFinite(fullSize.x) ||
-                fullSize.x<=0
-            ){
+            if(!Number.isFinite(fullSize.x)||fullSize.x<=0){
                 $("mapStatus").textContent=
                     "Карта: у модели некорректные размеры.";
                 return;
@@ -1817,7 +1883,7 @@ function buildMirageModel(){
 
             model.traverse(object=>{
                 if(
-                    object.isMesh &&
+                    object.isMesh&&
                     object.name==="Pavement_Pavement_0"
                 ){
                     pavementMesh=object;
@@ -1828,15 +1894,11 @@ function buildMirageModel(){
             let walkableHeight=fullBounds.min.y;
 
             if(pavementMesh){
-                const pavementBounds=new THREE.Box3()
-                    .setFromObject(pavementMesh);
+                const pavementBounds=new THREE.Box3().setFromObject(pavementMesh);
 
-                mapCenter=pavementBounds.getCenter(
-                    new THREE.Vector3()
-                );
+                mapCenter=pavementBounds.getCenter(new THREE.Vector3());
 
-                const detectedHeight=
-                    findDominantWalkableHeight(pavementMesh);
+                const detectedHeight=findDominantWalkableHeight(pavementMesh);
 
                 if(Number.isFinite(detectedHeight)){
                     walkableHeight=detectedHeight;
@@ -1845,17 +1907,12 @@ function buildMirageModel(){
                 }
             }
 
-            // Сохраняем прежний масштаб по X,
-            // чтобы не менять преобразование координат радара.
             const scale=MAP_SIZE/fullSize.x;
-
             model.scale.setScalar(scale);
 
-            // Центрируем по игровому покрытию, а не по крышам и стенам.
             model.position.x=-mapCenter.x*scale;
             model.position.z=-mapCenter.z*scale;
 
-            // Нижняя грань цилиндра игрока находится на высоте 0.075.
             const PLAYER_MARKER_BOTTOM=0.075;
 
             model.position.y=
@@ -1900,9 +1957,7 @@ function buildMirageModel(){
 
         event=>{
             if(event.total){
-                const percent=Math.round(
-                    event.loaded/event.total*100
-                );
+                const percent=Math.round(event.loaded/event.total*100);
 
                 $("mapStatus").textContent=
                     `Карта: загрузка 3D-модели ${percent}%`;
@@ -1913,10 +1968,7 @@ function buildMirageModel(){
         },
 
         error=>{
-            console.error(
-                "Ошибка загрузки 3D-модели Mirage:",
-                error
-            );
+            console.error("Ошибка загрузки 3D-модели Mirage:",error);
 
             $("mapStatus").textContent=
                 "Карта: не удалось загрузить maps_mirage_lite.glb. Проверь файл рядом с index.html.";
@@ -1933,11 +1985,8 @@ function getPlayerScenePosition(player){
 
     const world=player.position;
 
-    const pixelX=
-        (world.x-MIRAGE_POS_X)/MIRAGE_SCALE;
-
-    const pixelY=
-        (MIRAGE_POS_Y-world.y)/MIRAGE_SCALE;
+    const pixelX=(world.x-MIRAGE_POS_X)/MIRAGE_SCALE;
+    const pixelY=(MIRAGE_POS_Y-world.y)/MIRAGE_SCALE;
 
     if(
         !Number.isFinite(pixelX)||
@@ -1994,20 +2043,14 @@ function update3DPlayers(players){
 
         if(inside)insideMapCount++;
 
-        visual.group.position.set(
-            pos.x,
-            pos.y,
-            pos.z
-        );
-
+        visual.group.position.set(pos.x,pos.y,pos.z);
         visual.group.visible=true;
 
         if(
             player.viewAngles&&
             Number.isFinite(player.viewAngles.yaw)
         ){
-            const yaw=
-                player.viewAngles.yaw*Math.PI/180;
+            const yaw=player.viewAngles.yaw*Math.PI/180;
 
             const direction=new THREE.Vector3(
                 Math.cos(yaw),
@@ -2018,17 +2061,13 @@ function update3DPlayers(players){
             visual.arrow.position.set(0,0.8,0);
             visual.arrow.setDirection(direction);
             visual.arrow.visible=true;
-
         }else{
             visual.arrow.visible=false;
         }
     }
 
     const sample=valid[0]?.position;
-
-    const sampleRadar=valid[0]
-        ?getPlayerScenePosition(valid[0])
-        :null;
+    const sampleRadar=valid[0]?getPlayerScenePosition(valid[0]):null;
 
     const sampleText=sample&&sampleRadar
         ?` | пример X/Y: ${Math.round(sample.x)}/${Math.round(sample.y)} → ${Math.round(sampleRadar.pixelX)}/${Math.round(sampleRadar.pixelY)} px`
@@ -2088,19 +2127,11 @@ function createPlayerNameLabel(name,color){
 }
 
 function createPlayerVisual(player){
-    const color=player.team===2
-        ?0xff7138
-        :0x438cff;
-
+    const color=player.team===2?0xff7138:0x438cff;
     const group=new THREE.Group();
 
     const marker=new THREE.Mesh(
-        new THREE.CylinderGeometry(
-            0.8,
-            0.8,
-            0.55,
-            20
-        ),
+        new THREE.CylinderGeometry(0.8,0.8,0.55,20),
         new THREE.MeshStandardMaterial({
             color,
             emissive:color,
@@ -2113,9 +2144,7 @@ function createPlayerVisual(player){
 
     const label=createPlayerNameLabel(
         player.name,
-        player.team===2
-            ?"#ff7138"
-            :"#438cff"
+        player.team===2?"#ff7138":"#438cff"
     );
 
     label.position.y=3.2;
@@ -2136,12 +2165,7 @@ function createPlayerVisual(player){
     group.add(arrow);
     threeScene.add(group);
 
-    return{
-        group,
-        marker,
-        label,
-        arrow
-    };
+    return{group,marker,label,arrow};
 }
 
 // =====================================
@@ -2149,21 +2173,16 @@ function createPlayerVisual(player){
 // =====================================
 
 function updateReplayCamera(players){
-    if(!threeCamera||replayCameraMode!=="follow"){
-        return;
-    }
+    if(!threeCamera||replayCameraMode!=="follow")return;
 
     let player=players.find(
         p=>p.name===selectedReplayPlayer&&p.position
     );
 
-    if(!player){
-        player=players.find(p=>p.position);
-    }
+    if(!player)player=players.find(p=>p.position);
 
     if(!player){
-        $("cameraStatus").textContent=
-            "Камера: нет данных о позиции";
+        $("cameraStatus").textContent="Камера: нет данных о позиции";
         return;
     }
 
@@ -2171,16 +2190,12 @@ function updateReplayCamera(players){
     if(!pos)return;
 
     if(!player.viewAngles){
-        $("cameraStatus").textContent=
-            "Камера: направление недоступно";
+        $("cameraStatus").textContent="Камера: направление недоступно";
         return;
     }
 
-    const yaw=
-        player.viewAngles.yaw*Math.PI/180;
-
-    const pitch=
-        player.viewAngles.pitch*Math.PI/180;
+    const yaw=player.viewAngles.yaw*Math.PI/180;
+    const pitch=player.viewAngles.pitch*Math.PI/180;
 
     const direction=new THREE.Vector3(
         Math.cos(yaw)*Math.cos(pitch),
@@ -2191,12 +2206,7 @@ function updateReplayCamera(players){
     const eyeHeight=1.7;
 
     threeCamera.up.set(0,1,0);
-
-    threeCamera.position.set(
-        pos.x,
-        pos.y+eyeHeight,
-        pos.z
-    );
+    threeCamera.position.set(pos.x,pos.y+eyeHeight,pos.z);
 
     threeCamera.lookAt(
         pos.x+direction.x*20,
@@ -2207,8 +2217,7 @@ function updateReplayCamera(players){
     threeCamera.fov=75;
     threeCamera.updateProjectionMatrix();
 
-    $("cameraStatus").textContent=
-        "Камера: "+player.name;
+    $("cameraStatus").textContent="Камера: "+player.name;
 }
 
 // =====================================
@@ -2216,23 +2225,11 @@ function updateReplayCamera(players){
 // =====================================
 
 function updateCamera(){
-    if(!threeCamera||replayCameraMode==="follow"){
-        return;
-    }
+    if(!threeCamera||replayCameraMode==="follow")return;
 
-    const x=
-        cameraRadius*
-        Math.sin(cameraPhi)*
-        Math.cos(cameraTheta);
-
-    const y=
-        cameraRadius*
-        Math.cos(cameraPhi);
-
-    const z=
-        cameraRadius*
-        Math.sin(cameraPhi)*
-        Math.sin(cameraTheta);
+    const x=cameraRadius*Math.sin(cameraPhi)*Math.cos(cameraTheta);
+    const y=cameraRadius*Math.cos(cameraPhi);
+    const z=cameraRadius*Math.sin(cameraPhi)*Math.sin(cameraTheta);
 
     threeCamera.position.set(x,y,z);
     threeCamera.up.set(0,1,0);
@@ -2245,7 +2242,6 @@ function updateCamera(){
 
 function addCameraControls(container){
     const canvas=threeRenderer.domElement;
-
     canvas.style.touchAction="none";
 
     canvas.addEventListener("pointerdown",event=>{
@@ -2267,12 +2263,7 @@ function addCameraControls(container){
     });
 
     canvas.addEventListener("pointermove",event=>{
-        if(
-            !dragActive||
-            replayCameraMode==="follow"
-        ){
-            return;
-        }
+        if(!dragActive||replayCameraMode==="follow")return;
 
         const dx=event.clientX-lastMouseX;
         const dy=event.clientY-lastMouseY;
@@ -2301,7 +2292,6 @@ function addCameraControls(container){
         );
 
         updateCamera();
-
     },{passive:false});
 }
 
@@ -2310,9 +2300,7 @@ function addCameraControls(container){
 // =====================================
 
 function animate3D(){
-    if(!threeRenderer||!threeScene||!threeCamera){
-        return;
-    }
+    if(!threeRenderer||!threeScene||!threeCamera)return;
 
     if(threeAnimationFrame!==null){
         cancelAnimationFrame(threeAnimationFrame);
@@ -2325,13 +2313,8 @@ function animate3D(){
             return;
         }
 
-        threeRenderer.render(
-            threeScene,
-            threeCamera
-        );
-
-        threeAnimationFrame=
-            requestAnimationFrame(render);
+        threeRenderer.render(threeScene,threeCamera);
+        threeAnimationFrame=requestAnimationFrame(render);
     }
 
     render();
@@ -2346,16 +2329,9 @@ function resize3D(){
 
     const container=$("replay3d");
 
-    if(
-        !container.clientWidth||
-        !container.clientHeight
-    ){
-        return;
-    }
+    if(!container.clientWidth||!container.clientHeight)return;
 
-    threeCamera.aspect=
-        container.clientWidth/container.clientHeight;
-
+    threeCamera.aspect=container.clientWidth/container.clientHeight;
     threeCamera.updateProjectionMatrix();
 
     threeRenderer.setSize(
@@ -2368,37 +2344,22 @@ function resize3D(){
 // СОБЫТИЯ
 // =====================================
 
-$("replayTimeline").addEventListener(
-    "pointerdown",
-    ()=>{
-        timelineDragging=true;
-    }
-);
-
-$("replayTimeline").addEventListener(
-    "pointercancel",
-    ()=>{
-        timelineDragging=false;
-    }
-);
-
-$("nickname").addEventListener(
-    "keydown",
-    event=>{
-        if(event.key==="Enter"){
-            searchPlayer();
-        }
-    }
-);
-
-window.addEventListener("resize",()=>{
-    if(currentData){
-        drawElo();
-    }
-
-    resize3D();
+$("replayTimeline").addEventListener("pointerdown",()=>{
+    timelineDragging=true;
 });
 
+$("replayTimeline").addEventListener("pointercancel",()=>{
+    timelineDragging=false;
+});
+
+$("nickname").addEventListener("keydown",event=>{
+    if(event.key==="Enter")searchPlayer();
+});
+
+window.addEventListener("resize",()=>{
+    if(currentData)drawElo();
+    resize3D();
+});
 </script>
 </body>
 </html>
